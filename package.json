@@ -1,0 +1,16 @@
+{
+  "name": "sophia",
+  "version": "0.0.0",
+  "repo": "clibs/sophia",
+  "description": "modern emeddable key-value database",
+  "keywords": [
+    "sophia",
+    "database",
+    "key/value"
+  ],
+  "license": "MIT",
+  "src": [
+    "sophia.c",
+    "sophia.h"
+  ]
+}
