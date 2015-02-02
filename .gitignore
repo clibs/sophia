@@ -12,5 +12,4 @@ test/sophia
 test/dir
 test/logdir
 test/run
-sophia.h
-sophia.c
+
