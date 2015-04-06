@@ -16,11 +16,6 @@ sd_vifflags(sv *v) {
 	return ((sdv*)v->v)->flags;
 }
 
-static void
-sd_vifflagsadd(sv *v, uint32_t flags) {
-	((sdv*)v->v)->flags |= flags;
-}
-
 static uint64_t
 sd_viflsn(sv *v) {
 	return ((sdv*)v->v)->lsn;
@@ -56,34 +51,13 @@ sd_vifvaluesize(sv *v) {
 	return ((sdv*)v->v)->valuesize;
 }
 
-static uint64_t
-sd_vifoffset(sv *v) {
-	return ((sdv*)v->v)->valueoffset;
-}
-
-static char*
-sd_vifraw(sv *v) {
-	return v->v;
-}
-
-static uint32_t
-sd_vifrawsize(sv *v) {
-	return sizeof(sdv) + ((sdv*)v->v)->keysize;
-}
-
 svif sd_vif =
 {
-	.flags       = sd_vifflags,
-	.flagsadd    = sd_vifflagsadd,
-	.lsn         = sd_viflsn,
-	.lsnset      = NULL,
-	.key         = sd_vifkey,
-	.keysize     = sd_vifkeysize,
-	.value       = sd_vifvalue,
-	.valuesize   = sd_vifvaluesize,
-	.valueoffset = sd_vifoffset,
-	.raw         = sd_vifraw,
-	.rawsize     = sd_vifrawsize,
-	.ref         = NULL,
-	.unref       = NULL 
+	.flags     = sd_vifflags,
+	.lsn       = sd_viflsn,
+	.lsnset    = NULL,
+	.key       = sd_vifkey,
+	.keysize   = sd_vifkeysize,
+	.value     = sd_vifvalue,
+	.valuesize = sd_vifvaluesize
 };

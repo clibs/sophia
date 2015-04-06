@@ -103,6 +103,9 @@ so_destroy(soobj *o, va_list args srunused)
 	rc = so_objindex_destroy(&e->db);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	rc = so_objindex_destroy(&e->db_shutdown);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	rc = sl_poolshutdown(&e->lp);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -113,6 +116,7 @@ so_destroy(soobj *o, va_list args srunused)
 	so_ctlfree(&e->ctl);
 	sr_quotafree(&e->quota);
 	sr_mutexfree(&e->apilock);
+	sr_spinlockfree(&e->dblock);
 	sr_seqfree(&e->seq);
 	sr_pagerfree(&e->pager);
 	so_statusfree(&e->status);
@@ -174,27 +178,30 @@ soobj *so_new(void)
 		free(e);
 		return NULL;
 	}
-	sr_allocopen(&e->a, &sr_astd);
-	sr_allocopen(&e->a_db, &sr_aslab, &e->pager, sizeof(sodb));
-	sr_allocopen(&e->a_v, &sr_aslab, &e->pager, sizeof(sov));
-	sr_allocopen(&e->a_cursor, &sr_aslab, &e->pager, sizeof(socursor));
-	sr_allocopen(&e->a_cursorcache, &sr_aslab, &e->pager, sizeof(sicachebranch));
-	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
-	sr_allocopen(&e->a_snapshot, &sr_aslab, &e->pager, sizeof(sosnapshot));
-	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
-	sr_allocopen(&e->a_sxv, &sr_aslab, &e->pager, sizeof(sxv));
+	sr_aopen(&e->a, &sr_stda);
+	sr_aopen(&e->a_db, &sr_slaba, &e->pager, sizeof(sodb));
+	sr_aopen(&e->a_v, &sr_slaba, &e->pager, sizeof(sov));
+	sr_aopen(&e->a_cursor, &sr_slaba, &e->pager, sizeof(socursor));
+	sr_aopen(&e->a_cursorcache, &sr_slaba, &e->pager, sizeof(sicachebranch));
+	sr_aopen(&e->a_ctlcursor, &sr_slaba, &e->pager, sizeof(soctlcursor));
+	sr_aopen(&e->a_snapshot, &sr_slaba, &e->pager, sizeof(sosnapshot));
+	sr_aopen(&e->a_tx, &sr_slaba, &e->pager, sizeof(sotx));
+	sr_aopen(&e->a_sxv, &sr_slaba, &e->pager, sizeof(sxv));
 	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);
+	so_objindex_init(&e->db_shutdown);
 	so_objindex_init(&e->tx);
 	so_objindex_init(&e->snapshot);
 	so_objindex_init(&e->ctlcursor);
 	sr_mutexinit(&e->apilock);
+	sr_spinlockinit(&e->dblock);
 	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
-	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, &e->ei);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, &e->ei, crc, NULL);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);
 	sx_init(&e->xm, &e->r, &e->a_sxv);

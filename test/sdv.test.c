@@ -14,7 +14,7 @@
 #include <sophia.h>
 
 static void
-addv(sdbuild *b, uint64_t lsn, uint8_t flags, int *key)
+addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
 	svlocal l;
 	l.lsn         = lsn;
@@ -24,65 +24,61 @@ addv(sdbuild *b, uint64_t lsn, uint8_t flags, int *key)
 	l.value       = key;
 	l.valuesize   = sizeof(int);
 	sv lv;
-	svinit(&lv, &sv_localif, &l, NULL);
-	sd_buildadd(b, &lv, flags & SVDUP);
+	sv_init(&lv, &sv_localif, &l, NULL);
+	sd_buildadd(b, r, &lv, flags & SVDUP);
 }
 
 static void
 sdv_test(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
-	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &r, 1, 0) == 0);
 	int i = 7;
 	int j = 8;
-	addv(&b, 3, SVSET, &i);
-	addv(&b, 4, SVSET, &j);
-	sd_buildend(&b);
+	addv(&b, &r, 3, SVSET, &i);
+	addv(&b, &r, 4, SVSET, &j);
+	sd_buildend(&b, &r);
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &buf) == 0 );
+	t( sd_buildwritepage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
 
 	sriter it;
-	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, UINT64_MAX);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sd_pageiter, &it, &r);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, UINT64_MAX);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v != NULL );
 	t( v->i == &sd_vif );
 
-	t( *(int*)svkey(v) == i );
-	t( svvalueoffset(v) == 4 );
-	sr_iternext(&it);
-	t( sr_iterhas(&it) != 0 );
+	t( *(int*)sv_key(v) == i );
+	sr_iteratornext(&it);
+	t( sr_iteratorhas(&it) != 0 );
 
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( v != NULL );
 	t( v->i == &sd_vif );
 	
-	t( *(int*)svkey(v) == j );
-	t( svlsn(v) == 4 );
-	t( svflags(v) == SVSET );
-	svflagsadd(v, SVDUP);
-	t( svflags(v) == (SVSET|SVDUP) );
+	t( *(int*)sv_key(v) == j );
+	t( sv_lsn(v) == 4 );
+	t( sv_flags(v) == SVSET );
 
-	t( svvalueoffset(v) == 12 );
-
-	sd_buildfree(&b);
+	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
 }
 

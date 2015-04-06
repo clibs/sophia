@@ -25,12 +25,12 @@ alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
 	l.value       = NULL;
 	l.valuesize   = 0;
 	sv lv;
-	svinit(&lv, &sv_localif, &l, NULL);
+	sv_init(&lv, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(a, &lv);
 	svlogv logv;
 	logv.id = 0;
 	logv.next = 0;
-	svinit(&logv.v, &sv_vif, v, NULL);
+	sv_init(&logv.v, &sv_vif, v, NULL);
 	sv_logadd(log, a, &logv, NULL);
 }
 
@@ -38,10 +38,10 @@ static void
 freelog(svlog *log, sr *c)
 {
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, c);
-	sr_iteropen(&i, &log->buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		svlogv *v = sr_iterof(&i);
+	sr_iterinit(sr_bufiter, &i, c);
+	sr_iteropen(sr_bufiter, &i, &log->buf, sizeof(svlogv));
+	for (; sr_iteratorhas(&i); sr_iteratornext(&i)) {
+		svlogv *v = sr_iteratorof(&i);
 		sr_free(c->a, v->v.v);
 	}
 	sv_logfree(log, c->a);
@@ -51,14 +51,15 @@ static void
 sliter_tx(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -87,14 +88,15 @@ static void
 sliter_tx_read_empty(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -110,21 +112,21 @@ sliter_tx_read_empty(stc *cx)
 
 	sl *current = srcast(lp.list.prev, sl, link);
 	sriter li;
-	sr_iterinit(&li, &sl_iter, &r);
-	t( sr_iteropen(&li, &current->file, 1) == 0 );
+	sr_iterinit(sl_iter, &li, &r);
+	t( sr_iteropen(sl_iter, &li, &current->file, 1) == 0 );
 	for (;;) {
 		// begin
-		while (sr_iterhas(&li)) {
-			sv *v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 7 );
-			sr_iternext(&li);
+		while (sr_iteratorhas(&li)) {
+			sv *v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 7 );
+			sr_iteratornext(&li);
 		}
-		t( sl_itererror(&li) == 0 );
+		t( sl_iter_error(&li) == 0 );
 		// commit
-		if (! sl_itercontinue(&li) )
+		if (! sl_iter_continue(&li) )
 			break;
 	}
-	sr_iterclose(&li);
+	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
 }
@@ -133,14 +135,15 @@ static void
 sliter_tx_read0(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -161,21 +164,21 @@ sliter_tx_read0(stc *cx)
 
 	sl *current = srcast(lp.list.prev, sl, link);
 	sriter li;
-	sr_iterinit(&li, &sl_iter, &r);
-	t( sr_iteropen(&li, &current->file, 1) == 0 );
+	sr_iterinit(sl_iter, &li, &r);
+	t( sr_iteropen(sl_iter, &li, &current->file, 1) == 0 );
 	for (;;) {
 		// begin
-		while (sr_iterhas(&li)) {
-			sv *v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 7 );
-			sr_iternext(&li);
+		while (sr_iteratorhas(&li)) {
+			sv *v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 7 );
+			sr_iteratornext(&li);
 		}
-		t( sl_itererror(&li) == 0 );
+		t( sl_iter_error(&li) == 0 );
 		// commit
-		if (! sl_itercontinue(&li) )
+		if (! sl_iter_continue(&li) )
 			break;
 	}
-	sr_iterclose(&li);
+	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
 }
@@ -184,14 +187,15 @@ static void
 sliter_tx_read1(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -214,30 +218,30 @@ sliter_tx_read1(stc *cx)
 
 	sl *current = srcast(lp.list.prev, sl, link);
 	sriter li;
-	sr_iterinit(&li, &sl_iter, &r);
-	t( sr_iteropen(&li, &current->file, 1) == 0 );
+	sr_iterinit(sl_iter, &li, &r);
+	t( sr_iteropen(sl_iter, &li, &current->file, 1) == 0 );
 	for (;;) {
 		// begin
-		t( sr_iterhas(&li) == 1 );
-		sv *v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 7 );
-		sr_iternext(&li);
-		t( sr_iterhas(&li) == 1 );
-		v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 8 );
-		sr_iternext(&li);
-		t( sr_iterhas(&li) == 1 );
-		v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 9 );
-		sr_iternext(&li);
-		t( sr_iterhas(&li) == 0 );
+		t( sr_iteratorhas(&li) == 1 );
+		sv *v = sr_iteratorof(&li);
+		t( *(int*)sv_key(v) == 7 );
+		sr_iteratornext(&li);
+		t( sr_iteratorhas(&li) == 1 );
+		v = sr_iteratorof(&li);
+		t( *(int*)sv_key(v) == 8 );
+		sr_iteratornext(&li);
+		t( sr_iteratorhas(&li) == 1 );
+		v = sr_iteratorof(&li);
+		t( *(int*)sv_key(v) == 9 );
+		sr_iteratornext(&li);
+		t( sr_iteratorhas(&li) == 0 );
 
-		t( sl_itererror(&li) == 0 );
+		t( sl_iter_error(&li) == 0 );
 		// commit
-		if (! sl_itercontinue(&li) )
+		if (! sl_iter_continue(&li) )
 			break;
 	}
-	sr_iterclose(&li);
+	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
 }
@@ -246,14 +250,15 @@ static void
 sliter_tx_read2(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -280,30 +285,30 @@ sliter_tx_read2(stc *cx)
 
 	sl *current = srcast(lp.list.prev, sl, link);
 	sriter li;
-	sr_iterinit(&li, &sl_iter, &r);
-	t( sr_iteropen(&li, &current->file, 1) == 0 );
+	sr_iterinit(sl_iter, &li, &r);
+	t( sr_iteropen(sl_iter, &li, &current->file, 1) == 0 );
 	for (;;) {
 		// begin
-		t( sr_iterhas(&li) == 1 );
-		sv *v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 7 );
-		sr_iternext(&li);
-		t( sr_iterhas(&li) == 1 );
-		v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 8 );
-		sr_iternext(&li);
-		t( sr_iterhas(&li) == 1 );
-		v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 9 );
-		sr_iternext(&li);
+		t( sr_iteratorhas(&li) == 1 );
+		sv *v = sr_iteratorof(&li);
+		t( *(int*)sv_key(v) == 7 );
+		sr_iteratornext(&li);
+		t( sr_iteratorhas(&li) == 1 );
+		v = sr_iteratorof(&li);
+		t( *(int*)sv_key(v) == 8 );
+		sr_iteratornext(&li);
+		t( sr_iteratorhas(&li) == 1 );
+		v = sr_iteratorof(&li);
+		t( *(int*)sv_key(v) == 9 );
+		sr_iteratornext(&li);
 
-		t( sr_iterhas(&li) == 0 );
-		t( sl_itererror(&li) == 0 );
+		t( sr_iteratorhas(&li) == 0 );
+		t( sl_iter_error(&li) == 0 );
 		// commit
-		if (! sl_itercontinue(&li) )
+		if (! sl_iter_continue(&li) )
 			break;
 	}
-	sr_iterclose(&li);
+	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
 }
@@ -312,14 +317,15 @@ static void
 sliter_tx_read3(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -368,63 +374,63 @@ sliter_tx_read3(stc *cx)
 
 	sl *current = srcast(lp.list.prev, sl, link);
 	sriter li;
-	sr_iterinit(&li, &sl_iter, &r);
-	t( sr_iteropen(&li, &current->file, 1) == 0 );
+	sr_iterinit(sl_iter, &li, &r);
+	t( sr_iteropen(sl_iter, &li, &current->file, 1) == 0 );
 	for (;;) {
 		sv *v;
 		// begin
 		switch (state) {
 		case 0:
-			t( sr_iterhas(&li) == 1 );
-			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 7 );
-			sr_iternext(&li);
-			v = sr_iterof(&li);
+			t( sr_iteratorhas(&li) == 1 );
+			v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 7 );
+			sr_iteratornext(&li);
+			v = sr_iteratorof(&li);
 			t( v == NULL );
 			break;
 		case 1:
-			t( sr_iterhas(&li) == 1 );
-			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 8 );
-			sr_iternext(&li);
-			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 9 );
-			sr_iternext(&li);
-			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 10 );
-			sr_iternext(&li);
-			v = sr_iterof(&li);
+			t( sr_iteratorhas(&li) == 1 );
+			v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 8 );
+			sr_iteratornext(&li);
+			v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 9 );
+			sr_iteratornext(&li);
+			v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 10 );
+			sr_iteratornext(&li);
+			v = sr_iteratorof(&li);
 			t( v == NULL );
 			break;
 		case 2:
-			t( sr_iterhas(&li) == 1 );
-			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 11 );
-			sr_iternext(&li);
-			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 12 );
-			sr_iternext(&li);
-			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 13 );
-			sr_iternext(&li);
-			v = sr_iterof(&li);
+			t( sr_iteratorhas(&li) == 1 );
+			v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 11 );
+			sr_iteratornext(&li);
+			v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 12 );
+			sr_iteratornext(&li);
+			v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 13 );
+			sr_iteratornext(&li);
+			v = sr_iteratorof(&li);
 			t( v == NULL );
 			break;
 		case 3:
-			t( sr_iterhas(&li) == 1 );
-			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 14 );
-			sr_iternext(&li);
-			v = sr_iterof(&li);
+			t( sr_iteratorhas(&li) == 1 );
+			v = sr_iteratorof(&li);
+			t( *(int*)sv_key(v) == 14 );
+			sr_iteratornext(&li);
+			v = sr_iteratorof(&li);
 			t( v == NULL );
 			break;
 		}
 		// commit
-		if (! sl_itercontinue(&li) )
+		if (! sl_iter_continue(&li) )
 			break;
 		state++;
 	}
-	sr_iterclose(&li);
+	sr_iteratorclose(&li);
 	t( state == 3);
 
 	t( sl_poolshutdown(&lp) == 0 );

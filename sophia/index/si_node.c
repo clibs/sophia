@@ -58,12 +58,13 @@ si_noderecover(sinode *n, sr *r)
 {
 	/* recover branches */
 	sriter i;
-	sr_iterinit(&i, &sd_recover, r);
-	sr_iteropen(&i, &n->file);
+	sr_iterinit(sd_recover, &i, r);
+	sr_iteropen(sd_recover, &i, &n->file);
 	int first = 1;
 	int rc;
-	while (sr_iterhas(&i)) {
-		sdindexheader *h = sr_iterof(&i);
+	while (sr_iteratorhas(&i))
+	{
+		sdindexheader *h = sr_iteratorof(&i);
 		sibranch *b;
 		if (first) {
 			b =  &n->self;
@@ -84,15 +85,15 @@ si_noderecover(sinode *n, sr *r)
 		n->branch_count++;
 
 		first = 0;
-		sr_iternext(&i);
+		sr_iteratornext(&i);
 	}
-	rc = sd_recovercomplete(&i);
+	rc = sd_recover_complete(&i);
 	if (srunlikely(rc == -1))
 		goto error;
-	sr_iterclose(&i);
+	sr_iteratorclose(&i);
 	return 0;
 error:
-	sr_iterclose(&i);
+	sr_iteratorclose(&i);
 	return -1;
 }
 
@@ -130,7 +131,7 @@ int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
 		               path.path, strerror(errno));
 		return -1;
 	}
-	rc = sd_buildwrite(build, &n->self.index, &n->file);
+	rc = sd_buildwrite(build, r, &n->self.index, &n->file);
 	if (srunlikely(rc == -1))
 		return -1;
 	n->branch = &n->self;

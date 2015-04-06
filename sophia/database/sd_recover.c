@@ -21,14 +21,6 @@ struct sdrecover {
 	srmap map;
 } srpacked;
 
-static void
-sd_recoverinit(sriter *i)
-{
-	assert(sizeof(sdrecover) <= sizeof(i->priv));
-	sdrecover *ri = (sdrecover*)i->priv;
-	memset(ri, 0, sizeof(*ri));
-}
-
 static int
 sd_recovernext_of(sriter *i, sdindexheader *next)
 {
@@ -43,7 +35,7 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 		return 0;
 	}
 	/* validate crc */
-	uint32_t crc = sr_crcs(next, sizeof(sdindexheader), 0);
+	uint32_t crc = sr_crcs(i->r->crc, next, sizeof(sdindexheader), 0);
 	if (next->crc != crc) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad index crc",
 		               ri->file->file);
@@ -68,7 +60,7 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	}
 	/* check seal */
 	sdseal *s = (sdseal*)(end - sizeof(sdseal));
-	int rc = sd_sealvalidate(s, next);
+	int rc = sd_sealvalidate(s, i->r, next);
 	if (srunlikely(rc == -1)) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad seal",
 		               ri->file->file);
@@ -81,11 +73,11 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	return 1;
 }
 
-static int
-sd_recoveropen(sriter *i, va_list args)
+int sd_recover_open(sriter *i, srfile *file)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
-	ri->file = va_arg(args, srfile*);
+	memset(ri, 0, sizeof(*ri));
+	ri->file = file;
 	if (srunlikely(ri->file->size < (sizeof(sdindexheader) + sizeof(sdseal)))) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad size",
 		               ri->file->file);
@@ -98,7 +90,6 @@ sd_recoveropen(sriter *i, va_list args)
 		               ri->file->file, strerror(errno));
 		return -1;
 	}
-	ri->v = NULL;
 	sdindexheader *next = (sdindexheader*)((char*)ri->map.p);
 	rc = sd_recovernext_of(i, next);
 	if (srunlikely(rc == -1))
@@ -143,15 +134,13 @@ sd_recovernext(sriter *i)
 
 sriterif sd_recover =
 {
-	.init    = sd_recoverinit,
-	.open    = sd_recoveropen,
 	.close   = sd_recoverclose,
 	.has     = sd_recoverhas,
 	.of      = sd_recoverof,
 	.next    = sd_recovernext
 };
 
-int sd_recovercomplete(sriter *i)
+int sd_recover_complete(sriter *i)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
 	if (srunlikely(ri->actual == NULL))

@@ -26,14 +26,6 @@ struct sliter {
 } srpacked;
 
 static void
-sl_iterinit(sriter *i)
-{
-	assert(sizeof(sliter) <= sizeof(i->priv));
-	sliter *li = (sliter*)i->priv;
-	memset(li, 0, sizeof(*li));
-}
-
-static void
 sl_iterseterror(sliter *i)
 {
 	i->error = 1;
@@ -74,11 +66,11 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 	{
 		uint32_t crc = 0;
 		if (! (next->flags & SVBEGIN)) {
-			crc = sr_crcp(start + sizeof(slv), next->keysize, 0);
-			crc = sr_crcp(start + sizeof(slv) + next->keysize,
+			crc = sr_crcp(i->r->crc, start + sizeof(slv), next->keysize, 0);
+			crc = sr_crcp(i->r->crc, start + sizeof(slv) + next->keysize,
 			              next->valuesize, crc);
 		}
-		crc = sr_crcs(start, sizeof(slv), crc);
+		crc = sr_crcs(i->r->crc, start, sizeof(slv), crc);
 		if (srunlikely(crc != next->crc)) {
 			sr_malfunction(i->r->e, "corrupted log file '%s': bad record crc",
 			               li->log->file);
@@ -96,7 +88,7 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 		return 0;
 	}
 	li->v = next;
-	svinit(&li->current, &sl_vif, li->v, NULL);
+	sv_init(&li->current, &sl_vif, li->v, NULL);
 	return 1;
 }
 
@@ -144,16 +136,12 @@ sl_iterprepare(sriter *i)
 	return 0;
 }
 
-static int
-sl_iteropen(sriter *i, va_list args)
+int sl_iter_open(sriter *i, srfile *file, int validate)
 {
 	sliter *li = (sliter*)i->priv;
-	li->log      = va_arg(args, srfile*);
-	li->validate = va_arg(args, int);
-	li->v        = NULL;
-	li->next     = NULL;
-	li->pos      = 0;
-	li->count    = 0;
+	memset(li, 0, sizeof(*li));
+	li->log      = file;
+	li->validate = validate;
 	if (srunlikely(li->log->size < sizeof(srversion))) {
 		sr_malfunction(i->r->e, "corrupted log file '%s': bad size",
 		               li->log->file);
@@ -174,21 +162,21 @@ sl_iteropen(sriter *i, va_list args)
 }
 
 static void
-sl_iterclose(sriter *i srunused)
+sl_iter_close(sriter *i srunused)
 {
 	sliter *li = (sliter*)i->priv;
 	sr_mapunmap(&li->map);
 }
 
 static int
-sl_iterhas(sriter *i)
+sl_iter_has(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	return li->v != NULL;
 }
 
 static void*
-sl_iterof(sriter *i)
+sl_iter_of(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	if (srunlikely(li->v == NULL))
@@ -197,7 +185,7 @@ sl_iterof(sriter *i)
 }
 
 static void
-sl_iternext(sriter *i)
+sl_iter_next(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	if (srunlikely(li->v == NULL))
@@ -211,21 +199,19 @@ sl_iternext(sriter *i)
 
 sriterif sl_iter =
 {
-	.init    = sl_iterinit,
-	.open    = sl_iteropen,
-	.close   = sl_iterclose,
-	.has     = sl_iterhas,
-	.of      = sl_iterof,
-	.next    = sl_iternext
+	.close   = sl_iter_close,
+	.has     = sl_iter_has,
+	.of      = sl_iter_of,
+	.next    = sl_iter_next
 };
 
-int sl_itererror(sriter *i)
+int sl_iter_error(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	return li->error;
 }
 
-int sl_itercontinue(sriter *i)
+int sl_iter_continue(sriter *i)
 {
 	return sl_itercontinue_of(i);
 }

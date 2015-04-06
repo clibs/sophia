@@ -1,5 +1,5 @@
-#ifndef SR_ASLAB_H_
-#define SR_ASLAB_H_
+#ifndef SR_LZ4FILTER_H_
+#define SR_LZ4FILTER_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-extern sraif sr_aslab;
+extern srfilterif sr_lz4filter;
 
 #endif

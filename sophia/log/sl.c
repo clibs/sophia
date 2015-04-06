@@ -133,10 +133,10 @@ sl_poolrecover(slpool *p)
 		return sr_malfunction(p->r->e, "log directory '%s' open error",
 		                      p->conf->path);
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, p->r);
-	sr_iteropen(&i, &list, sizeof(srdirid));
-	while(sr_iterhas(&i)) {
-		srdirid *id = sr_iterof(&i);
+	sr_iterinit(sr_bufiter, &i, p->r);
+	sr_iteropen(sr_bufiter, &i, &list, sizeof(srdirid));
+	while(sr_iterhas(sr_bufiter, &i)) {
+		srdirid *id = sr_iterof(sr_bufiter, &i);
 		sl *l = sl_open(p, id->id);
 		if (srunlikely(l == NULL)) {
 			sr_buffree(&list, p->r->a);
@@ -144,7 +144,7 @@ sl_poolrecover(slpool *p)
 		}
 		sr_listappend(&p->list, &l->link);
 		p->n++;
-		sr_iternext(&i);
+		sr_iternext(sr_bufiter, &i);
 	}
 	sr_buffree(&list, p->r->a);
 	if (p->n) {
@@ -414,11 +414,12 @@ int sl_prepare(slpool *p, svlog *vlog, uint64_t lsn)
 	else
 		sl_follow(p, lsn);
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &vlog->buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		svlogv *v = sr_iterof(&i);
-		svlsnset(&v->v, lsn);
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &vlog->buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+	{
+		svlogv *v = sr_iterof(sr_bufiter, &i);
+		sv_lsnset(&v->v, lsn);
 	}
 	return 0;
 }
@@ -427,18 +428,18 @@ static inline void
 sl_write_prepare(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
-	lv->lsn       = svlsn(v);
+	lv->lsn       = sv_lsn(v);
 	lv->dsn       = logv->id;
-	lv->flags     = svflags(v);
-	lv->valuesize = svvaluesize(v);
-	lv->keysize   = svkeysize(v);
+	lv->flags     = sv_flags(v);
+	lv->valuesize = sv_valuesize(v);
+	lv->keysize   = sv_keysize(v);
 	lv->reserve   = 0;
-	lv->crc       = sr_crcp(svkey(v), lv->keysize, 0);
-	lv->crc       = sr_crcp(svvalue(v), lv->valuesize, lv->crc);
-	lv->crc       = sr_crcs(lv, sizeof(slv), lv->crc);
+	lv->crc       = sr_crcp(p->r->crc, sv_key(v), lv->keysize, 0);
+	lv->crc       = sr_crcp(p->r->crc, sv_value(v), lv->valuesize, lv->crc);
+	lv->crc       = sr_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
 	sr_iovadd(&p->iov, lv, sizeof(slv));
-	sr_iovadd(&p->iov, svkey(v), lv->keysize);
-	sr_iovadd(&p->iov, svvalue(v), lv->valuesize);
+	sr_iovadd(&p->iov, sv_key(v), lv->keysize);
+	sr_iovadd(&p->iov, sv_value(v), lv->valuesize);
 	((svv*)v->v)->log = t->l;
 }
 
@@ -477,14 +478,14 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	lv->valuesize = sv_logcount(vlog);
 	lv->keysize   = 0;
 	lv->reserve   = 0;
-	lv->crc       = sr_crcs(lv, sizeof(slv), 0);
+	lv->crc       = sr_crcs(p->r->crc, lv, sizeof(slv), 0);
 	sr_iovadd(&p->iov, lv, sizeof(slv));
 	lvp++;
 	/* body */
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, p->r);
-	sr_iteropen(&i, &vlog->buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	sr_iterinit(sr_bufiter, &i, p->r);
+	sr_iteropen(sr_bufiter, &i, &vlog->buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
 		if (srunlikely(! sr_iovensure(&p->iov, 3))) {
 			rc = sr_filewritev(&l->file, &p->iov);
@@ -496,7 +497,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 			sr_iovreset(&p->iov);
 			lvp = 0;
 		}
-		svlogv *logv = sr_iterof(&i);
+		svlogv *logv = sr_iterof(sr_bufiter, &i);
 		assert(logv->v.i == &sv_vif);
 		lv = &lvbuf[lvp];
 		sl_write_prepare(p, t, lv, logv);
@@ -527,7 +528,7 @@ int sl_write(sltx *t, svlog *vlog)
 		rc = sl_write_stmt(t, vlog);
 	} else {
 		svlogv *lv = (svlogv*)vlog->buf.s;
-		uint64_t lsn = svlsn(&lv->v);
+		uint64_t lsn = sv_lsn(&lv->v);
 		rc = sl_write_multi_stmt(t, vlog, lsn);
 	}
 	if (srunlikely(rc == -1))

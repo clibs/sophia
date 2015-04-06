@@ -37,16 +37,17 @@ int sd_indexbegin(sdindex *i, sr *r, uint32_t keysize, uint64_t offset)
 	return 0;
 }
 
-int sd_indexcommit(sdindex *i, sdid *id)
+int sd_indexcommit(sdindex *i, sr *r, sdid *id)
 {
 	i->h      = sd_indexheader(i);
 	i->h->id  = *id;
-	i->h->crc = sr_crcs(i->h, sizeof(sdindexheader), 0);
+	i->h->crc = sr_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
 	return 0;
 }
 
 int sd_indexadd(sdindex *i, sr *r, uint64_t offset,
                 uint32_t size,
+                uint32_t sizeorigin,
                 uint32_t count,
                 char *min, int sizemin,
                 char *max, int sizemax,
@@ -60,15 +61,15 @@ int sd_indexadd(sdindex *i, sr *r, uint64_t offset,
 		return sr_error(r->e, "%s", "memory allocation failed");
 	i->h = sd_indexheader(i);
 	sdindexpage *p = (sdindexpage*)i->i.p;
-	p->offset   = offset;
-	p->size     = size;
-	p->sizemin  = sizemin;
-	p->sizemax  = sizemax;
-	p->lsnmin   = lsnmin;
-	p->lsnmax   = lsnmax;
+	p->offset     = offset;
+	p->size       = size;
+	p->sizeorigin = sizeorigin;
+	p->sizemin    = sizemin;
+	p->sizemax    = sizemax;
+	p->lsnmin     = lsnmin;
+	p->lsnmax     = lsnmax;
 	memcpy(sd_indexpage_min(p), min, sizemin);
 	memcpy(sd_indexpage_max(p), max, sizemax);
-	memset(p->reserve, 0, sizeof(p->reserve));
 	int padding = i->h->block - (sizeof(sdindexpage) + sizemin + sizemax);
 	if (padding > 0)
 		memset(sd_indexpage_max(p) + sizemax, 0, padding);

@@ -28,9 +28,11 @@ so_cursorobj(soobj *obj, va_list args srunused)
 static inline int
 so_cursorseek(socursor *c, void *key, int keysize)
 {
+	sov *pref = (sov*)c->key;
 	siquery q;
 	si_queryopen(&q, &c->db->r, &c->cache,
 	             &c->db->index, c->order, c->t.vlsn,
+	             pref->prefix, pref->prefixsize,
 	             key, keysize);
 	int rc = si_query(&q);
 	so_vrelease(&c->v);
@@ -54,6 +56,7 @@ so_cursordestroy(soobj *o, va_list args srunused)
 {
 	socursor *c = (socursor*)o;
 	so *e = so_of(o);
+	uint32_t id = c->t.id;
 	sx_end(&c->t);
 	si_cachefree(&c->cache, &c->db->r);
 	if (c->key) {
@@ -62,6 +65,7 @@ so_cursordestroy(soobj *o, va_list args srunused)
 	}
 	so_vrelease(&c->v);
 	so_objindex_unregister(&c->db->cursor, &c->o);
+	so_dbunbind(e, id);
 	sr_free(&e->a_cursor, c);
 	return 0;
 }
@@ -78,7 +82,7 @@ so_cursorget(soobj *o, va_list args srunused)
 		return 0;
 	if (srunlikely(! so_vhas(&c->v)))
 		return 0;
-	int rc = so_cursorseek(c, svkey(&c->v.v), svkeysize(&c->v.v));
+	int rc = so_cursorseek(c, sv_key(&c->v.v), sv_keysize(&c->v.v));
 	if (srunlikely(rc <= 0))
 		return NULL;
 	return &c->v;
@@ -134,10 +138,12 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	si_cacheinit(&c->cache, &e->a_cursorcache);
 
 	/* open cursor */
-	void *key = svkey(&o->v);
-	uint32_t keysize = svkeysize(&o->v);
-	if (keysize == 0)
-		key = NULL;
+	void *key = sv_key(&o->v);
+	uint32_t keysize = sv_keysize(&o->v);
+	if (keysize == 0) {
+		key = o->prefix;
+		keysize = o->prefixsize;
+	}
 	sx_begin(&e->xm, &c->t, vlsn);
 	int rc = so_cursorseek(c, key, keysize);
 	if (srunlikely(rc == -1)) {
@@ -162,6 +168,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	if (rc == 1)
 		c->ready = 1;
 
+	so_dbbind(e);
 	so_objindex_register(&db->cursor, &c->o);
 	return &c->o;
 error:

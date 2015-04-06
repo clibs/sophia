@@ -65,6 +65,7 @@ st_scene_create(stscene *g, stc *cx)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "compaction.page_checksum", "1") == 0 );
 	t( sp_set(c, "log.enable", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -72,6 +73,7 @@ st_scene_create(stscene *g, stc *cx)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.compression", "none") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	cx->db = sp_get(c, "db.test");
 	t( cx->db != NULL );

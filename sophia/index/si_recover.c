@@ -55,19 +55,22 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 		return NULL;
 	}
 	sdbuild build;
-	sd_buildinit(&build, r);
-	rc = sd_buildbegin(&build);
+	sd_buildinit(&build);
+	rc = sd_buildbegin(&build, r,
+	                   i->conf->node_page_checksum,
+	                   i->conf->compression);
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
-		sd_buildfree(&build);
+		sd_buildfree(&build, r);
 		si_nodefree(n, r, 0);
 		return NULL;
 	}
-	sd_buildend(&build);
+	sd_buildend(&build, r);
 	sdpageheader *h = sd_buildheader(&build);
 	rc = sd_indexadd(&index, r,
 	                 sd_buildoffset(&build),
 	                 h->size + sizeof(sdpageheader),
+	                 h->sizeorigin + sizeof(sdpageheader),
 	                 h->count,
 	                 NULL,
 	                 0,
@@ -81,9 +84,9 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 		return NULL;
 	}
 	sd_buildcommit(&build);
-	sd_indexcommit(&index, &id);
+	sd_indexcommit(&index, r, &id);
 	rc = si_nodecreate(n, r, i->conf, &id, &index, &build);
-	sd_buildfree(&build);
+	sd_buildfree(&build, r);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
 		return NULL;
@@ -332,19 +335,35 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 		p = sr_rbnext(&track->i, p);
 	}
 	sriter i;
-	sr_iterinit(&i, &sr_bufiterref, r);
-	sr_iteropen(&i, buf, sizeof(sinode*));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sinode *n = sr_iterof(&i);
+	sr_iterinit(sr_bufiterref, &i, r);
+	sr_iteropen(sr_bufiterref, &i, buf, sizeof(sinode*));
+	while (sr_iterhas(sr_bufiterref, &i))
+	{
+		sinode *n = sr_iterof(sr_bufiterref, &i);
 		if (n->recover & SI_RDB_REMOVE) {
 			int rc = si_nodefree(n, r, 1);
 			if (srunlikely(rc == -1))
 				return -1;
+			sr_iternext(sr_bufiterref, &i);
 			continue;
 		}
 		n->recover = SI_RDB;
 		si_insert(index, r, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
+		sr_iternext(sr_bufiterref, &i);
+	}
+	return 0;
+}
+
+static inline int
+si_recoverdrop(si *i, sr *r)
+{
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/drop", i->conf->path);
+	if (sr_fileexists(path)) {
+		sr_malfunction(r->e, "attempt to recover a dropped database: %s:",
+		               i->conf->path);
+		return -1;
 	}
 	return 0;
 }
@@ -356,7 +375,10 @@ si_recoverindex(si *i, sr *r)
 	si_trackinit(&track);
 	srbuf buf;
 	sr_bufinit(&buf);
-	int rc = si_trackdir(&track, r, i);
+	int rc = si_recoverdrop(i, r);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = si_trackdir(&track, r, i);
 	if (srunlikely(rc == -1))
 		goto error;
 	if (srunlikely(track.count == 0)) {
@@ -388,5 +410,9 @@ int si_recover(si *i, sr *r)
 	int exist = sr_fileexists(i->conf->path);
 	if (exist == 0)
 		return si_deploy(i, r);
+	if (i->conf->path_fail_on_exists) {
+		sr_error(r->e, "directory '%s' is exists.", i->conf->path);
+		return -1;
+	}
 	return si_recoverindex(i, r);
 }

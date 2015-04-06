@@ -14,10 +14,13 @@ typedef struct siconf siconf;
 struct siconf {
 	char     *name;
 	char     *path;
+	int       path_fail_on_exists;
 	char     *path_backup;
 	int       sync;
 	uint64_t  node_size;
 	uint32_t  node_page_size;
+	uint32_t  node_page_checksum;
+	uint32_t  compression;
 };
 
 #endif

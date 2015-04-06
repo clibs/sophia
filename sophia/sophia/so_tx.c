@@ -35,22 +35,19 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
-	int status = so_status(&db->status);
-	if (srunlikely(! so_statusactive_is(status)))
-		goto error;
-	if (srunlikely(status == SO_RECOVER))
+	if (srunlikely(! so_online(&db->status)))
 		goto error;
 
 	/* prepare object */
 	svlocal l;
 	l.flags       = flags;
 	l.lsn         = 0;
-	l.key         = svkey(ov);
-	l.keysize     = svkeysize(ov);
-	l.value       = svvalue(ov);
-	l.valuesize   = svvaluesize(ov);
+	l.key         = sv_key(ov);
+	l.keysize     = sv_keysize(ov);
+	l.value       = sv_value(ov);
+	l.valuesize   = sv_valuesize(ov);
 	sv vp;
-	svinit(&vp, &sv_localif, &l, NULL);
+	sv_init(&vp, &sv_localif, &l, NULL);
 
 	/* ensure quota */
 	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
@@ -76,7 +73,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	svlogv lv;
 	lv.id = db->ctl.id;
 	lv.next = 0;
-	svinit(&lv.v, &sv_vif, v, NULL);
+	sv_init(&lv.v, &sv_vif, v, NULL);
 	svlog log;
 	sv_loginit(&log);
 	sv_logadd(&log, db->r.a, &lv, db);
@@ -116,8 +113,8 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
-	uint32_t keysize = svkeysize(&o->v);
-	void *key = svkey(&o->v);
+	uint32_t keysize = sv_keysize(&o->v);
+	void *key = sv_key(&o->v);
 	if (srunlikely(key == NULL)) {
 		sr_error(&e->error, "%s", "bad arguments");
 		goto error;
@@ -127,7 +124,7 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
-	if (srunlikely(! so_dbactive(db)))
+	if (srunlikely(! so_online(&db->status)))
 		goto error;
 
 	sx_getstmt(&e->xm, &db->coindex);
@@ -138,7 +135,8 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 	si_cacheinit(&cache, &e->a_cursorcache);
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
-	             SR_EQ, vlsn, key, keysize);
+	             SR_EQ, vlsn,
+	             NULL, 0, key, keysize);
 	sv result;
 	int rc = si_query(&q);
 	if (rc == 1) {
@@ -181,24 +179,37 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
-	sodb *db = (sodb*)parent;
 	if (t->t.s == SXPREPARE) {
 		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
 		goto error;
 	}
-	if (srunlikely(! so_dbactive(db)))
-		goto error;
+
+	/* validate database status */
+	sodb *db = (sodb*)parent;
+	int status = so_status(&db->status);
+	switch (status) {
+	case SO_ONLINE:
+	case SO_RECOVER:
+		break;
+	case SO_SHUTDOWN:
+		if (srunlikely(! so_dbvisible(db, t->t.id))) {
+			sr_error(&e->error, "%s", "database is invisible for the transaction");
+			goto error;
+		}
+		break;
+	default: goto error;
+	}
 
 	/* prepare object */
 	svlocal l;
 	l.flags       = flags;
-	l.lsn         = svlsn(ov);
-	l.key         = svkey(ov);
-	l.keysize     = svkeysize(ov);
-	l.value       = svvalue(ov);
-	l.valuesize   = svvaluesize(ov);
+	l.lsn         = sv_lsn(ov);
+	l.key         = sv_key(ov);
+	l.keysize     = sv_keysize(ov);
+	l.value       = sv_value(ov);
+	l.valuesize   = sv_valuesize(ov);
 	sv vp;
-	svinit(&vp, &sv_localif, &l, NULL);
+	sv_init(&vp, &sv_localif, &l, NULL);
 
 	/* ensure quota */
 	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
@@ -241,7 +252,7 @@ so_txget(soobj *obj, va_list args)
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
-	void *key = svkey(&o->v);
+	void *key = sv_key(&o->v);
 	if (srunlikely(key == NULL)) {
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
@@ -251,9 +262,22 @@ so_txget(soobj *obj, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
+
+	/* validate database status */
 	sodb *db = (sodb*)parent;
-	if (srunlikely(! so_dbactive(db)))
-		goto error;
+	int status = so_status(&db->status);
+	switch (status) {
+	case SO_ONLINE:
+	case SO_RECOVER:
+		break;
+	case SO_SHUTDOWN:
+		if (srunlikely(! so_dbvisible(db, t->t.id))) {
+			sr_error(&e->error, "%s", "database is invisible for the transaction");
+			goto error;
+		}
+		break;
+	default: goto error;
+	}
 
 	soobj *ret;
 	sv result;
@@ -276,7 +300,8 @@ so_txget(soobj *obj, va_list args)
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_EQ, t->t.vlsn,
-	             key, svkeysize(&o->v));
+	             NULL, 0,
+	             key, sv_keysize(&o->v));
 	rc = si_query(&q);
 	if (rc == 1) {
 		rc = si_querydup(&q, &result);
@@ -300,6 +325,7 @@ static inline void
 so_txend(sotx *t)
 {
 	so *e = so_of(&t->o);
+	so_dbunbind(e, t->t.id);
 	so_objindex_unregister(&e->tx, &t->o);
 	sr_free(&e->a_tx, t);
 }
@@ -328,7 +354,8 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_UPDATE, t->vlsn,
-	             svkey(v), svkeysize(v));
+	             NULL, 0,
+	             sv_key(v), sv_keysize(v));
 	int rc;
 	rc = si_query(&q);
 	si_queryclose(&q);
@@ -470,6 +497,7 @@ soobj *so_txnew(so *e)
 	}
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
 	sx_begin(&e->xm, &t->t, 0);
+	so_dbbind(e);
 	so_objindex_register(&e->tx, &t->o);
 	return &t->o;
 }

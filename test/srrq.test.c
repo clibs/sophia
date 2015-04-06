@@ -14,7 +14,7 @@ static void
 srrq_test0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 1, 10) == 0 );
 
@@ -25,7 +25,7 @@ static void
 srrq_test1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 1, 10) == 0 );
 
@@ -49,13 +49,17 @@ srrq_test1(stc *cx srunused)
 		i--;
 	}
 	sr_rqfree(&q, &a);
+
+	sr_free(&a, an);
+	sr_free(&a, bn);
+	sr_free(&a, cn);
 }
 
 static void
 srrq_test2(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 1, 10) == 0 );
 
@@ -80,13 +84,16 @@ srrq_test2(stc *cx srunused)
 		i--;
 	}
 	sr_rqfree(&q, &a);
+	sr_free(&a, an);
+	sr_free(&a, bn);
+	sr_free(&a, cn);
 }
 
 static void
 srrq_test3(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 1, 10) == 0 );
 
@@ -111,13 +118,16 @@ srrq_test3(stc *cx srunused)
 		i = 1;
 	}
 	sr_rqfree(&q, &a);
+	sr_free(&a, an);
+	sr_free(&a, bn);
+	sr_free(&a, cn);
 }
 
 static void
 srrq_test4(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 1, 10) == 0 );
 
@@ -142,13 +152,16 @@ srrq_test4(stc *cx srunused)
 		i--;
 	}
 	sr_rqfree(&q, &a);
+	sr_free(&a, an);
+	sr_free(&a, bn);
+	sr_free(&a, cn);
 }
 
 static void
 srrq_test5(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 1, 10) == 0 );
 
@@ -176,13 +189,16 @@ srrq_test5(stc *cx srunused)
 			i = 1;
 	}
 	sr_rqfree(&q, &a);
+	sr_free(&a, an);
+	sr_free(&a, bn);
+	sr_free(&a, cn);
 }
 
 static void
 srrq_test6(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 1, 10) == 0 );
 
@@ -209,13 +225,16 @@ srrq_test6(stc *cx srunused)
 		i--;
 	}
 	sr_rqfree(&q, &a);
+	sr_free(&a, an);
+	sr_free(&a, bn);
+	sr_free(&a, cn);
 }
 
 static void
 srrq_test7(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 1, 10) == 0 );
 
@@ -242,13 +261,16 @@ srrq_test7(stc *cx srunused)
 	}
 	t( i == 0 );
 	sr_rqfree(&q, &a);
+	sr_free(&a, an);
+	sr_free(&a, bn);
+	sr_free(&a, cn);
 }
 
 static void
 srrq_test8(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srrq q;
 	t( sr_rqinit(&q, &a, 10, 100) == 0 );
 
@@ -274,6 +296,10 @@ srrq_test8(stc *cx srunused)
 	while ((n = sr_rqprev(&q, n)))
 		i -= 10;
 	sr_rqfree(&q, &a);
+	sr_free(&a, an);
+	sr_free(&a, bn);
+	sr_free(&a, cn);
+	sr_free(&a, dn);
 }
 
 stgroup *srrq_group(void)

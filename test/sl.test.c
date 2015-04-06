@@ -25,12 +25,12 @@ alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
 	l.value       = NULL;
 	l.valuesize   = 0;
 	sv lv;
-	svinit(&lv, &sv_localif, &l, NULL);
+	sv_init(&lv, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(a, &lv);
 	svlogv logv;
 	logv.id = 0;
 	logv.next = 0;
-	svinit(&logv.v, &sv_vif, v, NULL);
+	sv_init(&logv.v, &sv_vif, v, NULL);
 	sv_logadd(log, a, &logv, NULL);
 }
 
@@ -38,10 +38,10 @@ static void
 freelog(svlog *log, sr *c)
 {
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, c);
-	sr_iteropen(&i, &log->buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		svlogv *v = sr_iterof(&i);
+	sr_iterinit(sr_bufiter, &i, c);
+	sr_iteropen(sr_bufiter, &i, &log->buf, sizeof(svlogv));
+	for (; sr_iteratorhas(&i); sr_iteratornext(&i)) {
+		svlogv *v = sr_iteratorof(&i);
 		sr_free(c->a, v->v.v);
 	}
 	sv_logfree(log, c->a);
@@ -51,14 +51,15 @@ static void
 sl_begin_commit(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -87,14 +88,15 @@ static void
 sl_begin_rollback(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,

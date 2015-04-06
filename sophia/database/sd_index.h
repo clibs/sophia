@@ -34,11 +34,11 @@ struct sdindexheader {
 struct sdindexpage {
 	uint64_t offset;
 	uint32_t size;
+	uint32_t sizeorigin;
 	uint16_t sizemin;
 	uint16_t sizemax;
 	uint64_t lsnmin;
 	uint64_t lsnmax;
-	char     reserve[16];
 } srpacked;
 
 struct sdindex {
@@ -115,16 +115,6 @@ sd_indextotal(sdindex *i)
 }
 
 static inline uint32_t
-sd_indextotal_kv(sdindex *i)
-{
-	if (srunlikely(i->h == NULL))
-		return 0;
-	return sd_indexheader(i)->total -
-	       sd_indexheader(i)->count * sizeof(sdpageheader) -
-	       sd_indexheader(i)->keys * sizeof(sdv);
-}
-
-static inline uint32_t
 sd_indexsize(sdindexheader *h)
 {
 	return sizeof(sdindexheader) + h->count * h->block;
@@ -147,9 +137,9 @@ sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
 }
 
 int sd_indexbegin(sdindex*, sr*, uint32_t, uint64_t);
-int sd_indexcommit(sdindex*, sdid*);
+int sd_indexcommit(sdindex*, sr*, sdid*);
 int sd_indexadd(sdindex*, sr*, uint64_t, uint32_t, uint32_t,
-                char*, int, char*, int,
+                uint32_t, char*, int, char*, int,
                 uint32_t, uint64_t, uint64_t, uint64_t);
 int sd_indexcopy(sdindex*, sr*, sdindexheader*);
 

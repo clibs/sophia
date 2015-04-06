@@ -55,6 +55,15 @@ so_vset(soobj *obj, va_list args)
 		v->lv.valuesize = va_arg(args, int);
 		return 0;
 	} else
+	if (strcmp(name, "prefix") == 0) {
+		if (v->v.i != &sv_localif) {
+			sr_error(&e->error, "%s", "bad object operation");
+			return -1;
+		}
+		v->prefix = va_arg(args, char*);
+		v->prefixsize = va_arg(args, int);
+		return 0;
+	} else
 	if (strcmp(name, "log") == 0) {
 		v->log = va_arg(args, void*);
 		return 0;
@@ -79,22 +88,30 @@ so_vget(soobj *obj, va_list args)
 	so *e = so_of(obj);
 	char *name = va_arg(args, char*);
 	if (strcmp(name, "key") == 0) {
-		void *key = svkey(&v->v);
+		void *key = sv_key(&v->v);
 		if (srunlikely(key == NULL))
 			return NULL;
 		int *keysize = va_arg(args, int*);
 		if (keysize)
-			*keysize = svkeysize(&v->v);
+			*keysize = sv_keysize(&v->v);
 		return key;
 	} else
 	if (strcmp(name, "value") == 0) {
-		void *value = svvalue(&v->v);
+		void *value = sv_value(&v->v);
 		if (srunlikely(value == NULL))
 			return NULL;
 		int *valuesize = va_arg(args, int*);
 		if (valuesize)
-			*valuesize = svvaluesize(&v->v);
+			*valuesize = sv_valuesize(&v->v);
 		return value;
+	} else
+	if (strcmp(name, "prefix") == 0) {
+		if (srunlikely(v->prefix == NULL))
+			return NULL;
+		int *prefixsize = va_arg(args, int*);
+		if (prefixsize)
+			*prefixsize = v->prefixsize;
+		return v->prefix;
 	} else
 	if (strcmp(name, "lsn") == 0) {
 		uint64_t *lsnp = NULL;
@@ -158,7 +175,7 @@ soobj *so_vinit(sov *v, so *e, soobj *parent)
 {
 	memset(v, 0, sizeof(*v));
 	so_objinit(&v->o, SOV, &sovif, &e->o);
-	svinit(&v->v, &sv_localif, &v->lv, NULL);
+	sv_init(&v->v, &sv_localif, &v->lv, NULL);
 	v->order = SR_GTE;
 	v->parent = parent;
 	return &v->o;

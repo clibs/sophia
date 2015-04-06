@@ -58,12 +58,13 @@ mt_single_stmt(stc *cx)
 	t( sp_open(cx->env) == 0 );
 
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
 	soworkers w;
 	so_workersinit(&w);
 	t( so_workersnew(&w, &r, 5, single_stmt_thread, cx->db) == 0 );
@@ -126,12 +127,13 @@ mt_multi_stmt(stc *cx)
 	t( sp_open(cx->env) == 0 );
 
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
 	soworkers w;
 	so_workersinit(&w);
 	void *ptr[2] = { cx->env, cx->db };
@@ -196,12 +198,13 @@ mt_multi_stmt_conflict(stc *cx)
 	t( sp_open(cx->env) == 0 );
 
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
 	soworkers w;
 	so_workersinit(&w);
 	void *ptr[2] = { cx->env, cx->db };

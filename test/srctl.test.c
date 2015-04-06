@@ -14,11 +14,11 @@ static void
 srctl_set_cc(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, NULL, NULL, NULL);
 	src root = {
 		"test", SR_CC, NULL, NULL, NULL
 	};
@@ -49,11 +49,11 @@ static void
 srctl_set_cc_trigger(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, NULL, NULL, NULL);
 	src root = {
 		"test", SR_CC, srctl_set_cc_trigger_f, NULL, NULL
 	};
@@ -82,11 +82,11 @@ static void
 srctl_set_u32(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, NULL, NULL, NULL);
 	uint32_t value = 0;
 	src root = {
 		"test", SR_CU32, srctl_set_u32_f, &value, NULL
@@ -107,11 +107,11 @@ static void
 srctl_set_cc_u32(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, NULL, NULL, NULL);
 	uint32_t value = 0;
 	src u32cc = {
 		"u32", SR_CU32, srctl_set_u32_f, &value, NULL
@@ -135,11 +135,11 @@ static void
 srctl_set_cc_cc_u32(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, NULL, NULL, NULL);
 	uint32_t value = 0;
 	src u32v = {
 		"u32", SR_CU32, srctl_set_u32_f, &value , NULL
@@ -166,11 +166,11 @@ static void
 srctl_set_cc_cc_u32_bad(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, NULL, NULL, NULL);
 	uint32_t value = 0;
 	src u32v = {
 		"u32", SR_CU32, srctl_set_u32_f, &value, NULL
@@ -205,11 +205,11 @@ static void
 srctl_serialize0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, NULL, NULL, NULL);
 	uint32_t value0 = 8;
 	uint64_t value1 = UINT64_MAX;
 

@@ -57,6 +57,32 @@ int sx_indexfree(sxindex *i, sxmanager *m)
 	return 0;
 }
 
+uint32_t sx_min(sxmanager *m)
+{
+	sr_spinlock(&m->lock);
+	uint32_t id = 0;
+	if (m->count) {
+		srrbnode *node = sr_rbmin(&m->i);
+		sx *min = srcast(node, sx, node);
+		id = min->id;
+	}
+	sr_spinunlock(&m->lock);
+	return id;
+}
+
+uint32_t sx_max(sxmanager *m)
+{
+	sr_spinlock(&m->lock);
+	uint32_t id = 0;
+	if (m->count) {
+		srrbnode *node = sr_rbmax(&m->i);
+		sx *max = srcast(node, sx, node);
+		id = max->id;
+	}
+	sr_spinunlock(&m->lock);
+	return id;
+}
+
 uint64_t sx_vlsn(sxmanager *m)
 {
 	sr_spinlock(&m->lock);
@@ -127,12 +153,12 @@ sxstate sx_end(sx *t)
 sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
 {
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &t->log.buf, sizeof(svlogv));
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
 	sxstate s;
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(&i);
+		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* cancelled by a concurrent commited
 		 * transaction */
@@ -160,11 +186,11 @@ sxstate sx_commit(sx *t)
 	assert(t->s == SXPREPARE);
 	sxmanager *m = t->manager;
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &t->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(&i);
+		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* mark waiters as aborted */
 		sx_vabortwaiters(v);
@@ -178,7 +204,7 @@ sxstate sx_commit(sx *t)
 		/* unlink version */
 		sx_vunlink(v);
 		/* translate log version from sxv to svv */
-		svinit(&lv->v, &sv_vif, v->v, NULL);
+		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		sr_free(m->asxv, v);
 	}
 	t->s = SXCOMMIT;
@@ -189,11 +215,11 @@ sxstate sx_rollback(sx *t)
 {
 	sxmanager *m = t->manager;
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &t->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(&i);
+		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* remove from index and replace head with
 		 * a first waiter */
@@ -229,7 +255,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	svlogv lv;
 	lv.id   = index->dsn;
 	lv.next = 0;
-	svinit(&lv.v, &sx_vif, v, NULL);
+	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
 	srrbnode *n = NULL;
 	int rc = sx_match(&index->i, index->cmp,
@@ -274,8 +300,8 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 {
 	sxmanager *m = t->manager;
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, svkey(key),
-	                  svkeysize(key), &n);
+	int rc = sx_match(&index->i, index->cmp, sv_key(key),
+	                  sv_keysize(key), &n);
 	if (! (rc == 0 && n))
 		return 0;
 	sxv *head = srcast(n, sxv, node);
@@ -285,11 +311,11 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 	if (srunlikely((v->v->flags & SVDELETE) > 0))
 		return 2;
 	sv vv;
-	svinit(&vv, &sv_vif, v->v, NULL);
+	sv_init(&vv, &sv_vif, v->v, NULL);
 	svv *ret = sv_valloc(m->r->a, &vv);
 	if (srunlikely(ret == NULL))
 		return sr_error(m->r->e, "%s", "memory allocation failed");
-	svinit(result, &sv_vif, ret, NULL);
+	sv_init(result, &sv_vif, ret, NULL);
 	return 1;
 }
 
@@ -297,7 +323,7 @@ sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
 {
 	sr_seq(m->r->seq, SR_TSNNEXT);
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, svkey(v), svkeysize(v), &n);
+	int rc = sx_match(&index->i, index->cmp, sv_key(v), sv_keysize(v), &n);
 	if (rc == 0 && n)
 		return SXLOCK;
 	return SXCOMMIT;
