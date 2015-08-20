@@ -9,7 +9,6 @@
  * BSD License
 */
 
-int si_compaction(si*, sr*, sdc*, uint64_t, sinode*, sriter*,
-                  uint32_t, uint32_t);
+int si_compaction(si*, sdc*, uint64_t, sinode*, ssiter*, uint32_t);
 
 #endif

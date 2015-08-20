@@ -10,8 +10,8 @@
 /* amalgamation build
  *
  * version:     1.2
- * build:       aebf6d1
- * build date:  Mon Apr  6 10:32:23 EDT 2015
+ * build:       2ee55eb
+ * build date:  Thu Aug 20 18:17:59 EDT 2015
  *
  * compilation:
  * cc -O2 -DNDEBUG -std=c99 -pedantic -Wall -Wextra -pthread -c sophia.c
@@ -19,11 +19,11 @@
 
 /* {{{ */
 
-#define SOPHIA_BUILD "aebf6d1"
+#define SOPHIA_BUILD "2ee55eb"
 
-#line 1 "sophia/rt/sr_stdc.h"
-#ifndef SR_STDC_H_
-#define SR_STDC_H_
+#line 1 "sophia/std/ss_stdc.h"
+#ifndef SS_STDC_H_
+#define SS_STDC_H_
 
 /*
  * sophia database
@@ -67,9 +67,9 @@
 #endif
 
 #endif
-#line 1 "sophia/rt/sr_macro.h"
-#ifndef SR_MACRO_H_
-#define SR_MACRO_H_
+#line 1 "sophia/std/ss_macro.h"
+#ifndef SS_MACRO_H_
+#define SS_MACRO_H_
 
 /*
  * sophia database
@@ -80,27 +80,29 @@
 */
 
 #if __GNUC__ >= 4 && __GNUC_MINOR__ >= 3
-#  define srhot __attribute__((hot))
+#  define sshot __attribute__((hot))
 #else
-#  define srhot
+#  define sshot
 #endif
 
-#define srpacked __attribute__((packed))
-#define srunused __attribute__((unused))
-#define srinline __attribute__((always_inline))
+#define sspacked __attribute__((packed))
+#define ssunused __attribute__((unused))
+#define ssinline __attribute__((always_inline))
 
-#define srcast(N, T, F) ((T*)((char*)(N) - __builtin_offsetof(T, F)))
+#define sscast(N, T, F) ((T*)((char*)(N) - __builtin_offsetof(T, F)))
 
-#define srlikely(EXPR)   __builtin_expect(!! (EXPR), 1)
-#define srunlikely(EXPR) __builtin_expect(!! (EXPR), 0)
+#define sslikely(EXPR)   __builtin_expect(!! (EXPR), 1)
+#define ssunlikely(EXPR) __builtin_expect(!! (EXPR), 0)
 
-#define sr_templatecat(a, b) sr_##a##b
-#define sr_template(a, b) sr_templatecat(a, b)
+#define ss_templatecat(a, b) ss_##a##b
+#define ss_template(a, b) ss_templatecat(a, b)
+
+#define ss_cmp(a, b) ((a) == (b) ? 0 : (((a) > (b)) ? 1 : -1))
 
 #endif
-#line 1 "sophia/rt/sr_version.h"
-#ifndef SR_VERSION_H_
-#define SR_VERSION_H_
+#line 1 "sophia/std/ss_time.h"
+#ifndef SS_TIME_H_
+#define SS_TIME_H_
 
 /*
  * sophia database
@@ -110,67 +112,13 @@
  * BSD License
 */
 
-#define SR_VERSION_MAGIC  8529643324614668147ULL
-#define SR_VERSION_A '1'
-#define SR_VERSION_B '2'
-#define SR_VERSION_C '1'
-
-#if defined(SOPHIA_BUILD)
-# define SR_VERSION_COMMIT SOPHIA_BUILD
-#else
-# define SR_VERSION_COMMIT "unknown"
-#endif
-
-typedef struct srversion srversion;
-
-struct srversion {
-	uint64_t magic;
-	uint8_t  a, b, c;
-} srpacked;
-
-static inline void
-sr_version(srversion *v)
-{
-	v->magic = SR_VERSION_MAGIC;
-	v->a = SR_VERSION_A;
-	v->b = SR_VERSION_B;
-	v->c = SR_VERSION_C;
-}
-
-static inline int
-sr_versioncheck(srversion *v)
-{
-	if (v->magic != SR_VERSION_MAGIC)
-		return 0;
-	if (v->a != SR_VERSION_A)
-		return 0;
-	if (v->b != SR_VERSION_B)
-		return 0;
-	if (v->c != SR_VERSION_C)
-		return 0;
-	return 1;
-}
+void     ss_sleep(uint64_t);
+uint64_t ss_utime(void);
 
 #endif
-#line 1 "sophia/rt/sr_time.h"
-#ifndef SR_TIME_H_
-#define SR_TIME_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-void     sr_sleep(uint64_t);
-uint64_t sr_utime(void);
-
-#endif
-#line 1 "sophia/rt/sr_spinlock.h"
-#ifndef SR_LOCK_H_
-#define SR_LOCK_H_
+#line 1 "sophia/std/ss_spinlock.h"
+#ifndef SS_LOCK_H_
+#define SS_LOCK_H_
 
 /*
  * sophia database
@@ -181,30 +129,30 @@ uint64_t sr_utime(void);
 */
 
 #if 0
-typedef pthread_spinlock_t srspinlock;
+typedef pthread_spinlock_t ssspinlock;
 
 static inline void
-sr_spinlockinit(srspinlock *l) {
+ss_spinlockinit(ssspinlock *l) {
 	pthread_spin_init(l, 0);
 }
 
 static inline void
-sr_spinlockfree(srspinlock *l) {
+ss_spinlockfree(ssspinlock *l) {
 	pthread_spin_destroy(l);
 }
 
 static inline void
-sr_spinlock(srspinlock *l) {
+ss_spinlock(ssspinlock *l) {
 	pthread_spin_lock(l);
 }
 
 static inline void
-sr_spinunlock(srspinlock *l) {
+ss_spinunlock(ssspinlock *l) {
 	pthread_spin_unlock(l);
 }
 #endif
 
-typedef uint8_t srspinlock;
+typedef uint8_t ssspinlock;
 
 #if defined(__x86_64__) || defined(__i386) || defined(_X86_)
 # define CPU_PAUSE __asm__ ("pause")
@@ -213,17 +161,17 @@ typedef uint8_t srspinlock;
 #endif
 
 static inline void
-sr_spinlockinit(srspinlock *l) {
+ss_spinlockinit(ssspinlock *l) {
 	*l = 0;
 }
 
 static inline void
-sr_spinlockfree(srspinlock *l) {
+ss_spinlockfree(ssspinlock *l) {
 	*l = 0;
 }
 
 static inline void
-sr_spinlock(srspinlock *l) {
+ss_spinlock(ssspinlock *l) {
 	if (__sync_lock_test_and_set(l, 1) != 0) {
 		unsigned int spin_count = 0U;
 		for (;;) {
@@ -237,14 +185,14 @@ sr_spinlock(srspinlock *l) {
 }
 
 static inline void
-sr_spinunlock(srspinlock *l) {
+ss_spinunlock(ssspinlock *l) {
 	__sync_lock_release(l);
 }
 
 #endif
-#line 1 "sophia/rt/sr_list.h"
-#ifndef SR_LIST_H_
-#define SR_LIST_H_
+#line 1 "sophia/std/ss_list.h"
+#ifndef SS_LIST_H_
+#define SS_LIST_H_
 
 /*
  * sophia database
@@ -254,19 +202,19 @@ sr_spinunlock(srspinlock *l) {
  * BSD License
 */
 
-typedef struct srlist srlist;
+typedef struct sslist sslist;
 
-struct srlist {
-	srlist *next, *prev;
+struct sslist {
+	sslist *next, *prev;
 };
 
 static inline void
-sr_listinit(srlist *h) {
+ss_listinit(sslist *h) {
 	h->next = h->prev = h;
 }
 
 static inline void
-sr_listappend(srlist *h, srlist *n) {
+ss_listappend(sslist *h, sslist *n) {
 	n->next = h;
 	n->prev = h->prev;
 	n->prev->next = n;
@@ -274,37 +222,37 @@ sr_listappend(srlist *h, srlist *n) {
 }
 
 static inline void
-sr_listunlink(srlist *n) {
+ss_listunlink(sslist *n) {
 	n->prev->next = n->next;
 	n->next->prev = n->prev;
 }
 
 static inline void
-sr_listpush(srlist *h, srlist *n) {
+ss_listpush(sslist *h, sslist *n) {
 	n->next = h->next;
 	n->prev = h;
 	n->prev->next = n;
 	n->next->prev = n;
 }
 
-static inline srlist*
-sr_listpop(srlist *h) {
-	register srlist *pop = h->next;
-	sr_listunlink(pop);
+static inline sslist*
+ss_listpop(sslist *h) {
+	register sslist *pop = h->next;
+	ss_listunlink(pop);
 	return pop;
 }
 
 static inline int
-sr_listempty(srlist *l) {
+ss_listempty(sslist *l) {
 	return l->next == l && l->prev == l;
 }
 
 static inline void
-sr_listmerge(srlist *a, srlist *b) {
-	if (srunlikely(sr_listempty(b)))
+ss_listmerge(sslist *a, sslist *b) {
+	if (ssunlikely(ss_listempty(b)))
 		return;
-	register srlist *first = b->next;
-	register srlist *last = b->prev;
+	register sslist *first = b->next;
+	register sslist *last = b->prev;
 	first->prev = a->prev;
 	a->prev->next = first;
 	last->next = a;
@@ -312,31 +260,31 @@ sr_listmerge(srlist *a, srlist *b) {
 }
 
 static inline void
-sr_listreplace(srlist *o, srlist *n) {
+ss_listreplace(sslist *o, sslist *n) {
 	n->next = o->next;
 	n->next->prev = n;
 	n->prev = o->prev;
 	n->prev->next = n;
 }
 
-#define sr_listlast(H, N) ((H) == (N))
+#define ss_listlast(H, N) ((H) == (N))
 
-#define sr_listforeach(H, I) \
+#define ss_listforeach(H, I) \
 	for (I = (H)->next; I != H; I = (I)->next)
 
-#define sr_listforeach_continue(H, I) \
+#define ss_listforeach_continue(H, I) \
 	for (; I != H; I = (I)->next)
 
-#define sr_listforeach_safe(H, I, N) \
+#define ss_listforeach_safe(H, I, N) \
 	for (I = (H)->next; I != H && (N = I->next); I = N)
 
-#define sr_listforeach_reverse(H, I) \
+#define ss_listforeach_reverse(H, I) \
 	for (I = (H)->prev; I != H; I = (I)->prev)
 
 #endif
-#line 1 "sophia/rt/sr_pager.h"
-#ifndef SR_PAGER_H_
-#define SR_PAGER_H_
+#line 1 "sophia/std/ss_pager.h"
+#ifndef SS_PAGER_H_
+#define SS_PAGER_H_
 
 /*
  * sophia database
@@ -346,39 +294,39 @@ sr_listreplace(srlist *o, srlist *n) {
  * BSD License
 */
 
-typedef struct srpagepool srpagepool;
-typedef struct srpage srpage;
-typedef struct srpager srpager;
+typedef struct sspagepool sspagepool;
+typedef struct sspage sspage;
+typedef struct sspager sspager;
 
-struct srpagepool {
+struct sspagepool {
 	uint32_t used;
-	srpagepool *next;
-} srpacked;
+	sspagepool *next;
+} sspacked;
 
-struct srpage {
-	srpagepool *pool;
-	srpage *next;
-} srpacked;
+struct sspage {
+	sspagepool *pool;
+	sspage *next;
+} sspacked;
 
-struct srpager {
+struct sspager {
 	uint32_t page_size;
 	uint32_t pool_count;
 	uint32_t pool_size;
 	uint32_t pools;
-	srpagepool *pp;
-	srpage *p;
+	sspagepool *pp;
+	sspage *p;
 };
 
-void  sr_pagerinit(srpager*, uint32_t, uint32_t);
-void  sr_pagerfree(srpager*);
-int   sr_pageradd(srpager*);
-void *sr_pagerpop(srpager*);
-void  sr_pagerpush(srpager*, srpage*);
+void  ss_pagerinit(sspager*, uint32_t, uint32_t);
+void  ss_pagerfree(sspager*);
+int   ss_pageradd(sspager*);
+void *ss_pagerpop(sspager*);
+void  ss_pagerpush(sspager*, sspage*);
 
 #endif
-#line 1 "sophia/rt/sr_a.h"
-#ifndef SR_A_H_
-#define SR_A_H_
+#line 1 "sophia/std/ss_a.h"
+#ifndef SS_A_H_
+#define SS_A_H_
 
 /*
  * sophia database
@@ -388,24 +336,24 @@ void  sr_pagerpush(srpager*, srpage*);
  * BSD License
 */
 
-typedef struct sraif sraif;
-typedef struct sra sra;
+typedef struct ssaif ssaif;
+typedef struct ssa ssa;
 
-struct sraif {
-	int   (*open)(sra*, va_list);
-	int   (*close)(sra*);
-	void *(*malloc)(sra*, int);
-	void *(*realloc)(sra*, void*, int);
-	void  (*free)(sra*, void*);
+struct ssaif {
+	int   (*open)(ssa*, va_list);
+	int   (*close)(ssa*);
+	void *(*malloc)(ssa*, int);
+	void *(*realloc)(ssa*, void*, int);
+	void  (*free)(ssa*, void*);
 };
 
-struct sra {
-	sraif *i;
+struct ssa {
+	ssaif *i;
 	char priv[48];
 };
 
 static inline int
-sr_aopen(sra *a, sraif *i, ...) {
+ss_aopen(ssa *a, ssaif *i, ...) {
 	a->i = i;
 	va_list args;
 	va_start(args, i);
@@ -415,48 +363,48 @@ sr_aopen(sra *a, sraif *i, ...) {
 }
 
 static inline int
-sr_aclose(sra *a) {
+ss_aclose(ssa *a) {
 	return a->i->close(a);
 }
 
 static inline void*
-sr_malloc(sra *a, int size) {
+ss_malloc(ssa *a, int size) {
 	return a->i->malloc(a, size);
 }
 
 static inline void*
-sr_realloc(sra *a, void *ptr, int size) {
+ss_realloc(ssa *a, void *ptr, int size) {
 	return a->i->realloc(a, ptr, size);
 }
 
 static inline void
-sr_free(sra *a, void *ptr) {
+ss_free(ssa *a, void *ptr) {
 	a->i->free(a, ptr);
 }
 
 static inline char*
-sr_strdup(sra *a, char *str) {
+ss_strdup(ssa *a, char *str) {
 	int sz = strlen(str) + 1;
-	char *s = sr_malloc(a, sz);
-	if (srunlikely(s == NULL))
+	char *s = ss_malloc(a, sz);
+	if (ssunlikely(s == NULL))
 		return NULL;
 	memcpy(s, str, sz);
 	return s;
 }
 
 static inline char*
-sr_memdup(sra *a, void *ptr, size_t size) {
-	char *s = sr_malloc(a, size);
-	if (srunlikely(s == NULL))
+ss_memdup(ssa *a, void *ptr, size_t size) {
+	char *s = ss_malloc(a, size);
+	if (ssunlikely(s == NULL))
 		return NULL;
 	memcpy(s, ptr, size);
 	return s;
 }
 
 #endif
-#line 1 "sophia/rt/sr_stda.h"
-#ifndef SR_STDA_H_
-#define SR_STDA_H_
+#line 1 "sophia/std/ss_stda.h"
+#ifndef SS_STDA_H_
+#define SS_STDA_H_
 
 /*
  * sophia database
@@ -466,12 +414,12 @@ sr_memdup(sra *a, void *ptr, size_t size) {
  * BSD License
 */
 
-extern sraif sr_stda;
+extern ssaif ss_stda;
 
 #endif
-#line 1 "sophia/rt/sr_slaba.h"
-#ifndef SR_SLABA_H_
-#define SR_SLABA_H_
+#line 1 "sophia/std/ss_slaba.h"
+#ifndef SS_SLABA_H_
+#define SS_SLABA_H_
 
 /*
  * sophia database
@@ -481,12 +429,12 @@ extern sraif sr_stda;
  * BSD License
 */
 
-extern sraif sr_slaba;
+extern ssaif ss_slaba;
 
 #endif
-#line 1 "sophia/rt/sr_error.h"
-#ifndef SR_ERROR_H_
-#define SR_ERROR_H_
+#line 1 "sophia/std/ss_trace.h"
+#ifndef SS_TRACE_H_
+#define SS_TRACE_H_
 
 /*
  * sophia database
@@ -496,131 +444,10 @@ extern sraif sr_slaba;
  * BSD License
 */
 
-typedef struct srerror srerror;
+typedef struct sstrace sstrace;
 
-enum {
-	SR_ERROR_NONE  = 0,
-	SR_ERROR = 1,
-	SR_ERROR_MALFUNCTION = 2
-};
-
-struct srerror {
-	srspinlock lock;
-	int type;
-	const char *file;
-	const char *function;
-	int line;
-	char error[256];
-};
-
-static inline void
-sr_errorinit(srerror *e) {
-	e->type = SR_ERROR_NONE;
-	e->error[0] = 0;
-	e->line = 0;
-	e->function = NULL;
-	e->file = NULL;
-	sr_spinlockinit(&e->lock);
-}
-
-static inline void
-sr_errorfree(srerror *e) {
-	sr_spinlockfree(&e->lock);
-}
-
-static inline void
-sr_errorreset(srerror *e) {
-	sr_spinlock(&e->lock);
-	e->type = SR_ERROR_NONE;
-	e->error[0] = 0;
-	e->line = 0;
-	e->function = NULL;
-	e->file = NULL;
-	sr_spinunlock(&e->lock);
-}
-
-static inline void
-sr_errorrecover(srerror *e) {
-	sr_spinlock(&e->lock);
-	assert(e->type == SR_ERROR_MALFUNCTION);
-	e->type = SR_ERROR;
-	sr_spinunlock(&e->lock);
-}
-
-static inline int
-sr_errorof(srerror *e) {
-	sr_spinlock(&e->lock);
-	int type = e->type;
-	sr_spinunlock(&e->lock);
-	return type;
-}
-
-static inline int
-sr_errorcopy(srerror *e, char *buf, int bufsize) {
-	sr_spinlock(&e->lock);
-	int len = snprintf(buf, bufsize, "%s", e->error);
-	sr_spinunlock(&e->lock);
-	return len;
-}
-
-static inline void
-sr_verrorset(srerror *e, int type,
-             const char *file,
-             const char *function, int line,
-             char *fmt, va_list args)
-{
-	sr_spinlock(&e->lock);
-	if (srunlikely(e->type == SR_ERROR_MALFUNCTION)) {
-		sr_spinunlock(&e->lock);
-		return;
-	}
-	e->file     = file;
-	e->function = function;
-	e->line     = line;
-	e->type     = type;
-	int len;
-	len = snprintf(e->error, sizeof(e->error), "%s:%d ", file, line);
-	vsnprintf(e->error + len, sizeof(e->error) - len, fmt, args);
-	sr_spinunlock(&e->lock);
-}
-
-static inline int
-sr_errorset(srerror *e, int type,
-            const char *file,
-            const char *function, int line,
-            char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	sr_verrorset(e, type, file, function, line, fmt, args);
-	va_end(args);
-	return -1;
-}
-
-#define sr_malfunction(e, fmt, ...) \
-	sr_errorset(e, SR_ERROR_MALFUNCTION, __FILE__, __FUNCTION__, \
-	            __LINE__, fmt, __VA_ARGS__)
-
-#define sr_error(e, fmt, ...) \
-	sr_errorset(e, SR_ERROR, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
-
-#endif
-#line 1 "sophia/rt/sr_trace.h"
-#ifndef SR_TRACE_H_
-#define SR_TRACE_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct srtrace srtrace;
-
-struct srtrace {
-	srspinlock lock;
+struct sstrace {
+	ssspinlock lock;
 	const char *file;
 	const char *function;
 	int line;
@@ -628,8 +455,8 @@ struct srtrace {
 };
 
 static inline void
-sr_traceinit(srtrace *t) {
-	sr_spinlockinit(&t->lock);
+ss_traceinit(sstrace *t) {
+	ss_spinlockinit(&t->lock);
 	t->message[0] = 0;
 	t->line = 0;
 	t->function = NULL;
@@ -637,52 +464,52 @@ sr_traceinit(srtrace *t) {
 }
 
 static inline void
-sr_tracefree(srtrace *t) {
-	sr_spinlockfree(&t->lock);
+ss_tracefree(sstrace *t) {
+	ss_spinlockfree(&t->lock);
 }
 
 static inline int
-sr_tracecopy(srtrace *t, char *buf, int bufsize) {
-	sr_spinlock(&t->lock);
+ss_tracecopy(sstrace *t, char *buf, int bufsize) {
+	ss_spinlock(&t->lock);
 	int len = snprintf(buf, bufsize, "%s", t->message);
-	sr_spinunlock(&t->lock);
+	ss_spinunlock(&t->lock);
 	return len;
 }
 
 static inline void
-sr_vtrace(srtrace *t,
+ss_vtrace(sstrace *t,
           const char *file,
           const char *function, int line,
           char *fmt, va_list args)
 {
-	sr_spinlock(&t->lock);
+	ss_spinlock(&t->lock);
 	t->file     = file;
 	t->function = function;
 	t->line     = line;
 	vsnprintf(t->message, sizeof(t->message), fmt, args);
-	sr_spinunlock(&t->lock);
+	ss_spinunlock(&t->lock);
 }
 
 static inline int
-sr_traceset(srtrace *t,
+ss_traceset(sstrace *t,
             const char *file,
             const char *function, int line,
             char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	sr_vtrace(t, file, function, line, fmt, args);
+	ss_vtrace(t, file, function, line, fmt, args);
 	va_end(args);
 	return -1;
 }
 
-#define sr_trace(t, fmt, ...) \
-	sr_traceset(t, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
+#define ss_trace(t, fmt, ...) \
+	ss_traceset(t, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
 
 #endif
-#line 1 "sophia/rt/sr_gc.h"
-#ifndef SR_GC_H_
-#define SR_GC_H_
+#line 1 "sophia/std/ss_gc.h"
+#ifndef SS_GC_H_
+#define SS_GC_H_
 
 /*
  * sophia database
@@ -692,106 +519,106 @@ sr_traceset(srtrace *t,
  * BSD License
 */
 
-typedef struct srgc srgc;
+typedef struct ssgc ssgc;
 
-struct srgc {
-	srspinlock lock;
+struct ssgc {
+	ssspinlock lock;
 	int mark;
 	int sweep;
 	int complete;
 };
 
 static inline void
-sr_gcinit(srgc *gc)
+ss_gcinit(ssgc *gc)
 {
-	sr_spinlockinit(&gc->lock);
+	ss_spinlockinit(&gc->lock);
 	gc->mark     = 0;
 	gc->sweep    = 0;
 	gc->complete = 0;
 }
 
 static inline void
-sr_gclock(srgc *gc) {
-	sr_spinlock(&gc->lock);
+ss_gclock(ssgc *gc) {
+	ss_spinlock(&gc->lock);
 }
 
 static inline void
-sr_gcunlock(srgc *gc) {
-	sr_spinunlock(&gc->lock);
+ss_gcunlock(ssgc *gc) {
+	ss_spinunlock(&gc->lock);
 }
 
 static inline void
-sr_gcfree(srgc *gc)
+ss_gcfree(ssgc *gc)
 {
-	sr_spinlockfree(&gc->lock);
+	ss_spinlockfree(&gc->lock);
 }
 
 static inline void
-sr_gcmark(srgc *gc, int n)
+ss_gcmark(ssgc *gc, int n)
 {
-	sr_spinlock(&gc->lock);
+	ss_spinlock(&gc->lock);
 	gc->mark += n;
-	sr_spinunlock(&gc->lock);
+	ss_spinunlock(&gc->lock);
 }
 
 static inline void
-sr_gcsweep(srgc *gc, int n)
+ss_gcsweep(ssgc *gc, int n)
 {
-	sr_spinlock(&gc->lock);
+	ss_spinlock(&gc->lock);
 	gc->sweep += n;
-	sr_spinunlock(&gc->lock);
+	ss_spinunlock(&gc->lock);
 }
 
 static inline void
-sr_gccomplete(srgc *gc)
+ss_gccomplete(ssgc *gc)
 {
-	sr_spinlock(&gc->lock);
+	ss_spinlock(&gc->lock);
 	gc->complete = 1;
-	sr_spinunlock(&gc->lock);
+	ss_spinunlock(&gc->lock);
 }
 
 static inline int
-sr_gcinprogress(srgc *gc)
+ss_gcinprogress(ssgc *gc)
 {
-	sr_spinlock(&gc->lock);
+	ss_spinlock(&gc->lock);
 	int v = gc->complete;
-	sr_spinunlock(&gc->lock);
+	ss_spinunlock(&gc->lock);
 	return !v;
 }
 
 static inline int
-sr_gcready(srgc *gc, float factor)
+ss_gcready(ssgc *gc, float factor)
 {
-	sr_spinlock(&gc->lock);
+	ss_spinlock(&gc->lock);
 	int ready = gc->sweep >= (gc->mark * factor);
 	int rc = ready && gc->complete;
-	sr_spinunlock(&gc->lock);
+	ss_spinunlock(&gc->lock);
 	return rc;
 }
 
 static inline int
-sr_gcrotateready(srgc *gc, int wm)
+ss_gcrotateready(ssgc *gc, int wm)
 {
-	sr_spinlock(&gc->lock);
+	ss_spinlock(&gc->lock);
 	int rc = gc->mark >= wm;
-	sr_spinunlock(&gc->lock);
+	ss_spinunlock(&gc->lock);
 	return rc;
 }
 
 static inline int
-sr_gcgarbage(srgc *gc)
+ss_gcgarbage(ssgc *gc)
 {
-	sr_spinlock(&gc->lock);
+	ss_spinlock(&gc->lock);
 	int ready = (gc->mark == gc->sweep);
 	int rc = gc->complete && ready;
-	sr_spinunlock(&gc->lock);
+	ss_spinunlock(&gc->lock);
 	return rc;
 }
 
 #endif
-#line 1 "sophia/rt/sr_seq.h"
-#ifndef SR_SEQ_H_
-#define SR_SEQ_H_
+#line 1 "sophia/std/ss_order.h"
+#ifndef SS_ORDER_H_
+#define SS_ORDER_H_
 
 /*
  * sophia database
@@ -802,158 +629,50 @@ sr_gcgarbage(srgc *gc)
 */
 
 typedef enum {
-	SR_DSN,
-	SR_DSNNEXT,
-	SR_NSN,
-	SR_NSNNEXT,
-	SR_BSN,
-	SR_BSNNEXT,
-	SR_LSN,
-	SR_LSNNEXT,
-	SR_LFSN,
-	SR_LFSNNEXT,
-	SR_TSN,
-	SR_TSNNEXT
-} srseqop;
+	SS_LT,
+	SS_LTE,
+	SS_GT,
+	SS_GTE,
+	SS_EQ,
+	SS_STOP
+} ssorder;
 
-typedef struct {
-	srspinlock lock;
-	uint32_t dsn;
-	uint32_t nsn;
-	uint32_t bsn;
-	uint64_t lsn;
-	uint32_t lfsn;
-	uint32_t tsn;
-} srseq;
-
-static inline void
-sr_seqinit(srseq *n) {
-	memset(n, 0, sizeof(*n));
-	sr_spinlockinit(&n->lock);
-}
-
-static inline void
-sr_seqfree(srseq *n) {
-	sr_spinlockfree(&n->lock);
-}
-
-static inline void
-sr_seqlock(srseq *n) {
-	sr_spinlock(&n->lock);
-}
-
-static inline void
-sr_sequnlock(srseq *n) {
-	sr_spinunlock(&n->lock);
-}
-
-static inline uint64_t
-sr_seqdo(srseq *n, srseqop op)
+static inline ssorder
+ss_orderof(char *order, int size)
 {
-	uint64_t v = 0;
-	switch (op) {
-	case SR_LSN:      v = n->lsn;
-		break;
-	case SR_LSNNEXT:  v = ++n->lsn;
-		break;
-	case SR_TSN:      v = n->tsn;
-		break;
-	case SR_TSNNEXT:  v = ++n->tsn;
-		break;
-	case SR_NSN:      v = n->nsn;
-		break;
-	case SR_NSNNEXT:  v = ++n->nsn;
-		break;
-	case SR_LFSN:     v = n->lfsn;
-		break;
-	case SR_LFSNNEXT: v = ++n->lfsn;
-		break;
-	case SR_DSN:      v = n->dsn;
-		break;
-	case SR_DSNNEXT:  v = ++n->dsn;
-		break;
-	case SR_BSN:      v = n->bsn;
-		break;
-	case SR_BSNNEXT:  v = ++n->bsn;
-		break;
-	}
-	return v;
-}
-
-static inline uint64_t
-sr_seq(srseq *n, srseqop op)
-{
-	sr_seqlock(n);
-	uint64_t v = sr_seqdo(n, op);
-	sr_sequnlock(n);
-	return v;
-}
-
-#endif
-#line 1 "sophia/rt/sr_order.h"
-#ifndef SR_ORDER_H_
-#define SR_ORDER_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef enum {
-	SR_LT,
-	SR_LTE,
-	SR_GT,
-	SR_GTE,
-	SR_EQ,
-	SR_UPDATE,
-	SR_ROUTE,
-	SR_RANDOM,
-	SR_STOP
-} srorder;
-
-static inline srorder
-sr_orderof(char *order)
-{
-	srorder cmp = SR_STOP;
-	if (strcmp(order, ">") == 0) {
-		cmp = SR_GT;
+	ssorder cmp = SS_STOP;
+	if (strncmp(order, ">", size) == 0) {
+		cmp = SS_GT;
 	} else
-	if (strcmp(order, ">=") == 0) {
-		cmp = SR_GTE;
+	if (strncmp(order, ">=", size) == 0) {
+		cmp = SS_GTE;
 	} else
-	if (strcmp(order, "<") == 0) {
-		cmp = SR_LT;
+	if (strncmp(order, "<", size) == 0) {
+		cmp = SS_LT;
 	} else
-	if (strcmp(order, "<=") == 0) {
-		cmp = SR_LTE;
-	} else
-	if (strcmp(order, "random") == 0) {
-		cmp = SR_RANDOM;
+	if (strncmp(order, "<=", size) == 0) {
+		cmp = SS_LTE;
 	}
 	return cmp;
 }
 
 static inline char*
-sr_ordername(srorder o)
+ss_ordername(ssorder o)
 {
 	switch (o) {
-	case SR_LT:     return "<";
-	case SR_LTE:    return "<=";
-	case SR_GT:     return ">";
-	case SR_GTE:    return ">=";
-	case SR_RANDOM: return "random";
+	case SS_LT:  return "<";
+	case SS_LTE: return "<=";
+	case SS_GT:  return ">";
+	case SS_GTE: return ">=";
 	default: break;
 	}
 	return NULL;
 }
 
 #endif
-#line 1 "sophia/rt/sr_trigger.h"
-#ifndef SR_TRIGGER_H_
-#define SR_TRIGGER_H_
+#line 1 "sophia/std/ss_trigger.h"
+#ifndef SS_TRIGGER_H_
+#define SS_TRIGGER_H_
 
 /*
  * sophia database
@@ -963,32 +682,46 @@ sr_ordername(srorder o)
  * BSD License
 */
 
-typedef int (*srtriggerf)(void *object, void *arg);
+typedef int (*sstriggerf)(void *arg);
 
-typedef struct srtrigger srtrigger;
+typedef struct sstrigger sstrigger;
 
-struct srtrigger {
-	srtriggerf func;
+struct sstrigger {
+	sstriggerf function;
 	void *arg;
 };
 
-void *sr_triggerpointer_of(char*);
-void  sr_triggerinit(srtrigger*);
-int   sr_triggerset(srtrigger*, char*);
-int   sr_triggersetarg(srtrigger*, char*);
+static inline void
+ss_triggerinit(sstrigger *t)
+{
+	t->function = NULL;
+	t->arg = NULL;
+}
 
 static inline void
-sr_triggerrun(srtrigger *t, void *object)
+ss_triggerset(sstrigger *t, void *pointer)
 {
-	if (t->func == NULL)
+	t->function = (sstriggerf)(uintptr_t)pointer;
+}
+
+static inline void
+ss_triggerset_arg(sstrigger *t, void *pointer)
+{
+	t->arg = pointer;
+}
+
+static inline void
+ss_triggerrun(sstrigger *t)
+{
+	if (t->function == NULL)
 		return;
-	t->func(object, t->arg);
+	t->function(t->arg);
 }
 
 #endif
-#line 1 "sophia/rt/sr_cmp.h"
-#ifndef SR_CMP_H_
-#define SR_CMP_H_
+#line 1 "sophia/std/ss_buf.h"
+#ifndef SS_BUF_H_
+#define SS_BUF_H_
 
 /*
  * sophia database
@@ -998,60 +731,15 @@ sr_triggerrun(srtrigger *t, void *object)
  * BSD License
 */
 
-typedef int (*srcmpf)(char *a, size_t asz, char *b, size_t bsz, void *arg);
+typedef struct ssbuf ssbuf;
 
-typedef struct srcomparator srcomparator;
-
-struct srcomparator {
-	srcmpf cmp;
-	void *cmparg;
-	srcmpf prefix;
-	void *prefixarg;
-};
-
-static inline int
-sr_compare(srcomparator *c, char *a, size_t asize, char *b, size_t bsize)
-{
-	return c->cmp(a, asize, b, bsize, c->cmparg);
-}
-
-static inline int
-sr_compareprefix(srcomparator *c, char *prefix, size_t prefixsize,
-                 char *key, size_t keysize)
-{
-	return c->prefix(prefix, prefixsize, key, keysize, c->prefixarg);
-}
-
-int sr_cmpu32(char*, size_t, char*, size_t, void*);
-int sr_cmpstring(char*, size_t, char*, size_t, void*);
-int sr_cmpstring_prefix(char*, size_t, char*, size_t, void*);
-int sr_cmpset(srcomparator*, char*);
-int sr_cmpsetarg(srcomparator*, char*);
-int sr_cmpset_prefix(srcomparator*, char*);
-int sr_cmpset_prefixarg(srcomparator*, char*);
-
-#endif
-#line 1 "sophia/rt/sr_buf.h"
-#ifndef SR_BUF_H_
-#define SR_BUF_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct srbuf srbuf;
-
-struct srbuf {
+struct ssbuf {
 	char *reserve;
 	char *s, *p, *e;
 };
 
 static inline void
-sr_bufinit(srbuf *b)
+ss_bufinit(ssbuf *b)
 {
 	b->reserve = NULL;
 	b->s = NULL;
@@ -1060,7 +748,7 @@ sr_bufinit(srbuf *b)
 }
 
 static inline void
-sr_bufinit_reserve(srbuf *b, void *buf, int size)
+ss_bufinit_reserve(ssbuf *b, void *buf, int size)
 {
 	b->reserve = buf;
 	b->s = buf;
@@ -1069,55 +757,55 @@ sr_bufinit_reserve(srbuf *b, void *buf, int size)
 }
 
 static inline void
-sr_buffree(srbuf *b, sra *a)
+ss_buffree(ssbuf *b, ssa *a)
 {
-	if (srunlikely(b->s == NULL))
+	if (ssunlikely(b->s == NULL))
 		return;
-	if (srunlikely(b->s != b->reserve))
-		sr_free(a, b->s);
+	if (ssunlikely(b->s != b->reserve))
+		ss_free(a, b->s);
 	b->s = NULL;
 	b->p = NULL;
 	b->e = NULL;
 }
 
 static inline void
-sr_bufreset(srbuf *b) {
+ss_bufreset(ssbuf *b) {
 	b->p = b->s;
 }
 
 static inline int
-sr_bufsize(srbuf *b) {
+ss_bufsize(ssbuf *b) {
 	return b->e - b->s;
 }
 
 static inline int
-sr_bufused(srbuf *b) {
+ss_bufused(ssbuf *b) {
 	return b->p - b->s;
 }
 
 static inline int
-sr_bufunused(srbuf *b) {
+ss_bufunused(ssbuf *b) {
 	return b->e - b->p;
 }
 
 static inline int
-sr_bufensure(srbuf *b, sra *a, int size)
+ss_bufensure(ssbuf *b, ssa *a, int size)
 {
-	if (srlikely(b->e - b->p >= size))
+	if (sslikely(b->e - b->p >= size))
 		return 0;
-	int sz = sr_bufsize(b) * 2;
-	int actual = sr_bufused(b) + size;
-	if (srunlikely(actual > sz))
+	int sz = ss_bufsize(b) * 2;
+	int actual = ss_bufused(b) + size;
+	if (ssunlikely(actual > sz))
 		sz = actual;
 	char *p;
-	if (srunlikely(b->s == b->reserve)) {
-		p = sr_malloc(a, sz);
-		if (srunlikely(p == NULL))
+	if (ssunlikely(b->s == b->reserve)) {
+		p = ss_malloc(a, sz);
+		if (ssunlikely(p == NULL))
 			return -1;
-		memcpy(p, b->s, sr_bufused(b));
+		memcpy(p, b->s, ss_bufused(b));
 	} else {
-		p = sr_realloc(a, b->s, sz);
-		if (srunlikely(p == NULL))
+		p = ss_realloc(a, b->s, sz);
+		if (ssunlikely(p == NULL))
 			return -1;
 	}
 	b->p = p + (b->p - b->s);
@@ -1128,13 +816,13 @@ sr_bufensure(srbuf *b, sra *a, int size)
 }
 
 static inline int
-sr_buftruncate(srbuf *b, sra *a, int size)
+ss_buftruncate(ssbuf *b, ssa *a, int size)
 {
 	assert(size <= (b->p - b->s));
 	char *p = b->reserve;
 	if (b->s != b->reserve) {
-		p = sr_realloc(a, b->s, size);
-		if (srunlikely(p == NULL))
+		p = ss_realloc(a, b->s, size);
+		if (ssunlikely(p == NULL))
 			return -1;
 	}
 	b->p = p + (b->p - b->s);
@@ -1144,44 +832,44 @@ sr_buftruncate(srbuf *b, sra *a, int size)
 }
 
 static inline void
-sr_bufadvance(srbuf *b, int size)
+ss_bufadvance(ssbuf *b, int size)
 {
 	b->p += size;
 }
 
 static inline int
-sr_bufadd(srbuf *b, sra *a, void *buf, int size)
+ss_bufadd(ssbuf *b, ssa *a, void *buf, int size)
 {
-	int rc = sr_bufensure(b, a, size);
-	if (srunlikely(rc == -1))
+	int rc = ss_bufensure(b, a, size);
+	if (ssunlikely(rc == -1))
 		return -1;
 	memcpy(b->p, buf, size);
-	sr_bufadvance(b, size);
+	ss_bufadvance(b, size);
 	return 0;
 }
 
 static inline int
-sr_bufin(srbuf *b, void *v) {
+ss_bufin(ssbuf *b, void *v) {
 	assert(b->s != NULL);
 	return (char*)v >= b->s && (char*)v < b->p;
 }
 
 static inline void*
-sr_bufat(srbuf *b, int size, int i) {
+ss_bufat(ssbuf *b, int size, int i) {
 	return b->s + size * i;
 }
 
 static inline void
-sr_bufset(srbuf *b, int size, int i, char *buf, int bufsize)
+ss_bufset(ssbuf *b, int size, int i, char *buf, int bufsize)
 {
 	assert(b->s + (size * i + bufsize) <= b->p);
 	memcpy(b->s + size * i, buf, bufsize);
 }
 
 #endif
-#line 1 "sophia/rt/sr_injection.h"
-#ifndef SR_INJECTION_H_
-#define SR_INJECTION_H_
+#line 1 "sophia/std/ss_injection.h"
+#ifndef SS_INJECTION_H_
+#define SS_INJECTION_H_
 
 /*
  * sophia database
@@ -1191,35 +879,35 @@ sr_bufset(srbuf *b, int size, int i, char *buf, int bufsize)
  * BSD License
 */
 
-typedef struct srinjection srinjection;
+typedef struct ssinjection ssinjection;
 
-#define SR_INJECTION_SD_BUILD_0      0
-#define SR_INJECTION_SD_BUILD_1      1
-#define SR_INJECTION_SI_BRANCH_0     2
-#define SR_INJECTION_SI_COMPACTION_0 3
-#define SR_INJECTION_SI_COMPACTION_1 4
-#define SR_INJECTION_SI_COMPACTION_2 5
-#define SR_INJECTION_SI_COMPACTION_3 6
-#define SR_INJECTION_SI_COMPACTION_4 7
-#define SR_INJECTION_SI_RECOVER_0    8
+#define SS_INJECTION_SD_BUILD_0      0
+#define SS_INJECTION_SD_BUILD_1      1
+#define SS_INJECTION_SI_BRANCH_0     2
+#define SS_INJECTION_SI_COMPACTION_0 3
+#define SS_INJECTION_SI_COMPACTION_1 4
+#define SS_INJECTION_SI_COMPACTION_2 5
+#define SS_INJECTION_SI_COMPACTION_3 6
+#define SS_INJECTION_SI_COMPACTION_4 7
+#define SS_INJECTION_SI_RECOVER_0    8
 
-struct srinjection {
+struct ssinjection {
 	int e[9];
 };
 
-#ifdef SR_INJECTION_ENABLE
-	#define SR_INJECTION(E, ID, X) \
+#ifdef SS_INJECTION_ENABLE
+	#define SS_INJECTION(E, ID, X) \
 	if ((E)->e[(ID)]) { \
 		X; \
 	} else {}
 #else
-	#define SR_INJECTION(E, ID, X)
+	#define SS_INJECTION(E, ID, X)
 #endif
 
 #endif
-#line 1 "sophia/rt/sr_crc.h"
-#ifndef SR_CRC_H_
-#define SR_CRC_H_
+#line 1 "sophia/std/ss_crc.h"
+#ifndef SS_CRC_H_
+#define SS_CRC_H_
 
 /*
  * sophia database
@@ -1229,20 +917,20 @@ struct srinjection {
  * BSD License
 */
 
-typedef uint32_t (*srcrcf)(uint32_t, const void*, int);
+typedef uint32_t (*sscrcf)(uint32_t, const void*, int);
 
-srcrcf sr_crc32c_function(void);
+sscrcf ss_crc32c_function(void);
 
-#define sr_crcp(F, p, size, crc) \
+#define ss_crcp(F, p, size, crc) \
 	F(crc, p, size)
 
-#define sr_crcs(F, p, size, crc) \
+#define ss_crcs(F, p, size, crc) \
 	F(crc, (char*)p + sizeof(uint32_t), size - sizeof(uint32_t))
 
 #endif
-#line 1 "sophia/rt/sr.h"
-#ifndef SR_H_
-#define SR_H_
+#line 1 "sophia/std/ss_type.h"
+#ifndef SS_TYPE_H_
+#define SS_TYPE_H_
 
 /*
  * sophia database
@@ -1252,379 +940,36 @@ srcrcf sr_crc32c_function(void);
  * BSD License
 */
 
-typedef struct sr sr;
-
-struct sr {
-	srerror *e;
-	srcomparator *cmp;
-	srseq *seq;
-	sra *a;
-	srinjection *i;
-	void *compression;
-	srcrcf crc;
-};
-
-static inline void
-sr_init(sr *r,
-        srerror *e,
-        sra *a,
-        srseq *seq,
-        srcomparator *cmp,
-        srinjection *i,
-        srcrcf crc,
-        void *compression)
-{
-	r->e   = e;
-	r->a   = a;
-	r->seq = seq;
-	r->cmp = cmp;
-	r->i   = i;
-	r->compression = compression;
-	r->crc = crc;
-}
-
-#endif
-#line 1 "sophia/rt/sr_filter.h"
-#ifndef SR_FILTER_H_
-#define SR_FILTER_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct srfilterif srfilterif;
-typedef struct srfilter srfilter;
-
 typedef enum {
-	SR_FINPUT,
-	SR_FOUTPUT
-} srfilterop;
-
-struct srfilterif {
-	char *name;
-	int (*init)(srfilter*, va_list);
-	int (*free)(srfilter*);
-	int (*reset)(srfilter*);
-	int (*start)(srfilter*, srbuf*);
-	int (*next)(srfilter*, srbuf*, char*, int);
-	int (*complete)(srfilter*, srbuf*);
-};
-
-struct srfilter {
-	srfilterif *i;
-	srfilterop op;
-	sr *r;
-	char priv[90];
-};
-
-static inline int
-sr_filterinit(srfilter *c, srfilterif *ci, sr *r, srfilterop op, ...)
-{
-	c->op = op;
-	c->r  = r;
-	c->i  = ci;
-	va_list args;
-	va_start(args, op);
-	int rc = c->i->init(c, args);
-	va_end(args);
-	return rc;
-}
-
-static inline int
-sr_filterfree(srfilter *c)
-{
-	return c->i->free(c);
-}
-
-static inline int
-sr_filterreset(srfilter *c)
-{
-	return c->i->reset(c);
-}
-
-static inline int
-sr_filterstart(srfilter *c, srbuf *dest)
-{
-	return c->i->start(c, dest);
-}
-
-static inline int
-sr_filternext(srfilter *c, srbuf *dest, char *buf, int size)
-{
-	return c->i->next(c, dest, buf, size);
-}
-
-static inline int
-sr_filtercomplete(srfilter *c, srbuf *dest)
-{
-	return c->i->complete(c, dest);
-}
-
-#endif
-#line 1 "sophia/rt/sr_c.h"
-#ifndef SR_C_H_
-#define SR_C_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct src src;
-typedef struct srcstmt srcstmt;
-typedef struct srcv srcv;
-
-typedef enum {
-	SR_CSET,
-	SR_CGET,
-	SR_CSERIALIZE
-} srcop;
-
-typedef enum {
-	SR_CRO    = 1,
-	SR_CC     = 2,
-	SR_CU32   = 4,
-	SR_CU64   = 8,
-	SR_CSZREF = 16,
-	SR_CSZ    = 32, 
-	SR_CVOID  = 64
-} srctype;
-
-typedef int (*srcf)(src*, srcstmt*, va_list);
-
-struct src {
-	char    *name;
-	uint8_t  flags;
-	srcf     function;
-	void    *value;
-	void    *ptr;
-	src     *next;
-} srpacked;
-
-struct srcstmt {
-	srcop   op;
-	char   *path;
-	srbuf  *serialize;
-	void  **result;
-	void   *ptr;
-	sr     *r;
-} srpacked;
-
-struct srcv {
-	uint8_t  type;
-	uint16_t namelen;
-	uint32_t valuelen;
-} srpacked;
+	SS_UNDEF,
+	SS_STRING,
+	SS_STRINGPTR,
+	SS_U32,
+	SS_U64,
+	SS_I64,
+	SS_OBJECT,
+	SS_FUNCTION
+} sstype;
 
 static inline char*
-sr_cvname(srcv *v) {
-	return (char*)v + sizeof(srcv);
-}
-
-static inline char*
-sr_cvvalue(srcv *v) {
-	return sr_cvname(v) + v->namelen;
-}
-
-static inline void*
-sr_cvnext(srcv *v) {
-	return sr_cvvalue(v) + v->valuelen;
-}
-
-int sr_cserialize(src*, srcstmt*);
-int sr_cset(src*, srcstmt*, char*);
-int sr_cexecv(src*, srcstmt*, va_list);
-
-static inline int
-sr_cexec(src *c, srcstmt *stmt, ...)
-{
-	va_list args;
-	va_start(args, stmt);
-	int rc = sr_cexecv(c, stmt, args);
-	va_end(args);
-	return rc;
-}
-
-static inline src*
-sr_c(src **cp, srcf func, char *name, uint8_t flags, void *v)
-{
-	src *c = *cp;
-	c->function = func;
-	c->name     = name;
-	c->flags    = flags;
-	c->value    = v;
-	c->ptr      = NULL;
-	c->next     = NULL;
-	*cp = c + 1;
-	return c;
-}
-
-static inline void sr_clink(src **prev, src *c) {
-	if (srlikely(*prev))
-		(*prev)->next = c;
-	*prev = c;
-}
-
-static inline src*
-sr_cptr(src *c, void *ptr) {
-	c->ptr = ptr;
-	return c;
-}
-
-#endif
-#line 1 "sophia/rt/sr_iter.h"
-#ifndef SR_ITER_H_
-#define SR_ITER_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct sriterif sriterif;
-typedef struct sriter sriter;
-
-struct sriterif {
-	void  (*close)(sriter*);
-	int   (*has)(sriter*);
-	void *(*of)(sriter*);
-	void  (*next)(sriter*);
-};
-
-struct sriter {
-	sriterif *vif;
-	sr *r;
-	char priv[100];
-};
-
-#define sr_iterinit(iterator_if, i, r_) \
-do { \
-	(i)->r = r_; \
-	(i)->vif = &iterator_if; \
-} while (0)
-
-#define sr_iteropen(iterator_if, i, ...) iterator_if##_open(i, __VA_ARGS__)
-#define sr_iterclose(iterator_if, i) iterator_if##_close(i)
-#define sr_iterhas(iterator_if, i) iterator_if##_has(i)
-#define sr_iterof(iterator_if, i) iterator_if##_of(i)
-#define sr_iternext(iterator_if, i) iterator_if##_next(i)
-
-#define sr_iteratorclose(i) (i)->vif->close(i)
-#define sr_iteratorhas(i) (i)->vif->has(i)
-#define sr_iteratorof(i) (i)->vif->of(i)
-#define sr_iteratornext(i) (i)->vif->next(i)
-
-#endif
-#line 1 "sophia/rt/sr_bufiter.h"
-#ifndef SR_BUFITER_H_
-#define SR_BUFITER_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-extern sriterif sr_bufiter;
-extern sriterif sr_bufiterref;
-
-typedef struct srbufiter srbufiter;
-
-struct srbufiter {
-	srbuf *buf;
-	int vsize;
-	void *v;
-} srpacked;
-
-static inline int
-sr_bufiter_open(sriter *i, srbuf *buf, int vsize)
-{
-	srbufiter *bi = (srbufiter*)i->priv;
-	bi->buf = buf;
-	bi->vsize = vsize;
-	bi->v = bi->buf->s;
-	if (srunlikely(bi->v == NULL))
-		return 0;
-	if (srunlikely(! sr_bufin(bi->buf, bi->v))) {
-		bi->v = NULL;
-		return 0;
+ss_typeof(sstype type) {
+	switch (type) {
+	case SS_UNDEF:     return "undef";
+	case SS_STRING:    return "string";
+	case SS_STRINGPTR: return "stringptr";
+	case SS_U32:       return "u32";
+	case SS_U64:       return "u64";
+	case SS_I64:       return "i64";
+	case SS_OBJECT:    return "object";
+	case SS_FUNCTION:  return "function";
 	}
-	return 1;
-}
-
-static inline void
-sr_bufiter_close(sriter *i srunused)
-{ }
-
-static inline int
-sr_bufiter_has(sriter *i)
-{
-	srbufiter *bi = (srbufiter*)i->priv;
-	return bi->v != NULL;
-}
-
-static inline void*
-sr_bufiter_of(sriter *i)
-{
-	srbufiter *bi = (srbufiter*)i->priv;
-	return bi->v;
-}
-
-static inline void
-sr_bufiter_next(sriter *i)
-{
-	srbufiter *bi = (srbufiter*)i->priv;
-	if (srunlikely(bi->v == NULL))
-		return;
-	bi->v = (char*)bi->v + bi->vsize;
-	if (srunlikely(! sr_bufin(bi->buf, bi->v)))
-		bi->v = NULL;
-}
-
-static inline int
-sr_bufiterref_open(sriter *i, srbuf *buf, int vsize) {
-	return sr_bufiter_open(i, buf, vsize);
-}
-
-static inline void
-sr_bufiterref_close(sriter *i srunused)
-{ }
-
-static inline int
-sr_bufiterref_has(sriter *i) {
-	return sr_bufiter_has(i);
-}
-
-static inline void*
-sr_bufiterref_of(sriter *i)
-{
-	srbufiter *bi = (srbufiter*)i->priv;
-	if (srunlikely(bi->v == NULL))
-		return NULL;
-	return *(void**)bi->v;
-}
-
-static inline void
-sr_bufiterref_next(sriter *i) {
-	sr_bufiter_next(i);
+	return NULL;
 }
 
 #endif
-#line 1 "sophia/rt/sr_mutex.h"
-#ifndef SR_MUTEX_H_
-#define SR_MUTEX_H_
+#line 1 "sophia/std/ss_mutex.h"
+#ifndef SS_MUTEX_H_
+#define SS_MUTEX_H_
 
 /*
  * sophia database
@@ -1634,36 +979,36 @@ sr_bufiterref_next(sriter *i) {
  * BSD License
 */
 
-typedef struct srmutex srmutex;
+typedef struct ssmutex ssmutex;
 
-struct srmutex {
+struct ssmutex {
 	pthread_mutex_t m;
 };
 
 static inline void
-sr_mutexinit(srmutex *m) {
+ss_mutexinit(ssmutex *m) {
 	pthread_mutex_init(&m->m, NULL);
 }
 
 static inline void
-sr_mutexfree(srmutex *m) {
+ss_mutexfree(ssmutex *m) {
 	pthread_mutex_destroy(&m->m);
 }
 
 static inline void
-sr_mutexlock(srmutex *m) {
+ss_mutexlock(ssmutex *m) {
 	pthread_mutex_lock(&m->m);
 }
 
 static inline void
-sr_mutexunlock(srmutex *m) {
+ss_mutexunlock(ssmutex *m) {
 	pthread_mutex_unlock(&m->m);
 }
 
 #endif
-#line 1 "sophia/rt/sr_cond.h"
-#ifndef SR_COND_H_
-#define SR_COND_H_
+#line 1 "sophia/std/ss_cond.h"
+#ifndef SS_COND_H_
+#define SS_COND_H_
 
 /*
  * sophia database
@@ -1673,36 +1018,36 @@ sr_mutexunlock(srmutex *m) {
  * BSD License
 */
 
-typedef struct srcond srcond;
+typedef struct sscond sscond;
 
-struct srcond {
+struct sscond {
 	pthread_cond_t c;
 };
 
 static inline void
-sr_condinit(srcond *c) {
+ss_condinit(sscond *c) {
 	pthread_cond_init(&c->c, NULL);
 }
 
 static inline void
-sr_condfree(srcond *c) {
+ss_condfree(sscond *c) {
 	pthread_cond_destroy(&c->c);
 }
 
 static inline void
-sr_condsignal(srcond *c) {
+ss_condsignal(sscond *c) {
 	pthread_cond_signal(&c->c);
 }
 
 static inline void
-sr_condwait(srcond *c, srmutex *m) {
+ss_condwait(sscond *c, ssmutex *m) {
 	pthread_cond_wait(&c->c, &m->m);
 }
 
 #endif
-#line 1 "sophia/rt/sr_thread.h"
-#ifndef SR_THREAD_H_
-#define SR_THREAD_H_
+#line 1 "sophia/std/ss_thread.h"
+#ifndef SS_THREAD_H_
+#define SS_THREAD_H_
 
 /*
  * sophia database
@@ -1712,22 +1057,22 @@ sr_condwait(srcond *c, srmutex *m) {
  * BSD License
 */
 
-typedef struct srthread srthread;
+typedef struct ssthread ssthread;
 
-typedef void *(*srthreadf)(void*);
+typedef void *(*ssthreadf)(void*);
 
-struct srthread {
+struct ssthread {
 	pthread_t id;
 	void *arg;
 };
 
-int sr_threadnew(srthread*, srthreadf, void*);
-int sr_threadjoin(srthread*);
+int ss_threadnew(ssthread*, ssthreadf, void*);
+int ss_threadjoin(ssthread*);
 
 #endif
-#line 1 "sophia/rt/sr_quota.h"
-#ifndef SR_QUOTA_H_
-#define SR_QUOTA_H_
+#line 1 "sophia/std/ss_quota.h"
+#ifndef SS_QUOTA_H_
+#define SS_QUOTA_H_
 
 /*
  * sophia database
@@ -1737,55 +1082,56 @@ int sr_threadjoin(srthread*);
  * BSD License
 */
 
-typedef struct srquota srquota;
+typedef struct ssquota ssquota;
 
-typedef enum srquotaop {
-	SR_QADD,
-	SR_QREMOVE
-} srquotaop;
+typedef enum ssquotaop {
+	SS_QGROW,
+	SS_QADD,
+	SS_QREMOVE
+} ssquotaop;
 
-struct srquota {
+struct ssquota {
 	int enable;
 	int wait;
 	uint64_t limit;
 	uint64_t used;
-	srmutex lock;
-	srcond cond;
+	ssmutex lock;
+	sscond cond;
 };
 
-int sr_quotainit(srquota*);
-int sr_quotaset(srquota*, uint64_t);
-int sr_quotaenable(srquota*, int);
-int sr_quotafree(srquota*);
-int sr_quota(srquota*, srquotaop, uint64_t);
+int ss_quotainit(ssquota*);
+int ss_quotaset(ssquota*, uint64_t);
+int ss_quotaenable(ssquota*, int);
+int ss_quotafree(ssquota*);
+int ss_quota(ssquota*, ssquotaop, uint64_t);
 
 static inline uint64_t
-sr_quotaused(srquota *q)
+ss_quotaused(ssquota *q)
 {
-	sr_mutexlock(&q->lock);
+	ss_mutexlock(&q->lock);
 	uint64_t used = q->used;
-	sr_mutexunlock(&q->lock);
+	ss_mutexunlock(&q->lock);
 	return used;
 }
 
 static inline int
-sr_quotaused_percent(srquota *q)
+ss_quotaused_percent(ssquota *q)
 {
-	sr_mutexlock(&q->lock);
+	ss_mutexlock(&q->lock);
 	int percent;
 	if (q->limit == 0) {
 		percent = 0;
 	} else {
 		percent = (q->used * 100) / q->limit;
 	}
-	sr_mutexunlock(&q->lock);
+	ss_mutexunlock(&q->lock);
 	return percent;
 }
 
 #endif
-#line 1 "sophia/rt/sr_rb.h"
-#ifndef SR_RB_H_
-#define SR_RB_H_
+#line 1 "sophia/std/ss_rb.h"
+#ifndef SS_RB_H_
+#define SS_RB_H_
 
 /*
  * sophia database
@@ -1795,40 +1141,40 @@ sr_quotaused_percent(srquota *q)
  * BSD License
 */
 
-typedef struct srrbnode srrbnode;
-typedef struct srrb  srrb;
+typedef struct ssrbnode ssrbnode;
+typedef struct ssrb  ssrb;
 
-struct srrbnode {
-	srrbnode *p, *l, *r;
+struct ssrbnode {
+	ssrbnode *p, *l, *r;
 	uint8_t color;
-} srpacked;
+} sspacked;
 
-struct srrb {
-	srrbnode *root;
-} srpacked;
+struct ssrb {
+	ssrbnode *root;
+} sspacked;
 
 static inline void
-sr_rbinit(srrb *t) {
+ss_rbinit(ssrb *t) {
 	t->root = NULL;
 }
 
 static inline void
-sr_rbinitnode(srrbnode *n) {
+ss_rbinitnode(ssrbnode *n) {
 	n->color = 2;
 	n->p = NULL;
 	n->l = NULL;
 	n->r = NULL;
 }
 
-#define sr_rbget(name, compare) \
+#define ss_rbget(name, compare) \
 \
 static inline int \
-name(srrb *t, \
-     srcomparator *cmp srunused, \
-     void *key srunused, int keysize srunused, \
-     srrbnode **match) \
+name(ssrb *t, \
+     void *scheme ssunused, \
+     void *key ssunused, int keysize ssunused, \
+     ssrbnode **match) \
 { \
-	srrbnode *n = t->root; \
+	ssrbnode *n = t->root; \
 	*match = NULL; \
 	int rc = 0; \
 	while (n) { \
@@ -1844,10 +1190,10 @@ name(srrb *t, \
 	return rc; \
 }
 
-#define sr_rbtruncate(name, executable) \
+#define ss_rbtruncate(name, executable) \
 \
 static inline void \
-name(srrbnode *n, void *arg) \
+name(ssrbnode *n, void *arg) \
 { \
 	if (n->l) \
 		name(n->l, arg); \
@@ -1856,19 +1202,229 @@ name(srrbnode *n, void *arg) \
 	executable; \
 }
 
-srrbnode *sr_rbmin(srrb*);
-srrbnode *sr_rbmax(srrb*);
-srrbnode *sr_rbnext(srrb*, srrbnode*);
-srrbnode *sr_rbprev(srrb*, srrbnode*);
+ssrbnode *ss_rbmin(ssrb*);
+ssrbnode *ss_rbmax(ssrb*);
+ssrbnode *ss_rbnext(ssrb*, ssrbnode*);
+ssrbnode *ss_rbprev(ssrb*, ssrbnode*);
 
-void sr_rbset(srrb*, srrbnode*, int, srrbnode*);
-void sr_rbreplace(srrb*, srrbnode*, srrbnode*);
-void sr_rbremove(srrb*, srrbnode*);
+void ss_rbset(ssrb*, ssrbnode*, int, ssrbnode*);
+void ss_rbreplace(ssrb*, ssrbnode*, ssrbnode*);
+void ss_rbremove(ssrb*, ssrbnode*);
 
 #endif
-#line 1 "sophia/rt/sr_rq.h"
-#ifndef SR_RQ_H_
-#define SR_RQ_H_
+#line 1 "sophia/std/ss_leb128.h"
+#ifndef SS_LEB128_H_
+#define SS_LEB128_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+static inline int
+ss_leb128size(uint64_t value)
+{
+	int size = 0;
+	do {
+		value >>= 7;
+		size++;
+	} while (value != 0);
+	return size;
+}
+
+static inline int
+ss_leb128write(char *dest, uint64_t value)
+{
+	int size = 0;
+	do {
+		uint8_t byte = value & 0x7F;
+		value >>= 7;
+		if (value != 0)
+			byte |= 0x80;
+		((unsigned char*)dest)[size++] = byte;
+	} while (value != 0);
+	return size;
+}
+
+static inline int
+ss_leb128read(char *src, uint64_t *value)
+{
+	unsigned char *start = (unsigned char*)src;
+	int lsh = 0;
+	*value = 0;
+	do {
+		*value |= ((uint64_t)(*(unsigned char*)src & 0x7F)) << lsh;
+		lsh += 7;
+	} while (*((unsigned char*)src++) >= 128);
+
+	return (unsigned char*)src - start;
+}
+
+static inline int
+ss_leb128skip(char *src)
+{
+	unsigned char *start = (unsigned char*)src;
+	while (*((unsigned char*)src++) >= 128);
+	return (unsigned char*)src - start;
+}
+
+#endif
+#line 1 "sophia/std/ss_hash.h"
+#ifndef SS_HASH_H_
+#define SS_HASH_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+static inline unsigned int
+ss_fnv(char *key, int len)
+{
+	unsigned char *p = (unsigned char*)key;
+	unsigned char *end = p + len;
+	unsigned h = 2166136261;
+	while (p < end) {
+		h = (h * 16777619) ^ *p;
+		p++;
+	}
+	return h;
+}
+
+#endif
+#line 1 "sophia/std/ss_ht.h"
+#ifndef SS_HT_H_
+#define SS_HT_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sshtnode sshtnode;
+typedef struct ssht ssht;
+
+struct sshtnode {
+	uint32_t hash;
+};
+
+struct ssht {
+	sshtnode **i;
+	int count;
+	int size;
+};
+
+static inline int
+ss_htinit(ssht *t, ssa *a, int size)
+{
+	t->count = 0;
+	t->size = size;
+	int sz = size * sizeof(sshtnode*);
+	t->i = (sshtnode**)ss_malloc(a, sz);
+	if (ssunlikely(t->i == NULL))
+		return -1;
+	memset(t->i, 0, sz);
+	return 0;
+}
+
+static inline void
+ss_htfree(ssht *t, ssa *a)
+{
+	if (ssunlikely(t->i == NULL))
+		return;
+	ss_free(a, t->i);
+	t->i = NULL;
+}
+
+static inline void
+ss_htreset(ssht *t)
+{
+	int sz = t->size * sizeof(sshtnode*);
+	memset(t->i, 0, sz);
+	t->count = 0;
+}
+
+static inline int
+ss_htisfull(ssht *t)
+{
+	return t->count > (t->size / 2);
+}
+
+static inline int
+ss_htplace(ssht *t, sshtnode *node)
+{
+	uint32_t pos = node->hash % t->size;
+	for (;;) {
+		if (t->i[pos] != NULL) {
+			pos = (pos + 1) % t->size;
+			continue;
+		}
+		return pos;
+	}
+	return -1;
+}
+
+static inline int
+ss_htresize(ssht *t, ssa *a)
+{
+	ssht nt;
+	int rc = ss_htinit(&nt, a, t->size * 2);
+	if (ssunlikely(rc == -1))
+		return -1;
+	int i = 0;
+	while (i < t->size) {
+		if (t->i[i]) {
+			int pos = ss_htplace(&nt, t->i[i]);
+			nt.i[pos] = t->i[i];
+		}
+		i++;
+	}
+	nt.count = t->count;
+	ss_htfree(t, a);
+	*t = nt;
+	return 0;
+}
+
+#define ss_htsearch(name, compare) \
+static inline int \
+name(ssht *t, uint32_t hash, \
+     char *key ssunused, \
+     uint32_t size ssunused, void *ptr ssunused) \
+{ \
+	uint32_t pos = hash % t->size; \
+	for (;;) { \
+		if (t->i[pos] != NULL) { \
+			if ( (compare) ) \
+				return pos; \
+			pos = (pos + 1) % t->size; \
+			continue; \
+		} \
+		return pos; \
+	} \
+	return -1; \
+}
+
+static inline void
+ss_htset(ssht *t, int pos, sshtnode *node)
+{
+	if (t->i[pos] == NULL)
+		t->count++;
+	t->i[pos] = node;
+}
+
+#endif
+#line 1 "sophia/std/ss_rq.h"
+#ifndef SS_RQ_H_
+#define SS_RQ_H_
 
 /*
  * sophia database
@@ -1880,47 +1436,47 @@ void sr_rbremove(srrb*, srrbnode*);
 
 /* range queue */
 
-typedef struct srrqnode srrqnode;
-typedef struct srrqq srrqq;
-typedef struct srrq srrq;
+typedef struct ssrqnode ssrqnode;
+typedef struct ssrqq ssrqq;
+typedef struct ssrq ssrq;
 
-struct srrqnode {
+struct ssrqnode {
 	uint32_t q, v;
-	srlist link;
+	sslist link;
 };
 
-struct srrqq {
+struct ssrqq {
 	uint32_t count;
 	uint32_t q;
-	srlist list;
+	sslist list;
 };
 
-struct srrq {
+struct ssrq {
 	uint32_t range_count;
 	uint32_t range;
 	uint32_t last;
-	srrqq *q;
+	ssrqq *q;
 };
 
 static inline void
-sr_rqinitnode(srrqnode *n) {
-	sr_listinit(&n->link);
+ss_rqinitnode(ssrqnode *n) {
+	ss_listinit(&n->link);
 	n->q = UINT32_MAX;
 	n->v = 0;
 }
 
 static inline int
-sr_rqinit(srrq *q, sra *a, uint32_t range, uint32_t count)
+ss_rqinit(ssrq *q, ssa *a, uint32_t range, uint32_t count)
 {
 	q->range_count = count + 1 /* zero */;
 	q->range = range;
-	q->q = sr_malloc(a, sizeof(srrqq) * q->range_count);
-	if (srunlikely(q->q == NULL))
+	q->q = ss_malloc(a, sizeof(ssrqq) * q->range_count);
+	if (ssunlikely(q->q == NULL))
 		return -1;
 	uint32_t i = 0;
 	while (i < q->range_count) {
-		srrqq *p = &q->q[i];
-		sr_listinit(&p->list);
+		ssrqq *p = &q->q[i];
+		ss_listinit(&p->list);
 		p->count = 0;
 		p->q = i;
 		i++;
@@ -1930,27 +1486,27 @@ sr_rqinit(srrq *q, sra *a, uint32_t range, uint32_t count)
 }
 
 static inline void
-sr_rqfree(srrq *q, sra *a) {
-	sr_free(a, q->q);
+ss_rqfree(ssrq *q, ssa *a) {
+	ss_free(a, q->q);
 }
 
 static inline void
-sr_rqadd(srrq *q, srrqnode *n, uint32_t v)
+ss_rqadd(ssrq *q, ssrqnode *n, uint32_t v)
 {
 	uint32_t pos;
-	if (srunlikely(v == 0)) {
+	if (ssunlikely(v == 0)) {
 		pos = 0;
 	} else {
 		pos = (v / q->range) + 1;
-		if (srunlikely(pos >= q->range_count))
+		if (ssunlikely(pos >= q->range_count))
 			pos = q->range_count - 1;
 	}
-	srrqq *p = &q->q[pos];
-	sr_listinit(&n->link);
+	ssrqq *p = &q->q[pos];
+	ss_listinit(&n->link);
 	n->v = v;
 	n->q = pos;
-	sr_listappend(&p->list, &n->link);
-	if (srunlikely(p->count == 0)) {
+	ss_listappend(&p->list, &n->link);
+	if (ssunlikely(p->count == 0)) {
 		if (pos > q->last)
 			q->last = pos;
 	}
@@ -1958,16 +1514,16 @@ sr_rqadd(srrq *q, srrqnode *n, uint32_t v)
 }
 
 static inline void
-sr_rqdelete(srrq *q, srrqnode *n)
+ss_rqdelete(ssrq *q, ssrqnode *n)
 {
-	srrqq *p = &q->q[n->q];
+	ssrqq *p = &q->q[n->q];
 	p->count--;
-	sr_listunlink(&n->link);
-	if (srunlikely(p->count == 0 && q->last == n->q))
+	ss_listunlink(&n->link);
+	if (ssunlikely(p->count == 0 && q->last == n->q))
 	{
 		int i = n->q - 1;
 		while (i >= 0) {
-			srrqq *p = &q->q[i];
+			ssrqq *p = &q->q[i];
 			if (p->count > 0) {
 				q->last = i;
 				return;
@@ -1978,23 +1534,23 @@ sr_rqdelete(srrq *q, srrqnode *n)
 }
 
 static inline void
-sr_rqupdate(srrq *q, srrqnode *n, uint32_t v)
+ss_rqupdate(ssrq *q, ssrqnode *n, uint32_t v)
 {
-	if (srlikely(n->q != UINT32_MAX))
-		sr_rqdelete(q, n);
-	sr_rqadd(q, n, v);
+	if (sslikely(n->q != UINT32_MAX))
+		ss_rqdelete(q, n);
+	ss_rqadd(q, n, v);
 }
 
-static inline srrqnode*
-sr_rqprev(srrq *q, srrqnode *n)
+static inline ssrqnode*
+ss_rqprev(ssrq *q, ssrqnode *n)
 {
 	int pos;
-	srrqq *p;
-	if (srlikely(n)) {
+	ssrqq *p;
+	if (sslikely(n)) {
 		pos = n->q;
 		p = &q->q[pos];
 		if (n->link.next != (&p->list)) {
-			return srcast(n->link.next, srrqnode, link);
+			return sscast(n->link.next, ssrqnode, link);
 		}
 		pos--;
 	} else {
@@ -2002,17 +1558,17 @@ sr_rqprev(srrq *q, srrqnode *n)
 	}
 	for (; pos >= 0; pos--) {
 		p = &q->q[pos];
-		if (srunlikely(p->count == 0))
+		if (ssunlikely(p->count == 0))
 			continue;
-		return srcast(p->list.next, srrqnode, link);
+		return sscast(p->list.next, ssrqnode, link);
 	}
 	return NULL;
 }
 
 #endif
-#line 1 "sophia/rt/sr_path.h"
-#ifndef SR_PATH_H_
-#define SR_PATH_H_
+#line 1 "sophia/std/ss_path.h"
+#ifndef SS_PATH_H_
+#define SS_PATH_H_
 
 /*
  * sophia database
@@ -2022,14 +1578,14 @@ sr_rqprev(srrq *q, srrqnode *n)
  * BSD License
 */
 
-typedef struct srpath srpath;
+typedef struct sspath sspath;
 
-struct srpath {
+struct sspath {
 	char path[PATH_MAX];
 };
 
 static inline void
-sr_pathset(srpath *p, char *fmt, ...)
+ss_pathset(sspath *p, char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -2038,19 +1594,19 @@ sr_pathset(srpath *p, char *fmt, ...)
 }
 
 static inline void
-sr_pathA(srpath *p, char *dir, uint32_t id, char *ext)
+ss_pathA(sspath *p, char *dir, uint32_t id, char *ext)
 {
-	sr_pathset(p, "%s/%010"PRIu32"%s", dir, id, ext);
+	ss_pathset(p, "%s/%010"PRIu32"%s", dir, id, ext);
 }
 
 static inline void
-sr_pathAB(srpath *p, char *dir, uint32_t a, uint32_t b, char *ext)
+ss_pathAB(sspath *p, char *dir, uint32_t a, uint32_t b, char *ext)
 {
-	sr_pathset(p, "%s/%010"PRIu32".%010"PRIu32"%s", dir, a, b, ext);
+	ss_pathset(p, "%s/%010"PRIu32".%010"PRIu32"%s", dir, a, b, ext);
 }
 
 #endif
-#line 1 "sophia/rt/sr_iov.h"
+#line 1 "sophia/std/ss_iov.h"
 #ifndef SD_IOV_H_
 #define SD_IOV_H_
 
@@ -2062,16 +1618,16 @@ sr_pathAB(srpath *p, char *dir, uint32_t a, uint32_t b, char *ext)
  * BSD License
 */
 
-typedef struct sriov sriov;
+typedef struct ssiov ssiov;
 
-struct sriov {
+struct ssiov {
 	struct iovec *v;
 	int iovmax;
 	int iovc;
 };
 
 static inline void
-sr_iovinit(sriov *v, struct iovec *vp, int max)
+ss_iovinit(ssiov *v, struct iovec *vp, int max)
 {
 	v->v = vp;
 	v->iovc = 0;
@@ -2079,22 +1635,22 @@ sr_iovinit(sriov *v, struct iovec *vp, int max)
 }
 
 static inline int
-sr_iovensure(sriov *v, int count) {
+ss_iovensure(ssiov *v, int count) {
 	return (v->iovc + count) < v->iovmax;
 }
 
 static inline int
-sr_iovhas(sriov *v) {
+ss_iovhas(ssiov *v) {
 	return v->iovc > 0;
 }
 
 static inline void
-sr_iovreset(sriov *v) {
+ss_iovreset(ssiov *v) {
 	v->iovc = 0;
 }
 
 static inline void
-sr_iovadd(sriov *v, void *ptr, size_t size)
+ss_iovadd(ssiov *v, void *ptr, size_t size)
 {
 	assert(v->iovc < v->iovmax);
 	v->v[v->iovc].iov_base = ptr;
@@ -2103,9 +1659,9 @@ sr_iovadd(sriov *v, void *ptr, size_t size)
 }
 
 #endif
-#line 1 "sophia/rt/sr_file.h"
-#ifndef SR_FILE_H_
-#define SR_FILE_H_
+#line 1 "sophia/std/ss_file.h"
+#ifndef SS_FILE_H_
+#define SS_FILE_H_
 
 /*
  * sophia database
@@ -2115,10 +1671,10 @@ sr_iovadd(sriov *v, void *ptr, size_t size)
  * BSD License
 */
 
-typedef struct srfile srfile;
+typedef struct ssfile ssfile;
 
-struct srfile {
-	sra *a;
+struct ssfile {
+	ssa *a;
 	int creat;
 	uint64_t size;
 	char *file;
@@ -2126,40 +1682,43 @@ struct srfile {
 };
 
 static inline void
-sr_fileinit(srfile *f, sra *a)
+ss_fileinit(ssfile *f, ssa *a)
 {
-	memset(f, 0, sizeof(*f));
-	f->a = a;
-	f->fd = -1;
+	f->a     = a;
+	f->creat = 0;
+	f->size  = 0;
+	f->file  = NULL;
+	f->fd    = -1;
 }
 
 static inline uint64_t
-sr_filesvp(srfile *f) {
+ss_filesvp(ssfile *f) {
 	return f->size;
 }
 
-int sr_fileunlink(char*);
-int sr_filemove(char*, char*);
-int sr_fileexists(char*);
-int sr_filemkdir(char*);
-int sr_fileopen(srfile*, char*);
-int sr_filenew(srfile*, char*);
-int sr_filerename(srfile*, char*);
-int sr_fileclose(srfile*);
-int sr_filesync(srfile*);
-int sr_fileresize(srfile*, uint64_t);
-int sr_filepread(srfile*, uint64_t, void*, size_t);
-int sr_filewrite(srfile*, void*, size_t);
-int sr_filewritev(srfile*, sriov*);
-int sr_fileseek(srfile*, uint64_t);
-int sr_filelock(srfile*);
-int sr_fileunlock(srfile*);
-int sr_filerlb(srfile*, uint64_t);
+ssize_t ss_filesize(char*);
+int ss_fileunlink(char*);
+int ss_filemove(char*, char*);
+int ss_fileexists(char*);
+int ss_filemkdir(char*);
+int ss_fileopen(ssfile*, char*);
+int ss_filenew(ssfile*, char*);
+int ss_filerename(ssfile*, char*);
+int ss_fileclose(ssfile*);
+int ss_filesync(ssfile*);
+int ss_fileresize(ssfile*, uint64_t);
+int ss_filepread(ssfile*, uint64_t, void*, size_t);
+int ss_filewrite(ssfile*, void*, size_t);
+int ss_filewritev(ssfile*, ssiov*);
+int ss_fileseek(ssfile*, uint64_t);
+int ss_filelock(ssfile*);
+int ss_fileunlock(ssfile*);
+int ss_filerlb(ssfile*, uint64_t);
 
 #endif
-#line 1 "sophia/rt/sr_dir.h"
-#ifndef SR_DIR_H_
-#define SR_DIR_H_
+#line 1 "sophia/std/ss_mmap.h"
+#ifndef SS_MMAP_H_
+#define SS_MMAP_H_
 
 /*
  * sophia database
@@ -2169,61 +1728,107 @@ int sr_filerlb(srfile*, uint64_t);
  * BSD License
 */
 
-typedef struct srdirtype srdirtype;
-typedef struct srdirid srdirid;
+typedef struct ssmmap ssmmap;
 
-struct srdirtype {
-	char *ext;
-	uint32_t mask;
-	int count;
-};
-
-struct srdirid {
-	uint32_t mask;
-	uint64_t id;
-};
-
-int sr_dirread(srbuf*, sra*, srdirtype*, char*);
-
-#endif
-#line 1 "sophia/rt/sr_map.h"
-#ifndef SR_MAP_H_
-#define SR_MAP_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct srmap srmap;
-
-struct srmap {
+struct ssmmap {
 	char *p;
 	size_t size;
 };
 
 static inline void
-sr_mapinit(srmap *m) {
+ss_mmapinit(ssmmap *m) {
 	m->p = NULL;
 	m->size = 0;
 }
 
-int sr_map(srmap*, int, uint64_t, int);
-int sr_mapunmap(srmap*);
+int ss_mmap(ssmmap*, int, uint64_t, int);
+int ss_munmap(ssmmap*);
+
+#endif
+#line 1 "sophia/std/ss_filter.h"
+#ifndef SS_FILTER_H_
+#define SS_FILTER_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct ssfilterif ssfilterif;
+typedef struct ssfilter ssfilter;
+
+typedef enum {
+	SS_FINPUT,
+	SS_FOUTPUT
+} ssfilterop;
+
+struct ssfilterif {
+	char *name;
+	int (*init)(ssfilter*, va_list);
+	int (*free)(ssfilter*);
+	int (*reset)(ssfilter*);
+	int (*start)(ssfilter*, ssbuf*);
+	int (*next)(ssfilter*, ssbuf*, char*, int);
+	int (*complete)(ssfilter*, ssbuf*);
+};
+
+struct ssfilter {
+	ssfilterif *i;
+	ssfilterop op;
+	ssa *a;
+	char priv[90];
+};
 
 static inline int
-sr_mapfile(srmap *map, srfile *f, int ro)
+ss_filterinit(ssfilter *c, ssfilterif *ci, ssa *a, ssfilterop op, ...)
 {
-	return sr_map(map, f->fd, f->size, ro);
+	c->op = op;
+	c->a  = a;
+	c->i  = ci;
+	va_list args;
+	va_start(args, op);
+	int rc = c->i->init(c, args);
+	va_end(args);
+	return rc;
+}
+
+static inline int
+ss_filterfree(ssfilter *c)
+{
+	return c->i->free(c);
+}
+
+static inline int
+ss_filterreset(ssfilter *c)
+{
+	return c->i->reset(c);
+}
+
+static inline int
+ss_filterstart(ssfilter *c, ssbuf *dest)
+{
+	return c->i->start(c, dest);
+}
+
+static inline int
+ss_filternext(ssfilter *c, ssbuf *dest, char *buf, int size)
+{
+	return c->i->next(c, dest, buf, size);
+}
+
+static inline int
+ss_filtercomplete(ssfilter *c, ssbuf *dest)
+{
+	return c->i->complete(c, dest);
 }
 
 #endif
-#line 1 "sophia/rt/sr_lz4filter.h"
-#ifndef SR_LZ4FILTER_H_
-#define SR_LZ4FILTER_H_
+#line 1 "sophia/std/ss_nonefilter.h"
+#ifndef SS_NONEFILTER_H_
+#define SS_NONEFILTER_H_
 
 /*
  * sophia database
@@ -2233,12 +1838,12 @@ sr_mapfile(srmap *map, srfile *f, int ro)
  * BSD License
 */
 
-extern srfilterif sr_lz4filter;
+extern ssfilterif ss_nonefilter;
 
 #endif
-#line 1 "sophia/rt/sr_zstdfilter.h"
-#ifndef SR_ZSTDFILTER_H_
-#define SR_ZSTDFILTER_H_
+#line 1 "sophia/std/ss_lz4filter.h"
+#ifndef SS_LZ4FILTER_H_
+#define SS_LZ4FILTER_H_
 
 /*
  * sophia database
@@ -2248,10 +1853,12 @@ extern srfilterif sr_lz4filter;
  * BSD License
 */
 
-extern srfilterif sr_zstdfilter;
+extern ssfilterif ss_lz4filter;
 
 #endif
-#line 1 "sophia/rt/sr_bufiter.c"
+#line 1 "sophia/std/ss_zstdfilter.h"
+#ifndef SS_ZSTDFILTER_H_
+#define SS_ZSTDFILTER_H_
 
 /*
  * sophia database
@@ -2261,24 +1868,151 @@ extern srfilterif sr_zstdfilter;
  * BSD License
 */
 
+extern ssfilterif ss_zstdfilter;
 
+#endif
+#line 1 "sophia/std/ss_iter.h"
+#ifndef SS_ITER_H_
+#define SS_ITER_H_
 
-sriterif sr_bufiter =
-{
-	.close   = sr_bufiter_close,
-	.has     = sr_bufiter_has,
-	.of      = sr_bufiter_of,
-	.next    = sr_bufiter_next
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct ssiterif ssiterif;
+typedef struct ssiter ssiter;
+
+struct ssiterif {
+	void  (*close)(ssiter*);
+	int   (*has)(ssiter*);
+	void *(*of)(ssiter*);
+	void  (*next)(ssiter*);
 };
 
-sriterif sr_bufiterref =
-{
-	.close   = sr_bufiterref_close,
-	.has     = sr_bufiterref_has,
-	.of      = sr_bufiterref_of,
-	.next    = sr_bufiterref_next
+struct ssiter {
+	ssiterif *vif;
+	char priv[120];
 };
-#line 1 "sophia/rt/sr_c.c"
+
+#define ss_iterinit(iterator_if, i) \
+do { \
+	(i)->vif = &iterator_if; \
+} while (0)
+
+#define ss_iteropen(iterator_if, i, ...) iterator_if##_open(i, __VA_ARGS__)
+#define ss_iterclose(iterator_if, i) iterator_if##_close(i)
+#define ss_iterhas(iterator_if, i) iterator_if##_has(i)
+#define ss_iterof(iterator_if, i) iterator_if##_of(i)
+#define ss_iternext(iterator_if, i) iterator_if##_next(i)
+
+#define ss_iteratorclose(i) (i)->vif->close(i)
+#define ss_iteratorhas(i) (i)->vif->has(i)
+#define ss_iteratorof(i) (i)->vif->of(i)
+#define ss_iteratornext(i) (i)->vif->next(i)
+
+#endif
+#line 1 "sophia/std/ss_bufiter.h"
+#ifndef SS_BUFITER_H_
+#define SS_BUFITER_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+extern ssiterif ss_bufiter;
+extern ssiterif ss_bufiterref;
+
+typedef struct ssbufiter ssbufiter;
+
+struct ssbufiter {
+	ssbuf *buf;
+	int vsize;
+	void *v;
+} sspacked;
+
+static inline int
+ss_bufiter_open(ssiter *i, ssbuf *buf, int vsize)
+{
+	ssbufiter *bi = (ssbufiter*)i->priv;
+	bi->buf = buf;
+	bi->vsize = vsize;
+	bi->v = bi->buf->s;
+	if (ssunlikely(bi->v == NULL))
+		return 0;
+	if (ssunlikely(! ss_bufin(bi->buf, bi->v))) {
+		bi->v = NULL;
+		return 0;
+	}
+	return 1;
+}
+
+static inline void
+ss_bufiter_close(ssiter *i ssunused)
+{ }
+
+static inline int
+ss_bufiter_has(ssiter *i)
+{
+	ssbufiter *bi = (ssbufiter*)i->priv;
+	return bi->v != NULL;
+}
+
+static inline void*
+ss_bufiter_of(ssiter *i)
+{
+	ssbufiter *bi = (ssbufiter*)i->priv;
+	return bi->v;
+}
+
+static inline void
+ss_bufiter_next(ssiter *i)
+{
+	ssbufiter *bi = (ssbufiter*)i->priv;
+	if (ssunlikely(bi->v == NULL))
+		return;
+	bi->v = (char*)bi->v + bi->vsize;
+	if (ssunlikely(! ss_bufin(bi->buf, bi->v)))
+		bi->v = NULL;
+}
+
+static inline int
+ss_bufiterref_open(ssiter *i, ssbuf *buf, int vsize) {
+	return ss_bufiter_open(i, buf, vsize);
+}
+
+static inline void
+ss_bufiterref_close(ssiter *i ssunused)
+{ }
+
+static inline int
+ss_bufiterref_has(ssiter *i) {
+	return ss_bufiter_has(i);
+}
+
+static inline void*
+ss_bufiterref_of(ssiter *i)
+{
+	ssbufiter *bi = (ssbufiter*)i->priv;
+	if (ssunlikely(bi->v == NULL))
+		return NULL;
+	return *(void**)bi->v;
+}
+
+static inline void
+ss_bufiterref_next(ssiter *i) {
+	ss_bufiter_next(i);
+}
+
+#endif
+#line 1 "sophia/std/ss_bufiter.c"
 
 /*
  * sophia database
@@ -2290,300 +2024,22 @@ sriterif sr_bufiterref =
 
 
 
-static int
-sr_cserializer(src *c, srcstmt *stmt, char *root, va_list args)
+ssiterif ss_bufiter =
 {
-	char path[256];
-	while (c) {
-		if (root)
-			snprintf(path, sizeof(path), "%s.%s", root, c->name);
-		else
-			snprintf(path, sizeof(path), "%s", c->name);
-		int rc;
-		int type = c->flags & ~SR_CRO;
-		if (type == SR_CC) {
-			rc = sr_cserializer(c->value, stmt, path, args);
-			if (srunlikely(rc == -1))
-				return -1;
-		} else {
-			stmt->path = path;
-			rc = c->function(c, stmt, args);
-			if (srunlikely(rc == -1))
-				return -1;
-			stmt->path = NULL;
-		}
-		c = c->next;
-	}
-	return 0;
-}
+	.close   = ss_bufiter_close,
+	.has     = ss_bufiter_has,
+	.of      = ss_bufiter_of,
+	.next    = ss_bufiter_next
+};
 
-int sr_cexecv(src *start, srcstmt *stmt, va_list args)
+ssiterif ss_bufiterref =
 {
-	if (stmt->op == SR_CSERIALIZE)
-		return sr_cserializer(start, stmt, NULL, args);
-
-	char path[256];
-	snprintf(path, sizeof(path), "%s", stmt->path);
-	char *ptr = NULL;
-	char *token;
-	token = strtok_r(path, ".", &ptr);
-	if (srunlikely(token == NULL))
-		return -1;
-	src *c = start;
-	while (c) {
-		if (strcmp(token, c->name) != 0) {
-			c = c->next;
-			continue;
-		}
-		int type = c->flags & ~SR_CRO;
-		switch (type) {
-		case SR_CU32:
-		case SR_CU64:
-		case SR_CSZREF:
-		case SR_CSZ:
-		case SR_CVOID:
-			token = strtok_r(NULL, ".", &ptr);
-			if (srunlikely(token != NULL))
-				goto error;
-			return c->function(c, stmt, args);
-		case SR_CC:
-			token = strtok_r(NULL, ".", &ptr);
-			if (srunlikely(token == NULL))
-			{
-				if (c->function)
-					return c->function(c, stmt, args);
-				/* not supported */
-				goto error;
-			}
-			c = (src*)c->value;
-			continue;
-		}
-		assert(0);
-	}
-
-error:
-	sr_error(stmt->r->e, "bad ctl path: %s", stmt->path);
-	return -1;
-}
-
-int sr_cserialize(src *c, srcstmt *stmt)
-{
-	void *value = NULL;
-	int type = c->flags & ~SR_CRO;
-	srcv v = {
-		.type     = type,
-		.namelen  = 0,
-		.valuelen = 0
-	};
-	switch (type) {
-	case SR_CU32:
-		v.valuelen = sizeof(uint32_t);
-		value = c->value;
-		break;
-	case SR_CU64:
-		v.valuelen = sizeof(uint64_t);
-		value = c->value;
-		break;
-	case SR_CSZREF: {
-		char **sz = (char**)c->value;
-		if (*sz)
-			v.valuelen = strlen(*sz) + 1;
-		value = *sz;
-		v.type = SR_CSZ;
-		break;
-	}
-	case SR_CSZ:
-		value = c->value;
-		if (value)
-			v.valuelen = strlen(value) + 1;
-		break;
-	case SR_CVOID:
-		v.valuelen = 0;
-		break;
-	default: assert(0);
-	}
-	char name[128];
-	v.namelen  = snprintf(name, sizeof(name), "%s", stmt->path);
-	v.namelen += 1;
-	srbuf *buf = stmt->serialize;
-	int size = sizeof(v) + v.namelen + v.valuelen;
-	int rc = sr_bufensure(buf, stmt->r->a, size);
-	if (srunlikely(rc == -1)) {
-		sr_error(stmt->r->e, "%s", "memory allocation failed");
-		return -1;
-	}
-	memcpy(buf->p, &v, sizeof(v));
-	memcpy(buf->p + sizeof(v), name, v.namelen);
-	memcpy(buf->p + sizeof(v) + v.namelen, value, v.valuelen);
-	sr_bufadvance(buf, size);
-	return 0;
-}
-
-static inline ssize_t sr_atoi(char *s)
-{
-	size_t v = 0;
-	while (*s && *s != '.') {
-		if (srunlikely(! isdigit(*s)))
-			return -1;
-		v = (v * 10) + *s - '0';
-		s++;
-	}
-	return v;
-}
-
-int sr_cset(src *c, srcstmt *stmt, char *value)
-{
-	int type = c->flags & ~SR_CRO;
-	if (c->flags & SR_CRO) {
-		sr_error(stmt->r->e, "%s is read-only", stmt->path);
-		return -1;
-	}
-	switch (type) {
-	case SR_CU32:
-		*((uint32_t*)c->value) = sr_atoi(value);
-		break;
-	case SR_CU64:
-		*((uint64_t*)c->value) = sr_atoi(value);
-		break;
-	case SR_CSZREF: {
-		char *nsz = NULL;
-		if (value) {
-			nsz = sr_strdup(stmt->r->a, value);
-			if (srunlikely(nsz == NULL)) {
-				sr_error(stmt->r->e, "%s", "memory allocation failed");
-				return -1;
-			}
-		}
-		char **sz = (char**)c->value;
-		if (*sz)
-			sr_free(stmt->r->a, *sz);
-		*sz = nsz;
-		break;
-	}
-	default: assert(0);
-	}
-	return 0;
-}
-#line 1 "sophia/rt/sr_cmp.c"
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-
-
-srhot int
-sr_cmpu32(char *a, size_t asz, char *b, size_t bsz,
-          void *arg srunused)
-{
-	(void)asz;
-	(void)bsz;
-	register uint32_t av = *(uint32_t*)a;
-	register uint32_t bv = *(uint32_t*)b;
-	if (av == bv)
-		return 0;
-	return (av > bv) ? 1 : -1;
-}
-
-srhot int
-sr_cmpu64(char *a, size_t asz, char *b, size_t bsz,
-          void *arg srunused)
-{
-	(void)asz;
-	(void)bsz;
-	register uint64_t av = *(uint64_t*)a;
-	register uint64_t bv = *(uint64_t*)b;
-	if (av == bv)
-		return 0;
-	return (av > bv) ? 1 : -1;
-}
-
-srhot int
-sr_cmpstring(char *a, size_t asz, char *b, size_t bsz,
-             void *arg srunused)
-{
-	register int size = (asz < bsz) ? asz : bsz;
-	register int rc = memcmp(a, b, size);
-	if (srunlikely(rc == 0)) {
-		if (srlikely(asz == bsz))
-			return 0;
-		return (asz < bsz) ? -1 : 1;
-	}
-	return rc > 0 ? 1 : -1;
-}
-
-srhot int
-sr_cmpstring_prefix(char *prefix, size_t prefixsz, char *key, size_t keysz,
-                    void *arg srunused)
-{
-	if (keysz < prefixsz)
-		return 0;
-	return (memcmp(prefix, key, prefixsz) == 0) ? 1 : 0;
-}
-
-int sr_cmpset(srcomparator *c, char *name)
-{
-	if (strcmp(name, "u32") == 0) {
-		c->cmp = sr_cmpu32;
-		c->prefix = NULL;
-		c->prefixarg = NULL;
-		return 0;
-	}
-	if (strcmp(name, "u64") == 0) {
-		c->cmp = sr_cmpu64;
-		c->prefix = NULL;
-		c->prefixarg = NULL;
-		return 0;
-	}
-	if (strcmp(name, "string") == 0) {
-		c->cmp = sr_cmpstring;
-		c->prefix = sr_cmpstring_prefix;
-		c->prefixarg = NULL;
-		return 0;
-	}
-	void *ptr = sr_triggerpointer_of(name);
-	if (srunlikely(ptr == NULL))
-		return -1;
-	c->cmp = (srcmpf)(uintptr_t)ptr;
-	return 0;
-}
-
-int sr_cmpsetarg(srcomparator *c, char *name)
-{
-	void *ptr = sr_triggerpointer_of(name);
-	if (srunlikely(ptr == NULL))
-		return -1;
-	c->cmparg = ptr;
-	return 0;
-}
-
-int sr_cmpset_prefix(srcomparator *c, char *name)
-{
-	if (strcmp(name, "string_prefix") == 0) {
-		c->cmp = sr_cmpstring;
-		c->prefix = sr_cmpstring_prefix;
-		return 0;
-	}
-	void *ptr = sr_triggerpointer_of(name);
-	if (srunlikely(ptr == NULL))
-		return -1;
-	c->prefix = (srcmpf)(uintptr_t)ptr;
-	return 0;
-}
-
-int sr_cmpset_prefixarg(srcomparator *c, char *name)
-{
-	void *ptr = sr_triggerpointer_of(name);
-	if (srunlikely(ptr == NULL))
-		return -1;
-	c->prefixarg = ptr;
-	return 0;
-}
-#line 1 "sophia/rt/sr_crc.c"
+	.close   = ss_bufiterref_close,
+	.has     = ss_bufiterref_has,
+	.of      = ss_bufiterref_of,
+	.next    = ss_bufiterref_next
+};
+#line 1 "sophia/std/ss_crc.c"
 
 /*
  * sophia database
@@ -2892,7 +2348,7 @@ static const uint32_t crc_tableil8_o88[256] =
 };
 
 static uint32_t
-sr_crc32c_sw(uint32_t crc, const void *buf, int len)
+ss_crc32c_sw(uint32_t crc, const void *buf, int len)
 {
 	const char *p_buf = (const char*)buf;
 
@@ -2946,7 +2402,7 @@ sr_crc32c_sw(uint32_t crc, const void *buf, int len)
 #endif
 
 static uint32_t
-sr_crc32c_hw_byte(uint32_t crc, unsigned char const *data, unsigned int length)
+ss_crc32c_hw_byte(uint32_t crc, unsigned char const *data, unsigned int length)
 {
 	while (length--) {
 		__asm__ __volatile__(
@@ -2960,7 +2416,7 @@ sr_crc32c_hw_byte(uint32_t crc, unsigned char const *data, unsigned int length)
 }
 
 static uint32_t
-sr_crc32c_hw(uint32_t crc, const void *buf, int len)
+ss_crc32c_hw(uint32_t crc, const void *buf, int len)
 {
 	unsigned int iquotient = len / sizeof(unsigned long);
 	unsigned int iremainder = len % sizeof(unsigned long);
@@ -2974,14 +2430,14 @@ sr_crc32c_hw(uint32_t crc, const void *buf, int len)
 		ptmp++;
 	}
 	if (iremainder) {
-		crc = sr_crc32c_hw_byte(crc, (unsigned char const*)ptmp, iremainder);
+		crc = ss_crc32c_hw_byte(crc, (unsigned char const*)ptmp, iremainder);
 	}
 	return crc;
 }
 #undef REX_PRE
 
 static int
-sr_crc32c_hw_enabled(void)
+ss_crc32c_hw_enabled(void)
 {
 	unsigned int ax, bx, cx, dx;
 	if (__get_cpuid(1, &ax, &bx, &cx, &dx) == 0)
@@ -2990,15 +2446,15 @@ sr_crc32c_hw_enabled(void)
 }
 #endif
 
-srcrcf sr_crc32c_function(void)
+sscrcf ss_crc32c_function(void)
 {
 #if defined (__x86_64__) || defined (__i386__)
-	if (sr_crc32c_hw_enabled())
-		return sr_crc32c_hw;
+	if (ss_crc32c_hw_enabled())
+		return ss_crc32c_hw;
 #endif
-	return sr_crc32c_sw;
+	return ss_crc32c_sw;
 }
-#line 1 "sophia/rt/sr_dir.c"
+#line 1 "sophia/std/ss_file.c"
 
 /*
  * sophia database
@@ -3010,158 +2466,59 @@ srcrcf sr_crc32c_function(void)
 
 
 
-static inline ssize_t sr_diridof(char *s)
-{
-	size_t v = 0;
-	while (*s && *s != '.') {
-		if (srunlikely(!isdigit(*s)))
-			return -1;
-		v = (v * 10) + *s - '0';
-		s++;
-	}
-	return v;
-}
-
-static inline srdirid*
-sr_dirmatch(srbuf *list, uint64_t id)
-{
-	if (srunlikely(sr_bufused(list) == 0))
-		return NULL;
-	srdirid *n = (srdirid*)list->s;
-	while ((char*)n < list->p) {
-		if (n->id == id)
-			return n;
-		n++;
-	}
-	return NULL;
-}
-
-static inline srdirtype*
-sr_dirtypeof(srdirtype *types, char *ext)
-{
-	srdirtype *p = &types[0];
-	int n = 0;
-	while (p[n].ext != NULL) {
-		if (strcmp(p[n].ext, ext) == 0)
-			return &p[n];
-		n++;
-	}
-	return NULL;
-}
-
-static int
-sr_dircmp(const void *p1, const void *p2)
-{
-	srdirid *a = (srdirid*)p1;
-	srdirid *b = (srdirid*)p2;
-	assert(a->id != b->id);
-	return (a->id > b->id)? 1: -1;
-}
-
-int sr_dirread(srbuf *list, sra *a, srdirtype *types, char *dir)
-{
-	DIR *d = opendir(dir);
-	if (srunlikely(d == NULL))
-		return -1;
-
-	struct dirent *de;
-	while ((de = readdir(d))) {
-		if (srunlikely(de->d_name[0] == '.'))
-			continue;
-		ssize_t id = sr_diridof(de->d_name);
-		if (srunlikely(id == -1))
-			goto error;
-		char *ext = strstr(de->d_name, ".");
-		if (srunlikely(ext == NULL))
-			goto error;
-		ext++;
-		srdirtype *type = sr_dirtypeof(types, ext);
-		if (srunlikely(type == NULL))
-			continue;
-		srdirid *n = sr_dirmatch(list, id);
-		if (n) {
-			n->mask |= type->mask;
-			type->count++;
-			continue;
-		}
-		int rc = sr_bufensure(list, a, sizeof(srdirid));
-		if (srunlikely(rc == -1))
-			goto error;
-		n = (srdirid*)list->p;
-		sr_bufadvance(list, sizeof(srdirid));
-		n->id  = id;
-		n->mask = type->mask;
-		type->count++;
-	}
-	closedir(d);
-
-	if (srunlikely(sr_bufused(list) == 0))
-		return 0;
-
-	int n = sr_bufused(list) / sizeof(srdirid);
-	qsort(list->s, n, sizeof(srdirid), sr_dircmp);
-	return n;
-
-error:
-	closedir(d);
-	return -1;
-}
-#line 1 "sophia/rt/sr_file.c"
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-
-
-int sr_fileunlink(char *path)
+int ss_fileunlink(char *path)
 {
 	return unlink(path);
 }
 
-int sr_filemove(char *a, char *b)
+int ss_filemove(char *a, char *b)
 {
 	return rename(a, b);
 }
 
-int sr_fileexists(char *path)
+int ss_fileexists(char *path)
 {
 	struct stat st;
 	int rc = lstat(path, &st);
 	return rc == 0;
 }
 
-int sr_filemkdir(char *path)
+ssize_t ss_filesize(char *path)
+{
+	struct stat st;
+	int rc = lstat(path, &st);
+	if (ssunlikely(rc == -1))
+		return -1;
+	return st.st_size;
+}
+
+int ss_filemkdir(char *path)
 {
 	return mkdir(path, 0750);
 }
 
 static inline int
-sr_fileopenas(srfile *f, char *path, int flags)
+ss_fileopenas(ssfile *f, char *path, int flags)
 {
 	f->creat = (flags & O_CREAT ? 1 : 0);
 	f->fd = open(path, flags, 0644);
-	if (srunlikely(f->fd == -1))
+	if (ssunlikely(f->fd == -1))
 		return -1;
-	f->file = sr_strdup(f->a, path);
-	if (srunlikely(f->file == NULL))
+	f->file = ss_strdup(f->a, path);
+	if (ssunlikely(f->file == NULL))
 		goto err;
 	f->size = 0;
 	if (f->creat)
 		return 0;
 	struct stat st;
 	int rc = lstat(path, &st);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto err;
 	f->size = st.st_size;
 	return 0;
 err:
 	if (f->file) {
-		sr_free(f->a, f->file);
+		ss_free(f->a, f->file);
 		f->file = NULL;
 	}
 	close(f->fd);
@@ -3169,68 +2526,69 @@ err:
 	return -1;
 }
 
-int sr_fileopen(srfile *f, char *path)
+int ss_fileopen(ssfile *f, char *path)
 {
-	return sr_fileopenas(f, path, O_RDWR);
+	return ss_fileopenas(f, path, O_RDWR);
 }
 
-int sr_filenew(srfile *f, char *path)
+int ss_filenew(ssfile *f, char *path)
 {
-	return sr_fileopenas(f, path, O_RDWR|O_CREAT);
+	return ss_fileopenas(f, path, O_RDWR|O_CREAT);
 }
 
-int sr_filerename(srfile *f, char *path)
+int ss_filerename(ssfile *f, char *path)
 {
-	char *p = sr_strdup(f->a, path);
-	if (srunlikely(p == NULL))
+	char *p = ss_strdup(f->a, path);
+	if (ssunlikely(p == NULL))
 		return -1;
-	int rc = sr_filemove(f->file, p);
-	if (srunlikely(rc == -1)) {
-		sr_free(f->a, p);
+	int rc = ss_filemove(f->file, p);
+	if (ssunlikely(rc == -1)) {
+		ss_free(f->a, p);
 		return -1;
 	}
-	sr_free(f->a, f->file);
+	ss_free(f->a, f->file);
 	f->file = p;
 	return 0;
 }
 
-int sr_fileclose(srfile *f)
+int ss_fileclose(ssfile *f)
 {
-	if (srlikely(f->file)) {
-		sr_free(f->a, f->file);
+	if (sslikely(f->file)) {
+		ss_free(f->a, f->file);
 		f->file = NULL;
 	}
 	int rc;
-	if (srunlikely(f->fd != -1)) {
+	if (ssunlikely(f->fd != -1)) {
 		rc = close(f->fd);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			return -1;
 		f->fd = -1;
 	}
 	return 0;
 }
 
-int sr_filesync(srfile *f)
+int ss_filesync(ssfile *f)
 {
 #if defined(__APPLE__)
 	return fcntl(f->fd, F_FULLFSYNC);
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 	return fsync(f->fd);
 #else
+    // at least Linux, OpenBSD and NetBSD have fdatasync().
 	return fdatasync(f->fd);
 #endif
 }
 
-int sr_fileresize(srfile *f, uint64_t size)
+int ss_fileresize(ssfile *f, uint64_t size)
 {
 	int rc = ftruncate(f->fd, size);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	f->size = size;
 	return 0;
 }
 
-int sr_filepread(srfile *f, uint64_t off, void *buf, size_t size)
+int ss_filepread(ssfile *f, uint64_t off, void *buf, size_t size)
 {
 	size_t n = 0;
 	do {
@@ -3246,7 +2604,7 @@ int sr_filepread(srfile *f, uint64_t off, void *buf, size_t size)
 	return 0;
 }
 
-int sr_filewrite(srfile *f, void *buf, size_t size)
+int ss_filewrite(ssfile *f, void *buf, size_t size)
 {
 	size_t n = 0;
 	do {
@@ -3262,7 +2620,7 @@ int sr_filewrite(srfile *f, void *buf, size_t size)
 	return 0;
 }
 
-int sr_filewritev(srfile *f, sriov *iv)
+int ss_filewritev(ssfile *f, ssiov *iv)
 {
 	struct iovec *v = iv->v;
 	int n = iv->iovc;
@@ -3291,13 +2649,13 @@ int sr_filewritev(srfile *f, sriov *iv)
 	return 0;
 }
 
-int sr_fileseek(srfile *f, uint64_t off)
+int ss_fileseek(ssfile *f, uint64_t off)
 {
 	return lseek(f->fd, off, SEEK_SET);
 }
 
 #if 0
-int sr_filelock(srfile *f)
+int ss_filelock(ssfile *f)
 {
 	struct flock l;
 	memset(&l, 0, sizeof(l));
@@ -3308,9 +2666,9 @@ int sr_filelock(srfile *f)
 	return fcntl(f->fd, F_SETLK, &l);
 }
 
-int sr_fileunlock(srfile *f)
+int ss_fileunlock(ssfile *f)
 {
-	if (srunlikely(f->fd == -1))
+	if (ssunlikely(f->fd == -1))
 		return 0;
 	struct flock l;
 	memset(&l, 0, sizeof(l));
@@ -3322,20 +2680,20 @@ int sr_fileunlock(srfile *f)
 }
 #endif
 
-int sr_filerlb(srfile *f, uint64_t svp)
+int ss_filerlb(ssfile *f, uint64_t svp)
 {
-	if (srunlikely(f->size == svp))
+	if (ssunlikely(f->size == svp))
 		return 0;
 	int rc = ftruncate(f->fd, svp);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	f->size = svp;
-	rc = sr_fileseek(f, f->size);
-	if (srunlikely(rc == -1))
+	rc = ss_fileseek(f, f->size);
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
 }
-#line 1 "sophia/rt/sr_lz4filter.c"
+#line 1 "sophia/std/ss_lz4filter.c"
 
 /*
  * sophia database
@@ -8546,40 +7904,40 @@ size_t LZ4F_decompress(LZ4F_decompressionContext_t decompressionContext,
 
 /* lz4frame.c EOF */
 
-typedef struct srlz4filter srlz4filter;
+typedef struct sslz4filter sslz4filter;
 
-struct srlz4filter {
+struct sslz4filter {
 	void *ctx;
-} srpacked;
+} sspacked;
 
 static int
-sr_lz4filter_init(srfilter *f, va_list args srunused)
+ss_lz4filter_init(ssfilter *f, va_list args ssunused)
 {
-	srlz4filter *z = (srlz4filter*)f->priv;
+	sslz4filter *z = (sslz4filter*)f->priv;
 	LZ4F_errorCode_t rc = -1;
 	switch (f->op) {
-	case SR_FINPUT:
+	case SS_FINPUT:
 		rc = LZ4F_createCompressionContext(&z->ctx, LZ4F_VERSION);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		rc = LZ4F_createDecompressionContext(&z->ctx, LZ4F_VERSION);
 		break;	
 	}
-	if (srunlikely(rc != 0))
+	if (ssunlikely(rc != 0))
 		return -1;
 	return 0;
 }
 
 static int
-sr_lz4filter_free(srfilter *f)
+ss_lz4filter_free(ssfilter *f)
 {
-	srlz4filter *z = (srlz4filter*)f->priv;
+	sslz4filter *z = (sslz4filter*)f->priv;
 	(void)z;
 	switch (f->op) {
-	case SR_FINPUT:
+	case SS_FINPUT:
 		LZ4F_freeCompressionContext(z->ctx);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		LZ4F_freeDecompressionContext(z->ctx);
 		break;	
 	}
@@ -8587,38 +7945,38 @@ sr_lz4filter_free(srfilter *f)
 }
 
 static int
-sr_lz4filter_reset(srfilter *f)
+ss_lz4filter_reset(ssfilter *f)
 {
-	srlz4filter *z = (srlz4filter*)f->priv;
+	sslz4filter *z = (sslz4filter*)f->priv;
 	(void)z;
 	switch (f->op) {
-	case SR_FINPUT:
+	case SS_FINPUT:
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		break;
 	}
 	return 0;
 }
 
 static int
-sr_lz4filter_start(srfilter *f, srbuf *dest)
+ss_lz4filter_start(ssfilter *f, ssbuf *dest)
 {
-	srlz4filter *z = (srlz4filter*)f->priv;
+	sslz4filter *z = (sslz4filter*)f->priv;
 	int rc;
 	size_t block;
 	size_t sz;
 	switch (f->op) {
-	case SR_FINPUT:;
+	case SS_FINPUT:;
 		block = LZ4F_MAXHEADERFRAME_SIZE;
-		rc = sr_bufensure(dest, f->r->a, block);
-		if (srunlikely(rc == -1))
+		rc = ss_bufensure(dest, f->a, block);
+		if (ssunlikely(rc == -1))
 			return -1;
 		sz = LZ4F_compressBegin(z->ctx, dest->p, block, NULL);
-		if (srunlikely(LZ4F_isError(sz)))
+		if (ssunlikely(LZ4F_isError(sz)))
 			return -1;
-		sr_bufadvance(dest, sz);
+		ss_bufadvance(dest, sz);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		/* do nothing */
 		break;
 	}
@@ -8626,22 +7984,24 @@ sr_lz4filter_start(srfilter *f, srbuf *dest)
 }
 
 static int
-sr_lz4filter_next(srfilter *f, srbuf *dest, char *buf, int size)
+ss_lz4filter_next(ssfilter *f, ssbuf *dest, char *buf, int size)
 {
-	srlz4filter *z = (srlz4filter*)f->priv;
+	sslz4filter *z = (sslz4filter*)f->priv;
+	if (ssunlikely(size == 0))
+		return 0;
 	int rc;
 	switch (f->op) {
-	case SR_FINPUT:;
+	case SS_FINPUT:;
 		size_t block = LZ4F_compressBound(size, NULL);
-		rc = sr_bufensure(dest, f->r->a, block);
-		if (srunlikely(rc == -1))
+		rc = ss_bufensure(dest, f->a, block);
+		if (ssunlikely(rc == -1))
 			return -1;
 		size_t sz = LZ4F_compressUpdate(z->ctx, dest->p, block, buf, size, NULL);
-		if (srunlikely(LZ4F_isError(sz)))
+		if (ssunlikely(LZ4F_isError(sz)))
 			return -1;
-		sr_bufadvance(dest, sz);
+		ss_bufadvance(dest, sz);
 		break;	
-	case SR_FOUTPUT:;
+	case SS_FOUTPUT:;
 		/* do a single-pass decompression.
 		 *
 		 * Assume that destination buffer is allocated to
@@ -8650,13 +8010,13 @@ sr_lz4filter_next(srfilter *f, srbuf *dest, char *buf, int size)
 		size_t pos = 0;
 		while (pos < (size_t)size)
 		{
-			size_t o_size = sr_bufunused(dest);
+			size_t o_size = ss_bufunused(dest);
 			size_t i_size = size - pos;
 			LZ4F_errorCode_t rc;
 			rc = LZ4F_decompress(z->ctx, dest->p, &o_size, buf + pos, &i_size, NULL);
 			if (LZ4F_isError(rc))
 				return -1;
-			sr_bufadvance(dest, o_size);
+			ss_bufadvance(dest, o_size);
 			pos += i_size;
 		}
 		break;
@@ -8665,40 +8025,40 @@ sr_lz4filter_next(srfilter *f, srbuf *dest, char *buf, int size)
 }
 
 static int
-sr_lz4filter_complete(srfilter *f, srbuf *dest)
+ss_lz4filter_complete(ssfilter *f, ssbuf *dest)
 {
-	srlz4filter *z = (srlz4filter*)f->priv;
+	sslz4filter *z = (sslz4filter*)f->priv;
 	int rc;
 	switch (f->op) {
-	case SR_FINPUT:;
+	case SS_FINPUT:;
     	LZ4F_cctx_internal_t* cctxPtr = z->ctx;
 		size_t block = (cctxPtr->tmpInSize + 16);
-		rc = sr_bufensure(dest, f->r->a, block);
-		if (srunlikely(rc == -1))
+		rc = ss_bufensure(dest, f->a, block);
+		if (ssunlikely(rc == -1))
 			return -1;
 		size_t sz = LZ4F_compressEnd(z->ctx, dest->p, block, NULL);
-		if (srunlikely(LZ4F_isError(sz)))
+		if (ssunlikely(LZ4F_isError(sz)))
 			return -1;
-		sr_bufadvance(dest, sz);
+		ss_bufadvance(dest, sz);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		/* do nothing */
 		break;
 	}
 	return 0;
 }
 
-srfilterif sr_lz4filter =
+ssfilterif ss_lz4filter =
 {
 	.name     = "lz4",
-	.init     = sr_lz4filter_init,
-	.free     = sr_lz4filter_free,
-	.reset    = sr_lz4filter_reset,
-	.start    = sr_lz4filter_start,
-	.next     = sr_lz4filter_next,
-	.complete = sr_lz4filter_complete
+	.init     = ss_lz4filter_init,
+	.free     = ss_lz4filter_free,
+	.reset    = ss_lz4filter_reset,
+	.start    = ss_lz4filter_start,
+	.next     = ss_lz4filter_next,
+	.complete = ss_lz4filter_complete
 };
-#line 1 "sophia/rt/sr_map.c"
+#line 1 "sophia/std/ss_mmap.c"
 
 /*
  * sophia database
@@ -8710,7 +8070,7 @@ srfilterif sr_lz4filter =
 
 
 
-int sr_map(srmap *m, int fd, uint64_t size, int ro)
+int ss_mmap(ssmmap *m, int fd, uint64_t size, int ro)
 {
 	int flags = PROT_READ;
 	if (! ro)
@@ -8724,15 +8084,15 @@ int sr_map(srmap *m, int fd, uint64_t size, int ro)
 	return 0;
 }
 
-int sr_mapunmap(srmap *m)
+int ss_munmap(ssmmap *m)
 {
-	if (srunlikely(m->p == NULL))
+	if (ssunlikely(m->p == NULL))
 		return 0;
 	int rc = munmap(m->p, m->size);
 	m->p = NULL;
 	return rc;
 }
-#line 1 "sophia/rt/sr_pager.c"
+#line 1 "sophia/std/ss_nonefilter.c"
 
 /*
  * sophia database
@@ -8744,19 +8104,79 @@ int sr_mapunmap(srmap *m)
 
 
 
-void sr_pagerinit(srpager *p, uint32_t pool_count, uint32_t page_size)
+static int
+ss_nonefilter_init(ssfilter *f ssunused, va_list args ssunused)
 {
-	p->page_size  = sizeof(srpage) + page_size;
+	return 0;
+}
+
+static int
+ss_nonefilter_free(ssfilter *f ssunused)
+{
+	return 0;
+}
+
+static int
+ss_nonefilter_reset(ssfilter *f ssunused)
+{
+	return 0;
+}
+
+static int
+ss_nonefilter_start(ssfilter *f ssunused, ssbuf *dest ssunused)
+{
+	return 0;
+}
+
+static int
+ss_nonefilter_next(ssfilter *f ssunused,
+                   ssbuf *dest ssunused,
+                   char *buf ssunused, int size ssunused)
+{
+	return 0;
+}
+
+static int
+ss_nonefilter_complete(ssfilter *f ssunused, ssbuf *dest ssunused)
+{
+	return 0;
+}
+
+ssfilterif ss_nonefilter =
+{
+	.name     = "none",
+	.init     = ss_nonefilter_init,
+	.free     = ss_nonefilter_free,
+	.reset    = ss_nonefilter_reset,
+	.start    = ss_nonefilter_start,
+	.next     = ss_nonefilter_next,
+	.complete = ss_nonefilter_complete
+};
+#line 1 "sophia/std/ss_pager.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+void ss_pagerinit(sspager *p, uint32_t pool_count, uint32_t page_size)
+{
+	p->page_size  = sizeof(sspage) + page_size;
 	p->pool_count = pool_count;
-	p->pool_size  = sizeof(srpagepool) + pool_count * p->page_size;
+	p->pool_size  = sizeof(sspagepool) + pool_count * p->page_size;
 	p->pools      = 0;
 	p->pp         = NULL;
 	p->p          = NULL;
 }
 
-void sr_pagerfree(srpager *p)
+void ss_pagerfree(sspager *p)
 {
-	srpagepool *pp_next, *pp = p->pp;
+	sspagepool *pp_next, *pp = p->pp;
 	while (pp) {
 		pp_next = pp->next;
 		munmap(pp, p->pool_size);
@@ -8765,16 +8185,16 @@ void sr_pagerfree(srpager *p)
 }
 
 static inline void
-sr_pagerprefetch(srpager *p, srpagepool *pp)
+ss_pagerprefetch(sspager *p, sspagepool *pp)
 {
-	register srpage *start =
-		(srpage*)((char*)pp + sizeof(srpagepool));
-	register srpage *prev = start;
+	register sspage *start =
+		(sspage*)((char*)pp + sizeof(sspagepool));
+	register sspage *prev = start;
 	register uint32_t i = 1;
 	start->pool = pp;
 	while (i < p->pool_count) {
-		srpage *page =
-			(srpage*)((char*)start + i * p->page_size);
+		sspage *page =
+			(sspage*)((char*)start + i * p->page_size);
 		page->pool = pp;
 		prev->next = page;
 		prev = page;
@@ -8784,41 +8204,41 @@ sr_pagerprefetch(srpager *p, srpagepool *pp)
 	p->p = start;
 }
 
-int sr_pageradd(srpager *p)
+int ss_pageradd(sspager *p)
 {
-	srpagepool *pp =
+	sspagepool *pp =
 		mmap(NULL, p->pool_size, PROT_READ|PROT_WRITE|PROT_EXEC,
 	         MAP_PRIVATE|MAP_ANON, -1, 0);
-	if (srunlikely(p == MAP_FAILED))
+	if (ssunlikely(p == MAP_FAILED))
 		return -1;
 	pp->used = 0;
 	pp->next = p->pp;
 	p->pp = pp;
 	p->pools++;
-	sr_pagerprefetch(p, pp);
+	ss_pagerprefetch(p, pp);
 	return 0;
 }
 
-void *sr_pagerpop(srpager *p)
+void *ss_pagerpop(sspager *p)
 {
 	if (p->p)
 		goto fetch;
-	if (srunlikely(sr_pageradd(p) == -1))
+	if (ssunlikely(ss_pageradd(p) == -1))
 		return NULL;
 fetch:;
-	srpage *page = p->p;
+	sspage *page = p->p;
 	p->p = page->next;
 	page->pool->used++;
 	return page;
 }
 
-void sr_pagerpush(srpager *p, srpage *page)
+void ss_pagerpush(sspager *p, sspage *page)
 {
 	page->pool->used--;
 	page->next = p->p;
 	p->p = page;
 }
-#line 1 "sophia/rt/sr_quota.c"
+#line 1 "sophia/std/ss_quota.c"
 
 /*
  * sophia database
@@ -8830,63 +8250,64 @@ void sr_pagerpush(srpager *p, srpage *page)
 
 
 
-int sr_quotainit(srquota *q)
+int ss_quotainit(ssquota *q)
 {
 	q->enable = 0;
 	q->wait   = 0;
 	q->limit  = 0;
 	q->used   = 0;
-	sr_mutexinit(&q->lock);
-	sr_condinit(&q->cond);
+	ss_mutexinit(&q->lock);
+	ss_condinit(&q->cond);
 	return 0;
 }
 
-int sr_quotaset(srquota *q, uint64_t limit)
+int ss_quotaset(ssquota *q, uint64_t limit)
 {
 	q->limit = limit;
 	return 0;
 }
 
-int sr_quotaenable(srquota *q, int v)
+int ss_quotaenable(ssquota *q, int v)
 {
 	q->enable = v;
 	return 0;
 }
 
-int sr_quotafree(srquota *q)
+int ss_quotafree(ssquota *q)
 {
-	sr_mutexfree(&q->lock);
-	sr_condfree(&q->cond);
+	ss_mutexfree(&q->lock);
+	ss_condfree(&q->cond);
 	return 0;
 }
 
-int sr_quota(srquota *q, srquotaop op, uint64_t v)
+int ss_quota(ssquota *q, ssquotaop op, uint64_t v)
 {
-	sr_mutexlock(&q->lock);
+	ss_mutexlock(&q->lock);
 	switch (op) {
-	case SR_QADD:
-		if (srunlikely(!q->enable || q->limit == 0)) {
+	case SS_QADD:
+		if (ssunlikely(!q->enable || q->limit == 0)) {
 			/* .. */
 		} else {
-			if (srunlikely((q->used + v) >= q->limit)) {
+			if (ssunlikely((q->used + v) >= q->limit)) {
 				q->wait++;
-				sr_condwait(&q->cond, &q->lock);
+				ss_condwait(&q->cond, &q->lock);
 			}
 		}
+	case SS_QGROW:
 		q->used += v;
 		break;
-	case SR_QREMOVE:
+	case SS_QREMOVE:
 		q->used -= v;
-		if (srunlikely(q->wait)) {
+		if (ssunlikely(q->wait)) {
 			q->wait--;
-			sr_condsignal(&q->cond);
+			ss_condsignal(&q->cond);
 		}
 		break;
 	}
-	sr_mutexunlock(&q->lock);
+	ss_mutexunlock(&q->lock);
 	return 0;
 }
-#line 1 "sophia/rt/sr_rb.c"
+#line 1 "sophia/std/ss_rb.c"
 
 /*
  * sophia database
@@ -8898,69 +8319,69 @@ int sr_quota(srquota *q, srquotaop op, uint64_t v)
 
 
 
-#define SR_RBBLACK 0
-#define SR_RBRED   1
-#define SR_RBUNDEF 2
+#define SS_RBBLACK 0
+#define SS_RBRED   1
+#define SS_RBUNDEF 2
 
-srrbnode *sr_rbmin(srrb *t)
+ssrbnode *ss_rbmin(ssrb *t)
 {
-	srrbnode *n = t->root;
-	if (srunlikely(n == NULL))
+	ssrbnode *n = t->root;
+	if (ssunlikely(n == NULL))
 		return NULL;
 	while (n->l)
 		n = n->l;
 	return n;
 }
 
-srrbnode *sr_rbmax(srrb *t)
+ssrbnode *ss_rbmax(ssrb *t)
 {
-	srrbnode *n = t->root;
-	if (srunlikely(n == NULL))
+	ssrbnode *n = t->root;
+	if (ssunlikely(n == NULL))
 		return NULL;
 	while (n->r)
 		n = n->r;
 	return n;
 }
 
-srrbnode *sr_rbnext(srrb *t, srrbnode *n)
+ssrbnode *ss_rbnext(ssrb *t, ssrbnode *n)
 {
-	if (srunlikely(n == NULL))
-		return sr_rbmin(t);
+	if (ssunlikely(n == NULL))
+		return ss_rbmin(t);
 	if (n->r) {
 		n = n->r;
 		while (n->l)
 			n = n->l;
 		return n;
 	}
-	srrbnode *p;
+	ssrbnode *p;
 	while ((p = n->p) && p->r == n)
 		n = p;
 	return p;
 }
 
-srrbnode *sr_rbprev(srrb *t, srrbnode *n)
+ssrbnode *ss_rbprev(ssrb *t, ssrbnode *n)
 {
-	if (srunlikely(n == NULL))
-		return sr_rbmax(t);
+	if (ssunlikely(n == NULL))
+		return ss_rbmax(t);
 	if (n->l) {
 		n = n->l;
 		while (n->r)
 			n = n->r;
 		return n;
 	}
-	srrbnode *p;
+	ssrbnode *p;
 	while ((p = n->p) && p->l == n)
 		n = p;
 	return p;
 }
 
 static inline void
-sr_rbrotate_left(srrb *t, srrbnode *n)
+ss_rbrotate_left(ssrb *t, ssrbnode *n)
 {
-	srrbnode *p = n;
-	srrbnode *q = n->r;
-	srrbnode *parent = n->p;
-	if (srlikely(p->p != NULL)) {
+	ssrbnode *p = n;
+	ssrbnode *q = n->r;
+	ssrbnode *parent = n->p;
+	if (sslikely(p->p != NULL)) {
 		if (parent->l == p)
 			parent->l = q;
 		else
@@ -8977,12 +8398,12 @@ sr_rbrotate_left(srrb *t, srrbnode *n)
 }
 
 static inline void
-sr_rbrotate_right(srrb *t, srrbnode *n)
+ss_rbrotate_right(ssrb *t, ssrbnode *n)
 {
-	srrbnode *p = n;
-	srrbnode *q = n->l;
-	srrbnode *parent = n->p;
-	if (srlikely(p->p != NULL)) {
+	ssrbnode *p = n;
+	ssrbnode *q = n->l;
+	ssrbnode *parent = n->p;
+	if (sslikely(p->p != NULL)) {
 		if (parent->l == p)
 			parent->l = q;
 		else
@@ -8999,58 +8420,58 @@ sr_rbrotate_right(srrb *t, srrbnode *n)
 }
 
 static inline void
-sr_rbset_fixup(srrb *t, srrbnode *n)
+ss_rbset_fixup(ssrb *t, ssrbnode *n)
 {
-	srrbnode *p;
-	while ((p = n->p) && (p->color == SR_RBRED))
+	ssrbnode *p;
+	while ((p = n->p) && (p->color == SS_RBRED))
 	{
-		srrbnode *g = p->p;
+		ssrbnode *g = p->p;
 		if (p == g->l) {
-			srrbnode *u = g->r;
-			if (u && u->color == SR_RBRED) {
-				g->color = SR_RBRED;
-				p->color = SR_RBBLACK;
-				u->color = SR_RBBLACK;
+			ssrbnode *u = g->r;
+			if (u && u->color == SS_RBRED) {
+				g->color = SS_RBRED;
+				p->color = SS_RBBLACK;
+				u->color = SS_RBBLACK;
 				n = g;
 			} else {
 				if (n == p->r) {
-					sr_rbrotate_left(t, p);
+					ss_rbrotate_left(t, p);
 					n = p;
 					p = n->p;
 				}
-				g->color = SR_RBRED;
-				p->color = SR_RBBLACK;
-				sr_rbrotate_right(t, g);
+				g->color = SS_RBRED;
+				p->color = SS_RBBLACK;
+				ss_rbrotate_right(t, g);
 			}
 		} else {
-			srrbnode *u = g->l;
-			if (u && u->color == SR_RBRED) {
-				g->color = SR_RBRED;
-				p->color = SR_RBBLACK;
-				u->color = SR_RBBLACK;
+			ssrbnode *u = g->l;
+			if (u && u->color == SS_RBRED) {
+				g->color = SS_RBRED;
+				p->color = SS_RBBLACK;
+				u->color = SS_RBBLACK;
 				n = g;
 			} else {
 				if (n == p->l) {
-					sr_rbrotate_right(t, p);
+					ss_rbrotate_right(t, p);
 					n = p;
 					p = n->p;
 				}
-				g->color = SR_RBRED;
-				p->color = SR_RBBLACK;
-				sr_rbrotate_left(t, g);
+				g->color = SS_RBRED;
+				p->color = SS_RBBLACK;
+				ss_rbrotate_left(t, g);
 			}
 		}
 	}
-	t->root->color = SR_RBBLACK;
+	t->root->color = SS_RBBLACK;
 }
 
-void sr_rbset(srrb *t, srrbnode *p, int prel, srrbnode *n)
+void ss_rbset(ssrb *t, ssrbnode *p, int prel, ssrbnode *n)
 {
-	n->color = SR_RBRED;
+	n->color = SS_RBRED;
 	n->p     = p;
 	n->l     = NULL;
 	n->r     = NULL;
-	if (srlikely(p)) {
+	if (sslikely(p)) {
 		assert(prel != 0);
 		if (prel > 0)
 			p->l = n;
@@ -9059,12 +8480,12 @@ void sr_rbset(srrb *t, srrbnode *p, int prel, srrbnode *n)
 	} else {
 		t->root = n;
 	}
-	sr_rbset_fixup(t, n);
+	ss_rbset_fixup(t, n);
 }
 
-void sr_rbreplace(srrb *t, srrbnode *o, srrbnode *n)
+void ss_rbreplace(ssrb *t, ssrbnode *o, ssrbnode *n)
 {
-	srrbnode *p = o->p;
+	ssrbnode *p = o->p;
 	if (p) {
 		if (p->l == o) {
 			p->l = n;
@@ -9081,13 +8502,13 @@ void sr_rbreplace(srrb *t, srrbnode *o, srrbnode *n)
 	*n = *o;
 }
 
-void sr_rbremove(srrb *t, srrbnode *n)
+void ss_rbremove(ssrb *t, ssrbnode *n)
 {
-	if (srunlikely(n->color == SR_RBUNDEF))
+	if (ssunlikely(n->color == SS_RBUNDEF))
 		return;
-	srrbnode *l = n->l;
-	srrbnode *r = n->r;
-	srrbnode *x = NULL;
+	ssrbnode *l = n->l;
+	ssrbnode *r = n->r;
+	ssrbnode *x = NULL;
 	if (l == NULL) {
 		x = r;
 	} else
@@ -9098,7 +8519,7 @@ void sr_rbremove(srrb *t, srrbnode *n)
 		while (x->l)
 			x = x->l;
 	}
-	srrbnode *p = n->p;
+	ssrbnode *p = n->p;
 	if (p) {
 		if (p->l == n) {
 			p->l = x;
@@ -9133,84 +8554,84 @@ void sr_rbremove(srrb *t, srrbnode *n)
 	if (n)
 		n->p = p;
 
-	if (color == SR_RBRED)
+	if (color == SS_RBRED)
 		return;
-	if (n && n->color == SR_RBRED) {
-		n->color = SR_RBBLACK;
+	if (n && n->color == SS_RBRED) {
+		n->color = SS_RBBLACK;
 		return;
 	}
 
-	srrbnode *s;
+	ssrbnode *s;
 	do {
-		if (srunlikely(n == t->root))
+		if (ssunlikely(n == t->root))
 			break;
 
 		if (n == p->l) {
 			s = p->r;
-			if (s->color == SR_RBRED)
+			if (s->color == SS_RBRED)
 			{
-				s->color = SR_RBBLACK;
-				p->color = SR_RBRED;
-				sr_rbrotate_left(t, p);
+				s->color = SS_RBBLACK;
+				p->color = SS_RBRED;
+				ss_rbrotate_left(t, p);
 				s = p->r;
 			}
-			if ((!s->l || (s->l->color == SR_RBBLACK)) &&
-			    (!s->r || (s->r->color == SR_RBBLACK)))
+			if ((!s->l || (s->l->color == SS_RBBLACK)) &&
+			    (!s->r || (s->r->color == SS_RBBLACK)))
 			{
-				s->color = SR_RBRED;
+				s->color = SS_RBRED;
 				n = p;
 				p = p->p;
 				continue;
 			}
-			if ((!s->r || (s->r->color == SR_RBBLACK)))
+			if ((!s->r || (s->r->color == SS_RBBLACK)))
 			{
-				s->l->color = SR_RBBLACK;
-				s->color    = SR_RBRED;
-				sr_rbrotate_right(t, s);
+				s->l->color = SS_RBBLACK;
+				s->color    = SS_RBRED;
+				ss_rbrotate_right(t, s);
 				s = p->r;
 			}
 			s->color    = p->color;
-			p->color    = SR_RBBLACK;
-			s->r->color = SR_RBBLACK;
-			sr_rbrotate_left(t, p);
+			p->color    = SS_RBBLACK;
+			s->r->color = SS_RBBLACK;
+			ss_rbrotate_left(t, p);
 			n = t->root;
 			break;
 		} else {
 			s = p->l;
-			if (s->color == SR_RBRED)
+			if (s->color == SS_RBRED)
 			{
-				s->color = SR_RBBLACK;
-				p->color = SR_RBRED;
-				sr_rbrotate_right(t, p);
+				s->color = SS_RBBLACK;
+				p->color = SS_RBRED;
+				ss_rbrotate_right(t, p);
 				s = p->l;
 			}
-			if ((!s->l || (s->l->color == SR_RBBLACK)) &&
-				(!s->r || (s->r->color == SR_RBBLACK)))
+			if ((!s->l || (s->l->color == SS_RBBLACK)) &&
+				(!s->r || (s->r->color == SS_RBBLACK)))
 			{
-				s->color = SR_RBRED;
+				s->color = SS_RBRED;
 				n = p;
 				p = p->p;
 				continue;
 			}
-			if ((!s->l || (s->l->color == SR_RBBLACK)))
+			if ((!s->l || (s->l->color == SS_RBBLACK)))
 			{
-				s->r->color = SR_RBBLACK;
-				s->color    = SR_RBRED;
-				sr_rbrotate_left(t, s);
+				s->r->color = SS_RBBLACK;
+				s->color    = SS_RBRED;
+				ss_rbrotate_left(t, s);
 				s = p->l;
 			}
 			s->color    = p->color;
-			p->color    = SR_RBBLACK;
-			s->l->color = SR_RBBLACK;
-			sr_rbrotate_right(t, p);
+			p->color    = SS_RBBLACK;
+			s->l->color = SS_RBBLACK;
+			ss_rbrotate_right(t, p);
 			n = t->root;
 			break;
 		}
-	} while (n->color == SR_RBBLACK);
+	} while (n->color == SS_RBBLACK);
 	if (n)
-		n->color = SR_RBBLACK;
+		n->color = SS_RBBLACK;
 }
-#line 1 "sophia/rt/sr_slaba.c"
+#line 1 "sophia/std/ss_slaba.c"
 
 /*
  * sophia database
@@ -9222,28 +8643,28 @@ void sr_rbremove(srrb *t, srrbnode *n)
 
 
 
-typedef struct srsachunk srsachunk;
-typedef struct srsa srsa;
+typedef struct sssachunk sssachunk;
+typedef struct sssa sssa;
 
-struct srsachunk {
-	srsachunk *next;
+struct sssachunk {
+	sssachunk *next;
 };
 
-struct srsa {
+struct sssa {
 	uint32_t chunk_max;
 	uint32_t chunk_count;
 	uint32_t chunk_used;
 	uint32_t chunk_size;
-	srsachunk *chunk;
-	srpage *pu;
-	srpager *pager;
-} srpacked;
+	sssachunk *chunk;
+	sspage *pu;
+	sspager *pager;
+} sspacked;
 
 static inline int
-sr_sagrow(srsa *s)
+ss_sagrow(sssa *s)
 {
-	register srpage *page = sr_pagerpop(s->pager);
-	if (srunlikely(page == NULL))
+	register sspage *page = ss_pagerpop(s->pager);
+	if (ssunlikely(page == NULL))
 		return -1;
 	page->next = s->pu;
 	s->pu = page;
@@ -9252,86 +8673,86 @@ sr_sagrow(srsa *s)
 }
 
 static inline int
-sr_slabaclose(sra *a)
+ss_slabaclose(ssa *a)
 {
-	srsa *s = (srsa*)a->priv;
-	srpage *p_next, *p;
+	sssa *s = (sssa*)a->priv;
+	sspage *p_next, *p;
 	p = s->pu;
 	while (p) {
 		p_next = p->next;
-		sr_pagerpush(s->pager, p);
+		ss_pagerpush(s->pager, p);
 		p = p_next;
 	}
 	return 0;
 }
 
 static inline int
-sr_slabaopen(sra *a, va_list args) {
-	assert(sizeof(srsa) <= sizeof(a->priv));
-	srsa *s = (srsa*)a->priv;
+ss_slabaopen(ssa *a, va_list args) {
+	assert(sizeof(sssa) <= sizeof(a->priv));
+	sssa *s = (sssa*)a->priv;
 	memset(s, 0, sizeof(*s));
-	s->pager       = va_arg(args, srpager*);
+	s->pager       = va_arg(args, sspager*);
 	s->chunk_size  = va_arg(args, uint32_t);
 	s->chunk_count = 0;
 	s->chunk_max   =
-		(s->pager->page_size - sizeof(srpage)) /
-	     (sizeof(srsachunk) + s->chunk_size);
+		(s->pager->page_size - sizeof(sspage)) /
+	     (sizeof(sssachunk) + s->chunk_size);
 	s->chunk_used  = 0;
 	s->chunk       = NULL;
 	s->pu          = NULL;
-	int rc = sr_sagrow(s);
-	if (srunlikely(rc == -1)) {
-		sr_slabaclose(a);
+	int rc = ss_sagrow(s);
+	if (ssunlikely(rc == -1)) {
+		ss_slabaclose(a);
 		return -1;
 	}
 	return 0;
 }
 
-srhot static inline void*
-sr_slabamalloc(sra *a, int size srunused)
+sshot static inline void*
+ss_slabamalloc(ssa *a, int size ssunused)
 {
-	srsa *s = (srsa*)a->priv;
-	if (srlikely(s->chunk)) {
-		register srsachunk *c = s->chunk;
+	sssa *s = (sssa*)a->priv;
+	if (sslikely(s->chunk)) {
+		register sssachunk *c = s->chunk;
 		s->chunk = c->next;
 		s->chunk_count++;
 		c->next = NULL;
-		return (char*)c + sizeof(srsachunk);
+		return (char*)c + sizeof(sssachunk);
 	}
-	if (srunlikely(s->chunk_used == s->chunk_max)) {
-		if (srunlikely(sr_sagrow(s) == -1))
+	if (ssunlikely(s->chunk_used == s->chunk_max)) {
+		if (ssunlikely(ss_sagrow(s) == -1))
 			return NULL;
 	}
-	register int off = sizeof(srpage) +
-		s->chunk_used * (sizeof(srsachunk) + s->chunk_size);
-	register srsachunk *n =
-		(srsachunk*)((char*)s->pu + off);
+	register int off = sizeof(sspage) +
+		s->chunk_used * (sizeof(sssachunk) + s->chunk_size);
+	register sssachunk *n =
+		(sssachunk*)((char*)s->pu + off);
 	s->chunk_used++;
 	s->chunk_count++;
 	n->next = NULL;
-	return (char*)n + sizeof(srsachunk);
+	return (char*)n + sizeof(sssachunk);
 }
 
-srhot static inline void
-sr_slabafree(sra *a, void *ptr)
+sshot static inline void
+ss_slabafree(ssa *a, void *ptr)
 {
-	srsa *s = (srsa*)a->priv;
-	register srsachunk *c =
-		(srsachunk*)((char*)ptr - sizeof(srsachunk));
+	sssa *s = (sssa*)a->priv;
+	register sssachunk *c =
+		(sssachunk*)((char*)ptr - sizeof(sssachunk));
 	c->next = s->chunk;
 	s->chunk = c;
 	s->chunk_count--;
 }
 
-sraif sr_slaba =
+ssaif ss_slaba =
 {
-	.open    = sr_slabaopen,
-	.close   = sr_slabaclose,
-	.malloc  = sr_slabamalloc,
+	.open    = ss_slabaopen,
+	.close   = ss_slabaclose,
+	.malloc  = ss_slabamalloc,
 	.realloc = NULL,
-	.free    = sr_slabafree 
+	.free    = ss_slabafree 
 };
-#line 1 "sophia/rt/sr_stda.c"
+#line 1 "sophia/std/ss_stda.c"
 
 /*
  * sophia database
@@ -9344,40 +8765,40 @@ sraif sr_slaba =
 
 
 static inline int
-sr_stdaopen(sra *a srunused, va_list args srunused) {
+ss_stdaopen(ssa *a ssunused, va_list args ssunused) {
 	return 0;
 }
 
 static inline int
-sr_stdaclose(sra *a srunused) {
+ss_stdaclose(ssa *a ssunused) {
 	return 0;
 }
 
 static inline void*
-sr_stdamalloc(sra *a srunused, int size) {
+ss_stdamalloc(ssa *a ssunused, int size) {
 	return malloc(size);
 }
 
 static inline void*
-sr_stdarealloc(sra *a srunused, void *ptr, int size) {
+ss_stdarealloc(ssa *a ssunused, void *ptr, int size) {
 	return realloc(ptr,  size);
 }
 
 static inline void
-sr_stdafree(sra *a srunused, void *ptr) {
+ss_stdafree(ssa *a ssunused, void *ptr) {
 	assert(ptr != NULL);
 	free(ptr);
 }
 
-sraif sr_stda =
+ssaif ss_stda =
 {
-	.open    = sr_stdaopen,
-	.close   = sr_stdaclose,
-	.malloc  = sr_stdamalloc,
-	.realloc = sr_stdarealloc,
-	.free    = sr_stdafree 
+	.open    = ss_stdaopen,
+	.close   = ss_stdaclose,
+	.malloc  = ss_stdamalloc,
+	.realloc = ss_stdarealloc,
+	.free    = ss_stdafree 
 };
-#line 1 "sophia/rt/sr_thread.c"
+#line 1 "sophia/std/ss_thread.c"
 
 /*
  * sophia database
@@ -9389,17 +8810,17 @@ sraif sr_stda =
 
 
 
-int sr_threadnew(srthread *t, srthreadf f, void *arg)
+int ss_threadnew(ssthread *t, ssthreadf f, void *arg)
 {
 	t->arg = arg;
 	return pthread_create(&t->id, NULL, f, t);
 }
 
-int sr_threadjoin(srthread *t)
+int ss_threadjoin(ssthread *t)
 {
 	return pthread_join(t->id, NULL);
 }
-#line 1 "sophia/rt/sr_time.c"
+#line 1 "sophia/std/ss_time.c"
 
 /*
  * sophia database
@@ -9411,7 +8832,7 @@ int sr_threadjoin(srthread *t)
 
 
 
-void sr_sleep(uint64_t ns)
+void ss_sleep(uint64_t ns)
 {
 	struct timespec ts;
 	ts.tv_sec  = 0;
@@ -9419,13 +8840,13 @@ void sr_sleep(uint64_t ns)
 	nanosleep(&ts, NULL);
 }
 
-uint64_t sr_utime(void)
+uint64_t ss_utime(void)
 {
 	struct timeval t;
 	gettimeofday(&t, NULL);
 	return t.tv_sec * 1000000ULL + t.tv_usec;
 }
-#line 1 "sophia/rt/sr_trigger.c"
+#line 1 "sophia/std/ss_trigger.c"
 
 /*
  * sophia database
@@ -9436,48 +8857,7 @@ uint64_t sr_utime(void)
 */
 
 
-
-void sr_triggerinit(srtrigger *t)
-{
-	t->func = NULL;
-	t->arg = NULL;
-}
-
-void *sr_triggerpointer_of(char *name)
-{
-	if (strncmp(name, "pointer:", 8) != 0)
-		return NULL;
-	name += 8;
-	errno = 0;
-	char *end;
-	unsigned long long int pointer = strtoull(name, &end, 16);
-	if (pointer == 0 && end == name) {
-		return NULL;
-	} else
-	if (pointer == ULLONG_MAX && errno) {
-		return NULL;
-	}
-	return (void*)(uintptr_t)pointer;
-}
-
-int sr_triggerset(srtrigger *t, char *name)
-{
-	void *ptr = sr_triggerpointer_of(name);
-	if (srunlikely(ptr == NULL))
-		return -1;
-	t->func = (srtriggerf)(uintptr_t)ptr;
-	return 0;
-}
-
-int sr_triggersetarg(srtrigger *t, char *name)
-{
-	void *ptr = sr_triggerpointer_of(name);
-	if (srunlikely(ptr == NULL))
-		return -1;
-	t->arg = ptr;
-	return 0;
-}
-#line 1 "sophia/rt/sr_zstdfilter.c"
+#line 1 "sophia/std/ss_zstdfilter.c"
 
 /*
  * sophia database
@@ -13361,23 +12741,23 @@ size_t ZSTD_decompressContinue(ZSTD_dctx_t dctx, void* dst, size_t maxDstSize, c
 
 /* <<<<< zstd.c EOF */
 
-typedef struct srzstdfilter srzstdfilter;
+typedef struct sszstdfilter sszstdfilter;
 
-struct srzstdfilter {
+struct sszstdfilter {
 	void *ctx;
-} srpacked;
+} sspacked;
 
 static int
-sr_zstdfilter_init(srfilter *f, va_list args srunused)
+ss_zstdfilter_init(ssfilter *f, va_list args ssunused)
 {
-	srzstdfilter *z = (srzstdfilter*)f->priv;
+	sszstdfilter *z = (sszstdfilter*)f->priv;
 	switch (f->op) {
-	case SR_FINPUT:
+	case SS_FINPUT:
 		z->ctx = ZSTD_createCCtx();
-		if (srunlikely(z->ctx == NULL))
+		if (ssunlikely(z->ctx == NULL))
 			return -1;
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		z->ctx = NULL;
 		break;	
 	}
@@ -13385,52 +12765,52 @@ sr_zstdfilter_init(srfilter *f, va_list args srunused)
 }
 
 static int
-sr_zstdfilter_free(srfilter *f)
+ss_zstdfilter_free(ssfilter *f)
 {
-	srzstdfilter *z = (srzstdfilter*)f->priv;
+	sszstdfilter *z = (sszstdfilter*)f->priv;
 	switch (f->op) {
-	case SR_FINPUT:
+	case SS_FINPUT:
 		ZSTD_freeCCtx(z->ctx);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		break;	
 	}
 	return 0;
 }
 
 static int
-sr_zstdfilter_reset(srfilter *f)
+ss_zstdfilter_reset(ssfilter *f)
 {
-	srzstdfilter *z = (srzstdfilter*)f->priv;
+	sszstdfilter *z = (sszstdfilter*)f->priv;
 	switch (f->op) {
-	case SR_FINPUT:
+	case SS_FINPUT:
 		ZSTD_resetCCtx(z->ctx);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		break;
 	}
 	return 0;
 }
 
 static int
-sr_zstdfilter_start(srfilter *f, srbuf *dest)
+ss_zstdfilter_start(ssfilter *f, ssbuf *dest)
 {
-	srzstdfilter *z = (srzstdfilter*)f->priv;
+	sszstdfilter *z = (sszstdfilter*)f->priv;
 	int rc;
 	size_t block;
 	size_t sz;
 	switch (f->op) {
-	case SR_FINPUT:;
+	case SS_FINPUT:;
 		block = ZSTD_frameHeaderSize;
-		rc = sr_bufensure(dest, f->r->a, block);
-		if (srunlikely(rc == -1))
+		rc = ss_bufensure(dest, f->a, block);
+		if (ssunlikely(rc == -1))
 			return -1;
 		sz = ZSTD_compressBegin(z->ctx, dest->p, block);
-		if (srunlikely(ZSTD_isError(sz)))
+		if (ssunlikely(ZSTD_isError(sz)))
 			return -1;
-		sr_bufadvance(dest, sz);
+		ss_bufadvance(dest, sz);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		/* do nothing */
 		break;
 	}
@@ -13438,29 +12818,31 @@ sr_zstdfilter_start(srfilter *f, srbuf *dest)
 }
 
 static int
-sr_zstdfilter_next(srfilter *f, srbuf *dest, char *buf, int size)
+ss_zstdfilter_next(ssfilter *f, ssbuf *dest, char *buf, int size)
 {
-	srzstdfilter *z = (srzstdfilter*)f->priv;
+	sszstdfilter *z = (sszstdfilter*)f->priv;
 	int rc;
+	if (ssunlikely(size == 0))
+		return 0;
 	switch (f->op) {
-	case SR_FINPUT:;
+	case SS_FINPUT:;
 		size_t block = ZSTD_compressBound(size);
-		rc = sr_bufensure(dest, f->r->a, block);
-		if (srunlikely(rc == -1))
+		rc = ss_bufensure(dest, f->a, block);
+		if (ssunlikely(rc == -1))
 			return -1;
 		size_t sz = ZSTD_compressContinue(z->ctx, dest->p, block, buf, size);
-		if (srunlikely(ZSTD_isError(sz)))
+		if (ssunlikely(ZSTD_isError(sz)))
 			return -1;
-		sr_bufadvance(dest, sz);
+		ss_bufadvance(dest, sz);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		/* do a single-pass decompression.
 		 *
 		 * Assume that destination buffer is allocated to
 		 * original size.
 		 */
-		sz = ZSTD_decompress(dest->p, sr_bufunused(dest), buf, size);
-		if (srunlikely(ZSTD_isError(sz)))
+		sz = ZSTD_decompress(dest->p, ss_bufunused(dest), buf, size);
+		if (ssunlikely(ZSTD_isError(sz)))
 			return -1;
 		break;
 	}
@@ -13468,38 +12850,1792 @@ sr_zstdfilter_next(srfilter *f, srbuf *dest, char *buf, int size)
 }
 
 static int
-sr_zstdfilter_complete(srfilter *f, srbuf *dest)
+ss_zstdfilter_complete(ssfilter *f, ssbuf *dest)
 {
-	srzstdfilter *z = (srzstdfilter*)f->priv;
+	sszstdfilter *z = (sszstdfilter*)f->priv;
 	int rc;
 	switch (f->op) {
-	case SR_FINPUT:;
+	case SS_FINPUT:;
 		size_t block = ZSTD_blockHeaderSize;
-		rc = sr_bufensure(dest, f->r->a, block);
-		if (srunlikely(rc == -1))
+		rc = ss_bufensure(dest, f->a, block);
+		if (ssunlikely(rc == -1))
 			return -1;
 		size_t sz = ZSTD_compressEnd(z->ctx, dest->p, block);
-		if (srunlikely(ZSTD_isError(sz)))
+		if (ssunlikely(ZSTD_isError(sz)))
 			return -1;
-		sr_bufadvance(dest, sz);
+		ss_bufadvance(dest, sz);
 		break;	
-	case SR_FOUTPUT:
+	case SS_FOUTPUT:
 		/* do nothing */
 		break;
 	}
 	return 0;
 }
 
-srfilterif sr_zstdfilter =
+ssfilterif ss_zstdfilter =
 {
 	.name     = "zstd",
-	.init     = sr_zstdfilter_init,
-	.free     = sr_zstdfilter_free,
-	.reset    = sr_zstdfilter_reset,
-	.start    = sr_zstdfilter_start,
-	.next     = sr_zstdfilter_next,
-	.complete = sr_zstdfilter_complete
+	.init     = ss_zstdfilter_init,
+	.free     = ss_zstdfilter_free,
+	.reset    = ss_zstdfilter_reset,
+	.start    = ss_zstdfilter_start,
+	.next     = ss_zstdfilter_next,
+	.complete = ss_zstdfilter_complete
 };
+#line 1 "sophia/format/sf.h"
+#ifndef SF_H_
+#define SF_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sfref sfref;
+typedef struct sfv   sfv;
+
+struct sfref {
+	uint32_t offset;
+	uint16_t size;
+} sspacked;
+
+struct sfv {
+	void *part;
+	char *key;
+	sfref r;
+};
+
+typedef enum {
+	SF_SKEYVALUE,
+	SF_SRAW
+} sfstorage;
+
+typedef enum {
+	SF_KV,
+	SF_DOCUMENT
+} sf;
+
+static inline char*
+sf_key(char *data, int pos) {
+	return data + ((sfref*)data)[pos].offset;
+}
+
+static inline int
+sf_keysize(char *data, int pos) {
+	return ((sfref*)data)[pos].size;
+}
+
+static inline int
+sf_keytotal(char *data, int count)
+{
+	int total = 0;
+	int i = 0;
+	while (i < count) {
+		total += sf_keysize(data, i);
+		i++;
+	}
+	return total + sizeof(sfref) * count;
+}
+
+static inline int
+sf_keycopy(char *dest, char *src, int count)
+{
+	sfref *ref = (sfref*)dest;
+	int offset = sizeof(sfref) * count;
+	int i = 0;
+	while (i < count) {
+		int size = sf_keysize(src, i);
+		ref->offset = offset;
+		ref->size = size;
+		memcpy(sf_key(dest, i), sf_key(src, i), size);
+		offset += size;
+		ref++;
+		i++;
+	}
+	return offset;
+}
+
+static inline char*
+sf_value(sf format, char *data, int count)
+{
+	assert(count > 0);
+	sfref *ref = ((sfref*)data) + (count - 1);
+	switch (format) {
+	case SF_KV:
+		return data + ref->offset + ref->size;
+	case SF_DOCUMENT:
+		return data + (sizeof(sfref) * count);
+	}
+	return NULL;
+}
+
+static inline int
+sf_valuesize(sf format, char *data, int size, int count)
+{
+	assert(count > 0);
+	switch (format) {
+	case SF_KV: {
+		sfref *ref = ((sfref*)data) + (count - 1);
+		return size - (ref->offset + ref->size);
+	}
+	case SF_DOCUMENT:
+		return size - (sizeof(sfref) * count);
+	}
+	return 0;
+}
+
+static inline int
+sf_size(sf format, sfv *keys, int count, int vsize)
+{
+	switch (format) {
+	case SF_KV: {
+		int sum = 0;
+		int i = 0;
+		while (i < count) {
+			sum += keys[i].r.size;
+			i++;
+		}
+		return sizeof(sfref) * count + sum + vsize;
+	}
+	case SF_DOCUMENT:
+		return sizeof(sfref) * count + vsize;
+	}
+	assert(0);
+	return 0;
+}
+
+static inline void
+sf_write(sf format, char *dest, sfv *keys, int count,
+         char *v, int vsize)
+{
+	sfref *ref = (sfref*)dest;
+	int offset = sizeof(sfref) * count;
+	int i = 0;
+	switch (format) {
+	case SF_KV:
+		while (i < count) {
+			sfv *ptr = &keys[i];
+			ref->offset = offset;
+			ref->size = ptr->r.size;
+			memcpy(dest + offset, ptr->key, ptr->r.size);
+			offset += ptr->r.size;
+			ref++;
+			i++;
+		}
+		break;
+	case SF_DOCUMENT:
+		while (i < count) {
+			sfv *ptr = &keys[i];
+			ref->offset = offset + (uint32_t)(ptr->key - v);
+			ref->size = ptr->r.size;
+			ref++;
+			i++;
+		}
+		break;
+	}
+	memcpy(dest + offset, v, vsize);
+}
+
+#endif
+#line 1 "sophia/format/sf_update.h"
+#ifndef SF_UPDATE_H_
+#define SF_UPDATE_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef int (*sfupdatef)(int, char*, int, int, char*, int, void*, void**, int*);
+
+typedef struct {
+	sfupdatef function;
+	void *arg;
+} sfupdate;
+
+static inline void
+sf_updateinit(sfupdate *u)
+{
+	memset(u, 0, sizeof(*u));
+}
+
+static inline void
+sf_updateset(sfupdate *u, sfupdatef function)
+{
+	u->function = function;
+}
+
+static inline void
+sf_updateset_arg(sfupdate *u, void *arg)
+{
+	u->arg = arg;
+}
+
+static inline int
+sf_updatehas(sfupdate *u) {
+	return u->function != NULL;
+}
+
+#endif
+#line 1 "sophia/format/sf.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+#line 1 "sophia/runtime/sr_version.h"
+#ifndef SR_VERSION_H_
+#define SR_VERSION_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+#define SR_VERSION_MAGIC  8529643324614668147ULL
+#define SR_VERSION_A '2'
+#define SR_VERSION_B '1'
+#define SR_VERSION_C '1'
+
+#if defined(SOPHIA_BUILD)
+# define SR_VERSION_COMMIT SOPHIA_BUILD
+#else
+# define SR_VERSION_COMMIT "unknown"
+#endif
+
+typedef struct srversion srversion;
+
+struct srversion {
+	uint64_t magic;
+	uint8_t  a, b, c;
+} sspacked;
+
+static inline void
+sr_version(srversion *v)
+{
+	v->magic = SR_VERSION_MAGIC;
+	v->a = SR_VERSION_A;
+	v->b = SR_VERSION_B;
+	v->c = SR_VERSION_C;
+}
+
+static inline int
+sr_versioncheck(srversion *v)
+{
+	if (v->magic != SR_VERSION_MAGIC)
+		return 0;
+	if (v->a != SR_VERSION_A)
+		return 0;
+	if (v->b != SR_VERSION_B)
+		return 0;
+	if (v->c != SR_VERSION_C)
+		return 0;
+	return 1;
+}
+
+#endif
+#line 1 "sophia/runtime/sr_error.h"
+#ifndef SR_ERROR_H_
+#define SR_ERROR_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct srerror srerror;
+
+enum {
+	SR_ERROR_NONE  = 0,
+	SR_ERROR = 1,
+	SR_ERROR_MALFUNCTION = 2
+};
+
+struct srerror {
+	ssspinlock lock;
+	int type;
+	const char *file;
+	const char *function;
+	int line;
+	char error[256];
+};
+
+static inline void
+sr_errorinit(srerror *e) {
+	e->type = SR_ERROR_NONE;
+	e->error[0] = 0;
+	e->line = 0;
+	e->function = NULL;
+	e->file = NULL;
+	ss_spinlockinit(&e->lock);
+}
+
+static inline void
+sr_errorfree(srerror *e) {
+	ss_spinlockfree(&e->lock);
+}
+
+static inline void
+sr_errorreset(srerror *e) {
+	ss_spinlock(&e->lock);
+	e->type = SR_ERROR_NONE;
+	e->error[0] = 0;
+	e->line = 0;
+	e->function = NULL;
+	e->file = NULL;
+	ss_spinunlock(&e->lock);
+}
+
+static inline void
+sr_errorrecover(srerror *e) {
+	ss_spinlock(&e->lock);
+	assert(e->type == SR_ERROR_MALFUNCTION);
+	e->type = SR_ERROR;
+	ss_spinunlock(&e->lock);
+}
+
+static inline void
+sr_malfunction_set(srerror *e) {
+	ss_spinlock(&e->lock);
+	e->type = SR_ERROR_MALFUNCTION;
+	ss_spinunlock(&e->lock);
+}
+
+static inline int
+sr_errorof(srerror *e) {
+	ss_spinlock(&e->lock);
+	int type = e->type;
+	ss_spinunlock(&e->lock);
+	return type;
+}
+
+static inline int
+sr_errorcopy(srerror *e, char *buf, int bufsize) {
+	ss_spinlock(&e->lock);
+	int len = snprintf(buf, bufsize, "%s", e->error);
+	ss_spinunlock(&e->lock);
+	return len;
+}
+
+static inline void
+sr_verrorset(srerror *e, int type,
+             const char *file,
+             const char *function, int line,
+             char *fmt, va_list args)
+{
+	ss_spinlock(&e->lock);
+	if (ssunlikely(e->type == SR_ERROR_MALFUNCTION)) {
+		ss_spinunlock(&e->lock);
+		return;
+	}
+	e->file     = file;
+	e->function = function;
+	e->line     = line;
+	e->type     = type;
+	int len;
+	len = snprintf(e->error, sizeof(e->error), "%s:%d ", file, line);
+	vsnprintf(e->error + len, sizeof(e->error) - len, fmt, args);
+	ss_spinunlock(&e->lock);
+}
+
+static inline int
+sr_errorset(srerror *e, int type,
+            const char *file,
+            const char *function, int line,
+            char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	sr_verrorset(e, type, file, function, line, fmt, args);
+	va_end(args);
+	return -1;
+}
+
+#define sr_e(e, type, fmt, ...) \
+	sr_errorset(e, type, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
+
+#define sr_error(e, fmt, ...) \
+	sr_e(e, SR_ERROR, fmt, __VA_ARGS__)
+
+#define sr_malfunction(e, fmt, ...) \
+	sr_e(e, SR_ERROR_MALFUNCTION, fmt, __VA_ARGS__)
+
+#define sr_oom(e) \
+	sr_e(e, SR_ERROR, "%s", "memory allocation failed")
+
+#define sr_oom_malfunction(e) \
+	sr_e(e, SR_ERROR_MALFUNCTION, "%s", "memory allocation failed")
+
+#endif
+#line 1 "sophia/runtime/sr_seq.h"
+#ifndef SR_SEQ_H_
+#define SR_SEQ_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef enum {
+	SR_DSN,
+	SR_DSNNEXT,
+	SR_NSN,
+	SR_NSNNEXT,
+	SR_BSN,
+	SR_BSNNEXT,
+	SR_LSN,
+	SR_LSNNEXT,
+	SR_LFSN,
+	SR_LFSNNEXT,
+	SR_TSN,
+	SR_TSNNEXT,
+	SR_RSN,
+	SR_RSNNEXT
+} srseqop;
+
+typedef struct {
+	ssspinlock lock;
+	uint32_t dsn;
+	uint32_t nsn;
+	uint32_t bsn;
+	uint64_t lsn;
+	uint32_t lfsn;
+	uint32_t tsn;
+	uint64_t rsn;
+} srseq;
+
+static inline void
+sr_seqinit(srseq *n) {
+	memset(n, 0, sizeof(*n));
+	ss_spinlockinit(&n->lock);
+}
+
+static inline void
+sr_seqfree(srseq *n) {
+	ss_spinlockfree(&n->lock);
+}
+
+static inline void
+sr_seqlock(srseq *n) {
+	ss_spinlock(&n->lock);
+}
+
+static inline void
+sr_sequnlock(srseq *n) {
+	ss_spinunlock(&n->lock);
+}
+
+static inline uint64_t
+sr_seqdo(srseq *n, srseqop op)
+{
+	uint64_t v = 0;
+	switch (op) {
+	case SR_LSN:      v = n->lsn;
+		break;
+	case SR_LSNNEXT:  v = ++n->lsn;
+		break;
+	case SR_TSN:      v = n->tsn;
+		break;
+	case SR_TSNNEXT:  v = ++n->tsn;
+		break;
+	case SR_RSN:      v = n->rsn;
+		break;
+	case SR_RSNNEXT:  v = ++n->rsn;
+		break;
+	case SR_NSN:      v = n->nsn;
+		break;
+	case SR_NSNNEXT:  v = ++n->nsn;
+		break;
+	case SR_LFSN:     v = n->lfsn;
+		break;
+	case SR_LFSNNEXT: v = ++n->lfsn;
+		break;
+	case SR_DSN:      v = n->dsn;
+		break;
+	case SR_DSNNEXT:  v = ++n->dsn;
+		break;
+	case SR_BSN:      v = n->bsn;
+		break;
+	case SR_BSNNEXT:  v = ++n->bsn;
+		break;
+	}
+	return v;
+}
+
+static inline uint64_t
+sr_seq(srseq *n, srseqop op)
+{
+	sr_seqlock(n);
+	uint64_t v = sr_seqdo(n, op);
+	sr_sequnlock(n);
+	return v;
+}
+
+#endif
+#line 1 "sophia/runtime/sr_scheme.h"
+#ifndef SR_SCHEME_H_
+#define SR_SCHEME_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct srkey srkey;
+typedef struct srscheme srscheme;
+
+typedef int (*srcmpf)(char*, int, char*, int, void*);
+
+struct srkey {
+	char *name;
+	char *path;
+	sstype type;
+	int pos;
+	srcmpf cmpprefix;
+	srcmpf cmpraw;
+	srcmpf cmp;
+};
+
+struct srscheme {
+	srkey *parts;
+	int count;
+	srcmpf cmp;
+	srcmpf cmpprefix;
+	void *cmparg;
+	void *cmpprefix_arg;
+};
+
+int sr_schemecompare_prefix(char*, int, char*, int, void*);
+int sr_schemecompare(char*, int, char*, int, void*);
+
+static inline void
+sr_schemeinit(srscheme *s)
+{
+	s->parts = NULL;
+	s->count = 0;
+	s->cmp = sr_schemecompare;
+	s->cmparg = s;
+	s->cmpprefix = sr_schemecompare_prefix;
+	s->cmpprefix_arg = s;
+}
+
+static inline void
+sr_schemefree(srscheme *s, ssa *a)
+{
+	if (s->parts == NULL)
+		return;
+	int i = 0;
+	while (i < s->count) {
+		if (s->parts[i].name)
+			ss_free(a, s->parts[i].name);
+		if (s->parts[i].path)
+			ss_free(a, s->parts[i].path);
+		i++;
+	}
+	ss_free(a, s->parts);
+	s->parts = NULL;
+}
+
+static inline void
+sr_schemesetcmp(srscheme *s, srcmpf cmp, void *arg)
+{
+	s->cmp = cmp;
+	s->cmparg = arg;
+}
+
+static inline void
+sr_schemesetcmp_prefix(srscheme *s, srcmpf cmp, void *arg)
+{
+	s->cmpprefix = cmp;
+	s->cmpprefix_arg = arg;
+}
+
+static inline srkey*
+sr_schemeadd(srscheme *s, ssa *a)
+{
+	srkey *parts = ss_malloc(a, sizeof(srkey) * (s->count + 1));
+	if (ssunlikely(parts == NULL))
+		return NULL;
+	memcpy(parts, s->parts, sizeof(srkey) * s->count);
+	if (s->parts)
+		ss_free(a, s->parts);
+	s->parts = parts;
+	int pos = s->count++;
+	srkey *part = &s->parts[pos];
+	memset(part, 0, sizeof(*part));
+	part->pos = pos;
+	return part;
+}
+
+static inline int
+sr_schemedelete(srscheme *s, ssa *a, int pos)
+{
+	srkey *parts = ss_malloc(a, sizeof(srkey) * (s->count - 1));
+	if (ssunlikely(parts == NULL))
+		return -1;
+	int i = 0;
+	int j = 0;
+	while (i < s->count)
+	{
+		if (i == pos) {
+			if (s->parts[i].name)
+				ss_free(a, s->parts[i].name);
+			if (s->parts[i].path)
+				ss_free(a, s->parts[i].path);
+			i++;
+			continue;
+		}
+		parts[j++] = s->parts[i];
+		i++;
+	}
+	if (s->parts)
+		ss_free(a, s->parts);
+	s->parts = parts;
+	s->count -= 1;
+	return 0;
+}
+
+static inline srkey*
+sr_schemefind(srscheme *s, char *name)
+{
+	int i = 0;
+	while (i < s->count) {
+		if (strcmp(s->parts[i].name, name) == 0)
+			return &s->parts[i];
+		i++;
+	}
+	return NULL;
+}
+
+static inline srkey*
+sr_schemeof(srscheme *s, int pos)
+{
+	assert(pos < s->count);
+	return &s->parts[pos];
+}
+
+int sr_keysetname(srkey*, ssa*, char*);
+int sr_keyset(srkey*, ssa*, char*);
+
+int sr_schemesave(srscheme*, ssa*, ssbuf*);
+int sr_schemeload(srscheme*, ssa*, char*, int);
+
+static inline int
+sr_compare(srscheme *s, char *a, int asize, char *b, int bsize) {
+	return s->cmp(a, asize, b, bsize, s->cmparg);
+}
+
+static inline int
+sr_compareprefix(srscheme *s, char *prefix, int prefixsize, char *b, int bsize)
+{
+	return s->cmpprefix(prefix, prefixsize, b, bsize, s->cmpprefix_arg);
+}
+
+#endif
+#line 1 "sophia/runtime/sr.h"
+#ifndef SR_H_
+#define SR_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sr sr;
+
+struct sr {
+	srerror *e;
+	sfupdate *fmt_update;
+	sfstorage fmt_storage;
+	sf fmt;
+	srscheme *scheme;
+	srseq *seq;
+	ssa *a;
+	ssquota *quota;
+	ssinjection *i;
+	void *compression;
+	sscrcf crc;
+};
+
+static inline void
+sr_init(sr *r,
+        srerror *e,
+        ssa *a,
+        ssquota *quota,
+        srseq *seq,
+        sf fmt,
+        sfstorage fmt_storage,
+        sfupdate *fmt_update,
+        srscheme *scheme,
+        ssinjection *i,
+        sscrcf crc,
+        void *compression)
+{
+	r->e           = e;
+	r->a           = a;
+	r->quota       = quota;
+	r->seq         = seq;
+	r->scheme      = scheme;
+	r->fmt         = fmt;
+	r->fmt_storage = fmt_storage;
+	r->fmt_update  = fmt_update;
+	r->i           = i;
+	r->compression = compression;
+	r->crc         = crc;
+}
+
+#endif
+#line 1 "sophia/runtime/sr_meta.h"
+#ifndef SR_META_H_
+#define SR_META_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct srmeta srmeta;
+typedef struct srmetadump srmetadump;
+typedef struct srmetastmt srmetastmt;
+
+typedef int (*srmetaf)(srmeta*, srmetastmt*);
+
+typedef enum {
+	SR_WRITE,
+	SR_READ,
+	SR_SERIALIZE
+} srmetaop;
+
+enum {
+	SR_RO = 1,
+	SR_NS = 2
+};
+
+struct srmeta {
+	char    *key;
+	int      flags;
+	sstype   type;
+	srmetaf  function;
+	void    *value;
+	void    *ptr;
+	srmeta  *next;
+};
+
+struct srmetadump {
+	uint8_t  type;
+	uint16_t keysize;
+	uint32_t valuesize;
+} sspacked;
+
+struct srmetastmt {
+	srmetaop    op;
+	const char *path;
+	void       *value;
+	sstype      valuetype;
+	int         valuesize;
+	srmeta     *match;
+	ssbuf      *serialize;
+	void       *ptr;
+	sr         *r;
+};
+
+int sr_metaexec(srmeta*, srmetastmt*);
+int sr_meta_read(srmeta*, srmetastmt*);
+int sr_meta_write(srmeta*, srmetastmt*);
+int sr_meta_serialize(srmeta*, srmetastmt*);
+
+static inline srmeta*
+sr_m(srmeta **link, srmeta **cp, srmetaf func,
+     char *key, int type,
+     void *value)
+{
+	srmeta *c = *cp;
+	c->key      = key;
+	c->function = func;
+	c->flags    = 0;
+	c->type     = type;
+	c->value    = value;
+	c->ptr      = NULL;
+	c->next     = NULL;
+	*cp = c + 1;
+	if (sslikely(link)) {
+		if (sslikely(*link))
+			(*link)->next = c;
+		*link = c;
+	}
+	return c;
+}
+
+static inline srmeta*
+sr_M(srmeta **link, srmeta **cp, srmetaf func,
+      char *key, int type,
+      void *value, int flags, void *ptr)
+{
+	srmeta *c = sr_m(link, cp, func, key, type, value);
+	c->flags = flags;
+	c->ptr = ptr;
+	return c;
+}
+
+static inline char*
+sr_metakey(srmetadump *v) {
+	return (char*)v + sizeof(srmetadump);
+}
+
+static inline char*
+sr_metavalue(srmetadump *v) {
+	return sr_metakey(v) + v->keysize;
+}
+
+static inline void*
+sr_metanext(srmetadump *v) {
+	return sr_metavalue(v) + v->valuesize;
+}
+
+#endif
+#line 1 "sophia/runtime/sr_zone.h"
+#ifndef SR_ZONE_H_
+#define SR_ZONE_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct srzone srzone;
+typedef struct srzonemap srzonemap;
+
+struct srzone {
+	uint32_t enable;
+	char     name[4];
+	uint32_t mode;
+	uint32_t compact_wm;
+	uint32_t branch_prio;
+	uint32_t branch_wm;
+	uint32_t branch_age;
+	uint32_t branch_age_period;
+	uint32_t branch_age_wm;
+	uint32_t backup_prio;
+	uint32_t gc_db_prio;
+	uint32_t gc_prio;
+	uint32_t gc_period;
+	uint32_t gc_wm;
+	uint32_t async;
+};
+
+struct srzonemap {
+	srzone zones[11];
+};
+
+static inline int
+sr_zonemap_init(srzonemap *m) {
+	memset(m->zones, 0, sizeof(m->zones));
+	return 0;
+}
+
+static inline void
+sr_zonemap_set(srzonemap *m, uint32_t percent, srzone *z)
+{
+	if (ssunlikely(percent > 100))
+		percent = 100;
+	percent = percent - percent % 10;
+	int p = percent / 10;
+	m->zones[p] = *z;
+	snprintf(m->zones[p].name, sizeof(m->zones[p].name), "%d", percent);
+}
+
+static inline srzone*
+sr_zonemap(srzonemap *m, uint32_t percent)
+{
+	if (ssunlikely(percent > 100))
+		percent = 100;
+	percent = percent - percent % 10;
+	int p = percent / 10;
+	srzone *z = &m->zones[p];
+	if (!z->enable) {
+		while (p >= 0) {
+			z = &m->zones[p];
+			if (z->enable)
+				return z;
+			p--;
+		}
+		return NULL;
+	}
+	return z;
+}
+
+#endif
+#line 1 "sophia/runtime/sr_meta.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+int sr_meta_read(srmeta *m, srmetastmt *s)
+{
+	switch (m->type) {
+	case SS_U32:
+		s->valuesize = sizeof(uint32_t);
+		if (s->valuetype == SS_I64) {
+			*(int64_t*)s->value = *(uint32_t*)m->value;
+		} else
+		if (s->valuetype == SS_U32) {
+			*(uint32_t*)s->value = *(uint32_t*)m->value;
+		} else
+		if (s->valuetype == SS_U64) {
+			*(uint64_t*)s->value = *(uint32_t*)m->value;
+		} else {
+			goto bad_type;
+		}
+		break;
+	case SS_U64:
+		s->valuesize = sizeof(uint64_t);
+		if (s->valuetype == SS_I64) {
+			*(int64_t*)s->value = *(uint64_t*)m->value;
+		} else
+		if (s->valuetype == SS_U32) {
+			*(uint32_t*)s->value = *(uint64_t*)m->value;
+		} else
+		if (s->valuetype == SS_U64) {
+			*(uint64_t*)s->value = *(uint64_t*)m->value;
+		} else {
+			goto bad_type;
+		}
+		break;
+	case SS_STRING: {
+		if (s->valuetype != SS_STRING)
+			goto bad_type;
+		char **result = s->value;
+		*result = NULL;
+		s->valuesize = 0;
+		char *string = m->value;
+		if (string == NULL)
+			break;
+		int size = strlen(string) + 1; 
+		s->valuesize = size;
+		*result = malloc(size);
+		if (ssunlikely(*result == NULL))
+			return sr_oom(s->r->e);
+		memcpy(*result, string, size);
+		break;
+	}
+	case SS_STRINGPTR: {
+		if (s->valuetype != SS_STRING)
+			goto bad_type;
+		char **result = s->value;
+		*result = NULL;
+		s->valuesize = 0;
+		char **string = m->value;
+		if (*string == NULL)
+			break;
+		int size = strlen(*string) + 1;
+		s->valuesize = size;
+		*result = malloc(size);
+		if (ssunlikely(*result == NULL))
+			return sr_oom(s->r->e);
+		memcpy(*result, *string, size);
+		break;
+	}
+	case SS_OBJECT:
+		if (s->valuetype != SS_STRING)
+			goto bad_type;
+		*(void**)s->value = m->value;
+		s->valuesize = sizeof(void*);
+		break;
+	default:
+		assert(0);
+		return -1;
+	}
+	return 0;
+
+bad_type:
+	return sr_error(s->r->e, "bad meta read type (%s) -> (%s) %s",
+	                ss_typeof(s->valuetype),
+	                ss_typeof(m->type), s->path);
+	return 0;
+}
+
+int sr_meta_write(srmeta *m, srmetastmt *s)
+{
+	if (m->flags & SR_RO) {
+		sr_error(s->r->e, "%s is read-only", s->path);
+		return -1;
+	}
+	switch (m->type) {
+	case SS_U32:
+		if (s->valuetype == SS_I64) {
+			*((uint32_t*)m->value) = *(int64_t*)s->value;
+		} else
+		if (s->valuetype == SS_U32) {
+			*((uint32_t*)m->value) = *(uint32_t*)s->value;
+		} else
+		if (s->valuetype == SS_U64) {
+			*((uint32_t*)m->value) = *(uint64_t*)s->value;
+		} else {
+			goto bad_type;
+		}
+		break;
+	case SS_U64:
+		if (s->valuetype == SS_I64) {
+			*((uint64_t*)m->value) = *(int64_t*)s->value;
+		} else
+		if (s->valuetype == SS_U32) {
+			*((uint64_t*)m->value) = *(uint32_t*)s->value;
+		} else
+		if (s->valuetype == SS_U64) {
+			*((uint64_t*)m->value) = *(uint64_t*)s->value;
+		} else {
+			goto bad_type;
+		}
+		break;
+	case SS_STRINGPTR: {
+		char **string = m->value;
+		if (s->valuetype == SS_STRING) {
+			char *sz = s->value;
+			if (s->valuesize > 0) {
+				sz = ss_malloc(s->r->a, s->valuesize);
+				if (ssunlikely(sz == NULL))
+					return sr_oom(s->r->e);
+				memcpy(sz, s->value, s->valuesize);
+			}
+			if (*string)
+				ss_free(s->r->a, *string);
+			*string = sz;
+		} else {
+			goto bad_type;
+		}
+		break;
+	}
+	default:
+		assert(0);
+		return -1;
+	}
+	return 0;
+
+bad_type:
+	return sr_error(s->r->e, "bad meta write type (%s) for (%s) %s",
+	                ss_typeof(s->valuetype),
+	                ss_typeof(m->type), s->path);
+}
+
+static inline int
+sr_meta_write_cast(sstype a, sstype b)
+{
+	switch (a) {
+	case SS_U32:
+		if (b == SS_I64) {
+		} else
+		if (b == SS_U32) {
+		} else
+		if (b == SS_U64) {
+		} else {
+			return -1;
+		}
+		break;
+	case SS_U64:
+		if (b == SS_I64) {
+		} else
+		if (b == SS_U32) {
+		} else
+		if (b == SS_U64) {
+		} else {
+			return -1;
+		}
+		break;
+	case SS_STRING:
+	case SS_STRINGPTR:
+		if (b == SS_STRING) {
+		} else {
+			return -1;
+		}
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+int sr_meta_serialize(srmeta *m, srmetastmt *s)
+{
+	char buf[128];
+	char name_function[] = "function";
+	char name_object[] = "object";
+	void *value = NULL;
+	srmetadump v = {
+		.type = m->type
+	};
+	switch (m->type) {
+	case SS_U32:
+		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIu32, *(uint32_t*)m->value);
+		v.valuesize += 1;
+		value = buf;
+		break;
+	case SS_U64:
+		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIu64, *(uint64_t*)m->value);
+		v.valuesize += 1;
+		value = buf;
+		break;
+	case SS_I64:
+		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIi64, *(int64_t*)m->value);
+		v.valuesize += 1;
+		value = buf;
+		break;
+	case SS_STRING: {
+		char *string = m->value;
+		if (string) {
+			v.valuesize = strlen(string) + 1;
+			value = string;
+		} else {
+			v.valuesize = 0;
+		}
+		break;
+	}
+	case SS_STRINGPTR: {
+		char **string = (char**)m->value;
+		if (*string) {
+			v.valuesize = strlen(*string) + 1;
+			value = *string;
+		} else {
+			v.valuesize = 0;
+		}
+		v.type = SS_STRING;
+		break;
+	}
+	case SS_OBJECT:
+		v.type = SS_STRING;
+		v.valuesize = sizeof(name_object);
+		value = name_object;
+		break;
+	case SS_FUNCTION:
+		v.type = SS_STRING;
+		v.valuesize = sizeof(name_function);
+		value = name_function;
+		break;
+	default: assert(0);
+	}
+	char name[128];
+	v.keysize  = snprintf(name, sizeof(name), "%s", s->path);
+	v.keysize += 1;
+	ssbuf *p = s->serialize;
+	int size = sizeof(v) + v.keysize + v.valuesize;
+	int rc = ss_bufensure(p, s->r->a, size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(s->r->e);
+	memcpy(p->p, &v, sizeof(v));
+	memcpy(p->p + sizeof(v), name, v.keysize);
+	memcpy(p->p + sizeof(v) + v.keysize, value, v.valuesize);
+	ss_bufadvance(p, size);
+	return 0;
+}
+
+static inline int
+sr_metaexec_serialize(srmeta *c, srmetastmt *stmt, char *root)
+{
+	char path[256];
+	while (c) {
+		if (root)
+			snprintf(path, sizeof(path), "%s.%s", root, c->key);
+		else
+			snprintf(path, sizeof(path), "%s", c->key);
+		int rc;
+		if (c->flags & SR_NS) {
+			rc = sr_metaexec_serialize(c->value, stmt, path);
+			if (ssunlikely(rc == -1))
+				return -1;
+		} else {
+			stmt->path = path;
+			rc = c->function(c, stmt);
+			if (ssunlikely(rc == -1))
+				return -1;
+			stmt->path = NULL;
+		}
+		c = c->next;
+	}
+	return 0;
+}
+
+int sr_metaexec(srmeta *start, srmetastmt *s)
+{
+	if (s->op == SR_SERIALIZE)
+		return sr_metaexec_serialize(start, s, NULL);
+	char path[256];
+	snprintf(path, sizeof(path), "%s", s->path);
+	char *ptr = NULL;
+	char *token;
+	token = strtok_r(path, ".", &ptr);
+	if (ssunlikely(token == NULL))
+		return -1;
+	srmeta *c = start;
+	while (c) {
+		if (strcmp(token, c->key) != 0) {
+			c = c->next;
+			continue;
+		}
+		if (c->flags & SR_NS) {
+			token = strtok_r(NULL, ".", &ptr);
+			if (ssunlikely(token == NULL))
+			{
+				if (s->op == SR_WRITE && c->type != SS_UNDEF) {
+					int rc = sr_meta_write_cast(c->type, s->valuetype);
+					if (ssunlikely(rc == -1))
+						goto bad_type;
+				}
+				s->match = c;
+				if (c->function)
+					return c->function(c, s);
+				/* not supported */
+				goto bad_path;
+			}
+			c = (srmeta*)c->value;
+			continue;
+		}
+		s->match = c;
+		token = strtok_r(NULL, ".", &ptr);
+		if (ssunlikely(token != NULL))
+			goto bad_path;
+		return c->function(c, s);
+	}
+
+bad_path:
+	return sr_error(s->r->e, "bad metadata path: %s", s->path);
+
+bad_type:
+	return sr_error(s->r->e, "incompatible type (%s) for (%s) %s",
+	                ss_typeof(s->valuetype),
+	                ss_typeof(c->type), s->path);
+}
+#line 1 "sophia/runtime/sr_scheme.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+static inline sshot int
+sr_cmpany(char *prefix, int prefixsz,
+          char *key, int keysz,
+          void *arg)
+{
+	(void)prefix;
+	(void)prefixsz;
+	(void)key;
+	(void)keysz;
+	(void)arg;
+	return 0;
+}
+
+static inline sshot int
+sr_compare_u32(const char *a, const char *b)
+{
+	uint32_t av = *(const uint32_t*)a;
+	uint32_t bv = *(const uint32_t*)b;
+	if (av == bv)
+		return 0;
+	return (av > bv) ? 1 : -1;
+}
+
+static inline sshot int
+sr_cmpu32_raw(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
+{
+	return sr_compare_u32(a, b);
+}
+
+static inline sshot int
+sr_cmpu32(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
+{
+	int part = ((srkey*)arg)->pos;
+	a = sf_key(a, part);
+	b = sf_key(b, part);
+	return sr_compare_u32(a, b);
+}
+
+static inline sshot int
+sr_cmpu32_raw_reverse(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
+{
+	return -sr_compare_u32(a, b);
+}
+
+static inline sshot int
+sr_cmpu32_reverse(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
+{
+	int part = ((srkey*)arg)->pos;
+	a = sf_key(a, part);
+	b = sf_key(b, part);
+	return -sr_compare_u32(a, b);
+}
+
+static inline sshot int sr_compare_u64(const char *a, const char *b)
+{
+	uint64_t av = *(const uint64_t*)a;
+	uint64_t bv = *(const uint64_t*)b;
+	if (av == bv)
+		return 0;
+	return (av > bv) ? 1 : -1;
+}
+
+static inline sshot int
+sr_cmpu64_raw(char *a, int asz ssunused, char *b, int bsz ssunused,
+              void *arg ssunused)
+{
+	return sr_compare_u64(a, b);
+}
+
+static inline sshot int
+sr_cmpu64(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg)
+{
+	int part = ((srkey*)arg)->pos;
+	a = sf_key(a, part);
+	b = sf_key(b, part);
+	return sr_compare_u64(a, b);
+}
+
+static inline sshot int
+sr_cmpu64_raw_reverse(char *a, int asz ssunused, char *b, int bsz ssunused,
+              void *arg ssunused)
+{
+	return -sr_compare_u64(a, b);
+}
+
+static inline sshot int
+sr_cmpu64_reverse(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg)
+{
+	int part = ((srkey*)arg)->pos;
+	a = sf_key(a, part);
+	b = sf_key(b, part);
+	return -sr_compare_u64(a, b);
+}
+
+static inline sshot int
+sr_cmpstring_prefix(char *prefix, int prefixsz, char *key, int keysz,
+                    void *arg ssunused)
+{
+	keysz = sf_keysize(key, 0);
+	key   = sf_key(key, 0);
+	if (keysz < prefixsz)
+		return 0;
+	return (memcmp(prefix, key, prefixsz) == 0) ? 1 : 0;
+}
+
+#define sr_compare_string(a, asz, b, bsz) \
+do { \
+	int size = (asz < bsz) ? asz : bsz; \
+	int rc = memcmp(a, b, size); \
+	if (ssunlikely(rc == 0)) { \
+		if (sslikely(asz == bsz)) \
+			return 0; \
+		return (asz < bsz) ? -1 : 1; \
+	} \
+	return rc > 0 ? 1 : -1; \
+} while (0)
+
+static inline sshot int
+sr_cmpstring_raw(char *a, int asz, char *b, int bsz, void *arg ssunused)
+{
+	sr_compare_string(a, asz, b, bsz);
+}
+
+static inline sshot int
+sr_cmpstring(char *a, int asz, char *b, int bsz, void *arg)
+{
+	int part = ((srkey*)arg)->pos;
+	asz = sf_keysize(a, part);
+	a   = sf_key(a, part);
+	bsz = sf_keysize(b, part);
+	b   = sf_key(b, part);
+	sr_compare_string(a, asz, b, bsz);
+}
+
+inline sshot int
+sr_schemecompare(char *a, int asize, char *b, int bsize, void *arg)
+{
+	srscheme *s = arg;
+	srkey *part = s->parts;
+	srkey *last = part + s->count;
+	int rc;
+	while (part < last) {
+		rc = part->cmp(a, asize, b, bsize, part);
+		if (rc != 0)
+			return rc;
+		part++;
+	}
+	return 0;
+}
+
+inline sshot int
+sr_schemecompare_prefix(char *prefix, int prefixsize, char *key, int keysize,
+                     void *arg)
+{
+	srkey *part = &((srscheme*)arg)->parts[0];
+	return part->cmpprefix(prefix, prefixsize, key, keysize, part);
+}
+
+int sr_keysetname(srkey *part, ssa *a, char *name)
+{
+	char *p = ss_strdup(a, name);
+	if (ssunlikely(p == NULL))
+		return -1;
+	if (part->name)
+		ss_free(a, part->name);
+	part->name = p;
+	return 0;
+}
+
+int sr_keyset(srkey *part, ssa *a, char *path)
+{
+	sstype type;
+	srcmpf cmpprefix = sr_cmpany;
+	srcmpf cmp;
+	srcmpf cmpraw;
+	if (strcmp(path, "string") == 0) {
+		type = SS_STRING;
+		cmp = sr_cmpstring;
+		cmpraw = sr_cmpstring_raw;
+		cmpprefix = sr_cmpstring_prefix;
+	} else
+	if (strcmp(path, "u32") == 0) {
+		type = SS_U32;
+		cmp = sr_cmpu32;
+		cmpraw = sr_cmpu32_raw;
+	} else
+	if (strcmp(path, "u32_rev") == 0) {
+		type = SS_U32;
+		cmp = sr_cmpu32_reverse;
+		cmpraw = sr_cmpu32_raw_reverse;
+	} else
+	if (strcmp(path, "u64") == 0) {
+		type = SS_U64;
+		cmp = sr_cmpu64;
+		cmpraw = sr_cmpu64_raw;
+	} else
+	if (strcmp(path, "u64_rev") == 0) {
+		type = SS_U64;
+		cmp = sr_cmpu64_reverse;
+		cmpraw = sr_cmpu64_raw_reverse;
+	} else {
+		return -1;
+	}
+	char *p = ss_strdup(a, path);
+	if (ssunlikely(p == NULL))
+		return -1;
+	if (part->path)
+		ss_free(a, part->path);
+	part->type = type;
+	part->path = p;
+	part->cmpprefix = cmpprefix;
+	part->cmp = cmp;
+	part->cmpraw = cmpraw;
+	return 0;
+}
+
+int sr_schemesave(srscheme *s, ssa *a, ssbuf *buf)
+{
+	/* count */
+	uint32_t v = s->count;
+	int rc = ss_bufadd(buf, a, &v, sizeof(uint32_t));
+	if (ssunlikely(rc == -1))
+		return -1;
+	int i = 0;
+	while (i < s->count) {
+		srkey *key = &s->parts[i];
+		/* name */
+		v = strlen(key->name) + 1;
+		rc = ss_bufensure(buf, a, sizeof(uint32_t) + v);
+		if (ssunlikely(rc == -1))
+			goto error;
+		memcpy(buf->p, &v, sizeof(v));
+		ss_bufadvance(buf, sizeof(uint32_t));
+		memcpy(buf->p, key->name, v);
+		ss_bufadvance(buf, v);
+		/* path */
+		v = strlen(key->path) + 1;
+		rc = ss_bufensure(buf, a, sizeof(uint32_t) + v);
+		if (ssunlikely(rc == -1))
+			goto error;
+		memcpy(buf->p, &v, sizeof(v));
+		ss_bufadvance(buf, sizeof(uint32_t));
+		memcpy(buf->p, key->path, v);
+		ss_bufadvance(buf, v);
+		i++;
+	}
+	return 0;
+error:
+	ss_buffree(buf, a);
+	return -1;
+}
+
+int sr_schemeload(srscheme *s, ssa *a, char *buf, int size ssunused)
+{
+	/* count */
+	char *p = buf;
+	uint32_t v = *(uint32_t*)p;
+	p += sizeof(uint32_t);
+	int count = v;
+	int i = 0;
+	int rc;
+	while (i < count) {
+		srkey *key = sr_schemeadd(s, a);
+		if (ssunlikely(key == NULL))
+			goto error;
+		/* name */
+		v = *(uint32_t*)p;
+		p += sizeof(uint32_t);
+		rc = sr_keysetname(key, a, p);
+		if (ssunlikely(rc == -1))
+			goto error;
+		p += v;
+		/* path */
+		v = *(uint32_t*)p;
+		p += sizeof(uint32_t);
+		rc = sr_keyset(key, a, p);
+		if (ssunlikely(rc == -1))
+			goto error;
+		p += v;
+		i++;
+	}
+	return 0;
+error:
+	sr_schemefree(s, a);
+	return -1;
+}
+#line 1 "sophia/object/so.h"
+#ifndef SO_H_
+#define SO_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct soif soif;
+typedef struct sotype sotype;
+typedef struct so so;
+
+struct soif {
+	int      (*open)(so*);
+	int      (*destroy)(so*);
+	int      (*error)(so*);
+	void    *(*object)(so*);
+	void    *(*asynchronous)(so*);
+	void    *(*poll)(so*);
+	int      (*drop)(so*);
+	int      (*setobject)(so*, const char*, void*);
+	int      (*setstring)(so*, const char*, void*, int);
+	int      (*setint)(so*, const char*, int64_t);
+	void    *(*getobject)(so*, const char*);
+	void    *(*getstring)(so*, const char*, int*);
+	int64_t  (*getint)(so*, const char*);
+	int      (*set)(so*, so*);
+	int      (*update)(so*, so*);
+	int      (*del)(so*, so*);
+	void    *(*get)(so*, so*);
+	void    *(*batch)(so*);
+	void    *(*begin)(so*);
+	int      (*prepare)(so*);
+	int      (*commit)(so*);
+	void    *(*cursor)(so*);
+};
+
+struct sotype {
+	uint32_t magic;
+	char *name;
+};
+
+struct so {
+	sotype *type;
+	soif *i;
+	so *parent;
+	so *env;
+	sslist link;
+};
+
+static inline void
+so_init(so *o, sotype *type, soif *i, so *parent, so *env)
+{
+	o->type   = type;
+	o->i      = i;
+	o->parent = parent;
+	o->env    = env;
+	ss_listinit(&o->link);
+}
+
+static inline void*
+so_cast_dynamic(void *ptr, sotype *type,
+          const char *file,
+          const char *function, int line)
+{
+	int eq = ptr != NULL && ((so*)ptr)->type == type;
+	if (sslikely(eq))
+		return ptr;
+	fprintf(stderr, "%s:%d %s(%p) expected '%s' object\n",
+	        file, line, function, ptr, type->name);
+	abort();
+	return NULL;
+}
+
+#define so_cast(o, cast, type) \
+	((cast)so_cast_dynamic(o, type, __FILE__, __FUNCTION__, __LINE__))
+
+#define so_open(o)         (o)->i->open(o)
+#define so_destroy(o)      (o)->i->destroy(o)
+#define so_error(o)        (o)->i->error(o)
+#define so_object(o)       (o)->i->object(o)
+#define so_asynchronous(o) (o)->i->asynchronous(o)
+#define so_poll(o)         (o)->i->poll(o)
+#define so_drop(o)         (o)->i->drop(o)
+#define so_set(o, v)       (o)->i->set(o, v)
+#define so_update(o, v)    (o)->i->update(o, v)
+#define so_delete(o, v)    (o)->i->del(o, v)
+#define so_get(o, v)       (o)->i->get(o, v)
+#define so_batch(o)        (o)->i->batch(o)
+#define so_begin(o)        (o)->i->begin(o)
+#define so_prepare(o)      (o)->i->prepare(o)
+#define so_commit(o)       (o)->i->commit(o)
+#define so_cursor(o)       (o)->i->cursor(o)
+
+#define so_setobject(o, path, object) \
+	(o)->i->setobject(o, path, object)
+#define so_setstring(o, path, pointer, size) \
+	(o)->i->setstring(o, path, pointer, size)
+#define so_setint(o, path, v) \
+	(o)->i->setint(o, path, v)
+#define so_getobject(o, path) \
+	(o)->i->getobject(o, path)
+#define so_getstring(o, path, sizep) \
+	(o)->i->getstring(o, path, sizep)
+#define so_getint(o, path) \
+	(o)->i->getnumber(o, path)
+
+#endif
+#line 1 "sophia/object/so_list.h"
+#ifndef SO_LIST_H_
+#define SO_LIST_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct solist solist;
+
+struct solist {
+	sslist list;
+	int n;
+};
+
+static inline void
+so_listinit(solist *i)
+{
+	ss_listinit(&i->list);
+	i->n = 0;
+}
+
+static inline int
+so_listdestroy(solist *i)
+{
+	int rcret = 0;
+	int rc;
+	sslist *p, *n;
+	ss_listforeach_safe(&i->list, p, n) {
+		so *o = sscast(p, so, link);
+		rc = so_destroy(o);
+		if (ssunlikely(rc == -1))
+			rcret = -1;
+	}
+	i->n = 0;
+	ss_listinit(&i->list);
+	return rcret;
+}
+
+static inline void
+so_listadd(solist *i, so *o)
+{
+	ss_listappend(&i->list, &o->link);
+	i->n++;
+}
+
+static inline void
+so_listdel(solist *i, so *o)
+{
+	ss_listunlink(&o->link);
+	i->n--;
+}
+
+static inline so*
+so_listfirst(solist *i)
+{
+	assert(i->n > 0);
+	return sscast(i->list.next, so, link);
+}
+
+#endif
+#line 1 "sophia/object/so.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
 #line 1 "sophia/version/sv.h"
 #ifndef SV_H_
 #define SV_H_
@@ -13513,8 +14649,8 @@ srfilterif sr_zstdfilter =
 */
 
 #define SVNONE   0
-#define SVSET    1
-#define SVDELETE 2
+#define SVDELETE 1
+#define SVUPDATE 2
 #define SVDUP    4
 #define SVABORT  8
 #define SVBEGIN  16
@@ -13526,16 +14662,14 @@ struct svif {
 	uint8_t   (*flags)(sv*);
 	void      (*lsnset)(sv*, uint64_t);
 	uint64_t  (*lsn)(sv*);
-	char     *(*key)(sv*);
-	uint16_t  (*keysize)(sv*);
-	char     *(*value)(sv*);
-	uint32_t  (*valuesize)(sv*);
+	char     *(*pointer)(sv*);
+	uint32_t  (*size)(sv*);
 };
 
 struct sv {
 	svif *i;
 	void *v, *arg;
-} srpacked;
+} sspacked;
 
 static inline void
 sv_init(sv *v, svif *i, void *vptr, void *arg) {
@@ -13549,6 +14683,11 @@ sv_flags(sv *v) {
 	return v->i->flags(v);
 }
 
+static inline int
+sv_is(sv *v, uint8_t flags) {
+	return (sv_flags(v) & flags) > 0;
+}
+
 static inline uint64_t
 sv_lsn(sv *v) {
 	return v->i->lsn(v);
@@ -13560,35 +14699,39 @@ sv_lsnset(sv *v, uint64_t lsn) {
 }
 
 static inline char*
-sv_key(sv *v) {
-	return v->i->key(v);
-}
-
-static inline uint16_t
-sv_keysize(sv *v) {
-	return v->i->keysize(v);
-}
-
-static inline char*
-sv_value(sv *v) {
-	return v->i->value(v);
+sv_pointer(sv *v) {
+	return v->i->pointer(v);
 }
 
 static inline uint32_t
-sv_valuesize(sv *v) {
-	return v->i->valuesize(v);
+sv_size(sv *v) {
+	return v->i->size(v);
+}
+
+static inline char*
+sv_key(sv *v, sr *r ssunused, int part) {
+	return sf_key(v->i->pointer(v), part);
 }
 
 static inline int
-sv_compare(sv *a, sv *b, srcomparator *c) {
-	return sr_compare(c, sv_key(a), sv_keysize(a),
-	                     sv_key(b), sv_keysize(b));
+sv_keysize(sv *v, sr *r ssunused, int part) {
+	return sf_keysize(v->i->pointer(v), part);
+}
+
+static inline char*
+sv_value(sv *v, sr *r) {
+	return sf_value(r->fmt, sv_pointer(v), r->scheme->count);
+}
+
+static inline int
+sv_valuesize(sv *v, sr *r) {
+	return sf_valuesize(r->fmt, sv_pointer(v), sv_size(v), r->scheme->count);
 }
 
 #endif
-#line 1 "sophia/version/sv_local.h"
-#ifndef SV_LOCAL_H_
-#define SV_LOCAL_H_
+#line 1 "sophia/version/sv_v.h"
+#ifndef SV_V_H_
+#define SV_V_H_
 
 /*
  * sophia database
@@ -13598,38 +14741,312 @@ sv_compare(sv *a, sv *b, srcomparator *c) {
  * BSD License
 */
 
-typedef struct svlocal svlocal;
+typedef struct svv svv;
 
-struct svlocal {
+struct svv {
+	uint64_t  lsn;
+	uint32_t  size;
+	uint8_t   flags;
+	void     *log;
+	svv      *next;
+	ssrbnode  node;
+} sspacked;
+
+extern svif sv_vif;
+
+static inline char*
+sv_vpointer(svv *v) {
+	return (char*)(v) + sizeof(svv);
+}
+
+static inline uint32_t
+sv_vsize(svv *v) {
+	return sizeof(svv) + v->size;
+}
+
+static inline svv*
+sv_vbuild(sr *r, sfv *keys, int count, char *data, int size)
+{
+	assert(r->scheme->count == count);
+	int total = sf_size(r->fmt, keys, count, size);
+	svv *v = ss_malloc(r->a, sizeof(svv) + total);
+	if (ssunlikely(v == NULL))
+		return NULL;
+	v->size  = total;
+	v->lsn   = 0;
+	v->flags = 0;
+	v->log   = NULL;
+	v->next  = NULL;
+	memset(&v->node, 0, sizeof(v->node));
+	char *ptr = sv_vpointer(v);
+	sf_write(r->fmt, ptr, keys, count, data, size);
+	return v;
+}
+
+static inline svv*
+sv_vbuildraw(ssa *a, char *src, int size)
+{
+	svv *v = ss_malloc(a, sizeof(svv) + size);
+	if (ssunlikely(v == NULL))
+		return NULL;
+	v->size  = size;
+	v->flags = 0;
+	v->lsn   = 0;
+	v->next  = NULL;
+	v->log   = NULL;
+	memset(&v->node, 0, sizeof(v->node));
+	memcpy(sv_vpointer(v), src, size);
+	return v;
+}
+
+static inline svv*
+sv_vdup(ssa *a, sv *src)
+{
+	svv *v = sv_vbuildraw(a, sv_pointer(src), sv_size(src));
+	if (ssunlikely(v == NULL))
+		return NULL;
+	v->flags = sv_flags(src);
+	v->lsn   = sv_lsn(src);
+	return v;
+}
+
+static inline void
+sv_vfree(ssa *a, svv *v)
+{
+	while (v) {
+		svv *n = v->next;
+		ss_free(a, v);
+		v = n;
+	}
+}
+
+static inline svv*
+sv_visible(svv *v, uint64_t vlsn) {
+	while (v && v->lsn > vlsn)
+		v = v->next;
+	return v;
+}
+
+#endif
+#line 1 "sophia/version/sv_compare.h"
+#ifndef SV_COMPARE_H_
+#define SV_COMPARE_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+static inline int
+sv_compare(sv *a, sv *b, srscheme *s) {
+	return sr_compare(s, sv_pointer(a), sv_size(a),
+	                     sv_pointer(b), sv_size(b));
+}
+
+#endif
+#line 1 "sophia/version/sv_updatev.h"
+#ifndef SV_UPDATEV_H_
+#define SV_UPDATEV_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+extern svif sv_updatevif;
+
+#endif
+#line 1 "sophia/version/sv_update.h"
+#ifndef SV_UPDATE_H_
+#define SV_UPDATE_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct svupdatenode svupdatenode;
+typedef struct svupdate svupdate;
+
+struct svupdatenode {
 	uint64_t lsn;
-	uint8_t  flags;
-	uint16_t keysize;
-	uint32_t valuesize;
-	void *key;
-	void *value;
+	uint8_t flags;
+	ssbuf buf;
 };
 
-extern svif sv_localif;
+#define SV_UPDATERESRV 16
 
-static inline svlocal*
-sv_copy(sra *a, sv *v)
+struct svupdate {
+	svupdatenode reserve[SV_UPDATERESRV];
+	ssbuf stack;
+	int max;
+	int count;
+	sv result;
+};
+
+static inline void
+sv_updateinit(svupdate *u)
 {
-	int keysize = sv_keysize(v);
-	int valuesize = sv_valuesize(v);
-	int size = sizeof(svlocal) + keysize + valuesize;
-	svlocal *l = sr_malloc(a, size);
-	if (srunlikely(l == NULL))
+	const int reserve = SV_UPDATERESRV;
+	int i = 0;
+	while (i < reserve) {
+		ss_bufinit(&u->reserve[i].buf);
+		i++;
+	}
+	memset(&u->result, 0, sizeof(u->result));
+	u->max = reserve;
+	u->count = 0;
+	ss_bufinit_reserve(&u->stack, u->reserve, sizeof(u->reserve));
+}
+
+static inline void
+sv_updatefree(svupdate *u, sr *r)
+{
+	svupdatenode *n = (svupdatenode*)u->stack.s;
+	int i = 0;
+	while (i < u->max) {
+		ss_buffree(&n[i].buf, r->a);
+		i++;
+	}
+	ss_buffree(&u->stack, r->a);
+}
+
+static inline void
+sv_updatereset(svupdate *u)
+{
+	svupdatenode *n = (svupdatenode*)u->stack.s;
+	int i = 0;
+	while (i < u->count) {
+		ss_bufreset(&n[i].buf);
+		i++;
+	}
+	u->count = 0;
+	ss_bufreset(&u->stack);
+	memset(&u->result, 0, sizeof(u->result));
+}
+
+static inline int
+sv_updatepush_raw(svupdate *u, sr *r, char *pointer, int size,
+                  uint8_t flags, uint64_t lsn)
+{
+	svupdatenode *n;
+	int rc;
+	if (sslikely(u->max > u->count)) {
+		n = (svupdatenode*)u->stack.p;
+		ss_bufreset(&n->buf);
+	} else {
+		rc = ss_bufensure(&u->stack, r->a, sizeof(svupdatenode));
+		if (ssunlikely(rc == -1))
+			return -1;
+		n = (svupdatenode*)u->stack.p;
+		ss_bufinit(&n->buf);
+		u->max++;
+	}
+	rc = ss_bufensure(&n->buf, r->a, size);
+	if (ssunlikely(rc == -1))
+		return -1;
+	memcpy(n->buf.p, pointer, size);
+	n->flags = flags;
+	n->lsn = lsn;
+	ss_bufadvance(&n->buf, size);
+	ss_bufadvance(&u->stack, sizeof(svupdatenode));
+	u->count++;
+	return 0;
+}
+
+static inline int
+sv_updatepush(svupdate *u, sr *r, sv *v)
+{
+	return sv_updatepush_raw(u, r, sv_pointer(v),
+	                         sv_size(v),
+	                         sv_flags(v), sv_lsn(v));
+}
+
+static inline svupdatenode*
+sv_updatepop(svupdate *u)
+{
+	if (u->count == 0)
 		return NULL;
-	char *key = (char*)l + sizeof(svlocal);
-	l->lsn       = sv_lsn(v);
-	l->flags     = sv_flags(v);
-	l->key       = key;
-	l->keysize   = keysize; 
-	l->value     = key + keysize;
-	l->valuesize = valuesize;
-	memcpy(key, sv_key(v), l->keysize);
-	memcpy(key + keysize, sv_value(v), valuesize);
-	return l;
+	int pos = u->count - 1;
+	u->count--;
+	u->stack.p -= sizeof(svupdatenode);
+	return ss_bufat(&u->stack, sizeof(svupdatenode), pos);
+}
+
+static inline int
+sv_updatedo(svupdate *u, sr *r, svupdatenode *a, svupdatenode *b)
+{
+	assert(b->flags & SVUPDATE);
+	int       b_flagsraw = b->flags;
+	int       b_flags = b->flags & SVUPDATE;
+	uint64_t  b_lsn = b->lsn;
+	void     *b_pointer = b->buf.s;
+	int       b_size = ss_bufused(&b->buf);
+	int       a_flags;
+	void     *a_pointer;
+	int       a_size;
+	if (sslikely(a && !(a->flags & SVDELETE)))
+	{
+		a_flags   = a->flags & SVUPDATE;
+		a_pointer = a->buf.s;
+		a_size    = ss_bufused(&a->buf);
+	} else {
+		/* convert delete to orphan update case */
+		a_flags   = 0;
+		a_pointer = NULL;
+		a_size    = 0;
+	}
+	void *c_pointer;
+	int c_size;
+	int rc = r->fmt_update->function(a_flags, a_pointer, a_size,
+	                                 b_flags, b_pointer, b_size,
+	                                 r->fmt_update->arg,
+	                                 &c_pointer, &c_size);
+	if (ssunlikely(rc == -1))
+		return -1;
+	assert(c_pointer != NULL);
+	rc = sv_updatepush_raw(u, r, c_pointer, c_size,
+	                       b_flagsraw & ~SVUPDATE,
+	                       b_lsn);
+	free(c_pointer);
+	return rc;
+}
+
+static inline int
+sv_update(svupdate *u, sr *r)
+{
+	assert(u->count >= 1 );
+	svupdatenode *f = ss_bufat(&u->stack, sizeof(svupdatenode), u->count - 1);
+	int rc;
+	if (f->flags & SVUPDATE) {
+		f = sv_updatepop(u);
+		rc = sv_updatedo(u, r, NULL, f);
+		if (ssunlikely(rc == -1))
+			return -1;
+	}
+	if (u->count == 1)
+		goto done;
+	while (u->count > 1) {
+		svupdatenode *f = sv_updatepop(u);
+		svupdatenode *s = sv_updatepop(u);
+		assert(f != NULL);
+		assert(s != NULL);
+		rc = sv_updatedo(u, r, f, s);
+		if (ssunlikely(rc == -1))
+			return -1;
+	}
+done:
+	sv_init(&u->result, &sv_updatevif, u->stack.s, NULL);
+	return 0;
 }
 
 #endif
@@ -13654,55 +15071,66 @@ struct svlogindex {
 	uint32_t head, tail;
 	uint32_t count;
 	void *ptr;
-} srpacked;
+} sspacked;
 
 struct svlogv {
 	sv v;
+	void *vgc;
 	uint32_t id;
 	uint32_t next;
-} srpacked;
+} sspacked;
 
 struct svlog {
 	svlogindex reserve_i[4];
 	svlogv reserve_v[16];
-	srbuf index;
-	srbuf buf;
+	ssbuf index;
+	ssbuf buf;
 };
+
+static inline void
+sv_logvinit(svlogv *v, uint32_t id)
+{
+	v->id   = id;
+	v->next = UINT32_MAX;
+	v->vgc  = NULL;
+	v->v.v  = NULL;
+	v->v.i  = NULL;
+}
 
 static inline void
 sv_loginit(svlog *l)
 {
-	sr_bufinit_reserve(&l->index, l->reserve_i, sizeof(l->reserve_i));
-	sr_bufinit_reserve(&l->buf, l->reserve_v, sizeof(l->reserve_v));
+	ss_bufinit_reserve(&l->index, l->reserve_i, sizeof(l->reserve_i));
+	ss_bufinit_reserve(&l->buf, l->reserve_v, sizeof(l->reserve_v));
 }
 
 static inline void
-sv_logfree(svlog *l, sra *a)
+sv_logfree(svlog *l, ssa *a)
 {
-	sr_buffree(&l->buf, a);
-	sr_buffree(&l->index, a);
+	ss_buffree(&l->buf, a);
+	ss_buffree(&l->index, a);
 }
 
 static inline int
 sv_logcount(svlog *l) {
-	return sr_bufused(&l->buf) / sizeof(svlogv);
+	return ss_bufused(&l->buf) / sizeof(svlogv);
 }
 
 static inline svlogv*
 sv_logat(svlog *l, int pos) {
-	return sr_bufat(&l->buf, sizeof(svlogv), pos);
+	return ss_bufat(&l->buf, sizeof(svlogv), pos);
 }
 
 static inline int
-sv_logadd(svlog *l, sra *a, svlogv *v, void *ptr)
+sv_logadd(svlog *l, ssa *a, svlogv *v, void *ptr)
 {
 	uint32_t n = sv_logcount(l);
-	int rc = sr_bufadd(&l->buf, a, v, sizeof(svlogv));
-	if (srunlikely(rc == -1))
+	int rc = ss_bufadd(&l->buf, a, v, sizeof(svlogv));
+	if (ssunlikely(rc == -1))
 		return -1;
 	svlogindex *i = (svlogindex*)l->index.s;
 	while ((char*)i < l->index.p) {
-		if (srlikely(i->id == v->id)) {
+		if (sslikely(i->id == v->id)) {
 			svlogv *tail = sv_logat(l, i->tail);
 			tail->next = n;
 			i->tail = n;
@@ -13711,8 +15139,8 @@ sv_logadd(svlog *l, sra *a, svlogv *v, void *ptr)
 		}
 		i++;
 	}
-	rc = sr_bufensure(&l->index, a, sizeof(svlogindex));
-	if (srunlikely(rc == -1)) {
+	rc = ss_bufensure(&l->index, a, sizeof(svlogindex));
+	if (ssunlikely(rc == -1)) {
 		l->buf.p -= sizeof(svlogv);
 		return -1;
 	}
@@ -13722,14 +15150,14 @@ sv_logadd(svlog *l, sra *a, svlogv *v, void *ptr)
 	i->tail  = n;
 	i->ptr   = ptr;
 	i->count = 1;
-	sr_bufadvance(&l->index, sizeof(svlogindex));
+	ss_bufadvance(&l->index, sizeof(svlogindex));
 	return 0;
 }
 
 static inline void
 sv_logreplace(svlog *l, int n, svlogv *v)
 {
-	sr_bufset(&l->buf, sizeof(svlogv), n, (char*)v, sizeof(svlogv));
+	ss_bufset(&l->buf, sizeof(svlogv), n, (char*)v, sizeof(svlogv));
 }
 
 #endif
@@ -13749,40 +15177,51 @@ typedef struct svmergesrc svmergesrc;
 typedef struct svmerge svmerge;
 
 struct svmergesrc {
-	sriter *i, src;
+	ssiter *i, src;
 	uint8_t dup;
 	void *ptr;
-} srpacked;
+} sspacked;
 
 struct svmerge {
-	srbuf buf;
+	svmergesrc reserve[16];
+	ssbuf buf;
 };
 
 static inline void
-sv_mergeinit(svmerge *m) {
-	sr_bufinit(&m->buf);
+sv_mergeinit(svmerge *m)
+{
+	ss_bufinit_reserve(&m->buf, m->reserve, sizeof(m->reserve));
 }
 
 static inline int
-sv_mergeprepare(svmerge *m, sr *r, int count) {
-	int rc = sr_bufensure(&m->buf, r->a, sizeof(svmergesrc) * count);
-	if (srunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+sv_mergeprepare(svmerge *m, sr *r, int count)
+{
+	int rc = ss_bufensure(&m->buf, r->a, sizeof(svmergesrc) * count);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	return 0;
 }
 
-static inline void
-sv_mergefree(svmerge *m, sra *a) {
-	sr_buffree(&m->buf, a);
+static inline svmergesrc*
+sv_mergenextof(svmergesrc *src)
+{
+	return (svmergesrc*)((char*)src + sizeof(svmergesrc));
 }
 
 static inline void
-sv_mergereset(svmerge *m) {
+sv_mergefree(svmerge *m, ssa *a)
+{
+	ss_buffree(&m->buf, a);
+}
+
+static inline void
+sv_mergereset(svmerge *m)
+{
 	m->buf.p = m->buf.s;
 }
 
 static inline svmergesrc*
-sv_mergeadd(svmerge *m, sriter *i)
+sv_mergeadd(svmerge *m, ssiter *i)
 {
 	assert(m->buf.p < m->buf.e);
 	svmergesrc *s = (svmergesrc*)m->buf.p;
@@ -13791,13 +15230,8 @@ sv_mergeadd(svmerge *m, sriter *i)
 	s->ptr = NULL;
 	if (i == NULL)
 		s->i = &s->src;
-	sr_bufadvance(&m->buf, sizeof(svmergesrc));
+	ss_bufadvance(&m->buf, sizeof(svmergesrc));
 	return s;
-}
-
-static inline svmergesrc*
-sv_mergenextof(svmergesrc *src) {
-	return (svmergesrc*)((char*)src + sizeof(svmergesrc));
 }
 
 #endif
@@ -13825,16 +15259,17 @@ sv_mergenextof(svmergesrc *src) {
 typedef struct svmergeiter svmergeiter;
 
 struct svmergeiter {
-	srorder order;
+	ssorder order;
 	svmerge *merge;
 	svmergesrc *src, *end;
 	svmergesrc *v;
-} srpacked;
+	sr *r;
+} sspacked;
 
 static inline void
-sv_mergeiter_dupreset(svmergeiter *im, svmergesrc *pos)
+sv_mergeiter_dupreset(svmergeiter *i, svmergesrc *pos)
 {
-	svmergesrc *v = im->src;
+	svmergesrc *v = i->src;
 	while (v != pos) {
 		v->dup = 0;
 		v = sv_mergenextof(v);
@@ -13842,22 +15277,21 @@ sv_mergeiter_dupreset(svmergeiter *im, svmergesrc *pos)
 }
 
 static inline void
-sv_mergeiter_gt(sriter *it)
+sv_mergeiter_gt(svmergeiter *i)
 {
-	svmergeiter *im = (svmergeiter*)it->priv;
-	if (im->v) {
-		im->v->dup = 0;
-		sr_iteratornext(im->v->i);
+	if (i->v) {
+		i->v->dup = 0;
+		ss_iteratornext(i->v->i);
 	}
-	im->v = NULL;
+	i->v = NULL;
 	svmergesrc *min, *src;
 	sv *minv;
 	minv = NULL;
 	min  = NULL;
-	src  = im->src;
-	for (; src < im->end; src = sv_mergenextof(src))
+	src  = i->src;
+	for (; src < i->end; src = sv_mergenextof(src))
 	{
-		sv *v = sr_iteratorof(src->i);
+		sv *v = ss_iteratorof(src->i);
 		if (v == NULL)
 			continue;
 		if (min == NULL) {
@@ -13865,41 +15299,42 @@ sv_mergeiter_gt(sriter *it)
 			min = src;
 			continue;
 		}
-		int rc = sv_compare(minv, v, it->r->cmp);
+		int rc = sv_compare(minv, v, i->r->scheme);
 		switch (rc) {
 		case 0:
+			/*
 			assert(sv_lsn(v) < sv_lsn(minv));
+			*/
 			src->dup = 1;
 			break;
 		case 1:
-			sv_mergeiter_dupreset(im, src);
+			sv_mergeiter_dupreset(i, src);
 			minv = v;
 			min = src;
 			break;
 		}
 	}
-	if (srunlikely(min == NULL))
+	if (ssunlikely(min == NULL))
 		return;
-	im->v = min;
+	i->v = min;
 }
 
 static inline void
-sv_mergeiter_lt(sriter *it)
+sv_mergeiter_lt(svmergeiter *i)
 {
-	svmergeiter *im = (svmergeiter*)it->priv;
-	if (im->v) {
-		im->v->dup = 0;
-		sr_iteratornext(im->v->i);
+	if (i->v) {
+		i->v->dup = 0;
+		ss_iteratornext(i->v->i);
 	}
-	im->v = NULL;
+	i->v = NULL;
 	svmergesrc *max, *src;
 	sv *maxv;
 	maxv = NULL;
 	max  = NULL;
-	src  = im->src;
-	for (; src < im->end; src = sv_mergenextof(src))
+	src  = i->src;
+	for (; src < i->end; src = sv_mergenextof(src))
 	{
-		sv *v = sr_iteratorof(src->i);
+		sv *v = ss_iteratorof(src->i);
 		if (v == NULL)
 			continue;
 		if (max == NULL) {
@@ -13907,47 +15342,49 @@ sv_mergeiter_lt(sriter *it)
 			max = src;
 			continue;
 		}
-		int rc = sv_compare(maxv, v, it->r->cmp);
+		int rc = sv_compare(maxv, v, i->r->scheme);
 		switch (rc) {
 		case  0:
+			/*
 			assert(sv_lsn(v) < sv_lsn(maxv));
+			*/
 			src->dup = 1;
 			break;
 		case -1:
-			sv_mergeiter_dupreset(im, src);
+			sv_mergeiter_dupreset(i, src);
 			maxv = v;
 			max = src;
 			break;
 		}
 	}
-	if (srunlikely(max == NULL))
+	if (ssunlikely(max == NULL))
 		return;
-	im->v = max;
+	i->v = max;
 }
 
 static inline void
-sv_mergeiter_next(sriter *it)
+sv_mergeiter_next(ssiter *it)
 {
 	svmergeiter *im = (svmergeiter*)it->priv;
 	switch (im->order) {
-	case SR_RANDOM:
-	case SR_GT:
-	case SR_GTE:
-		sv_mergeiter_gt(it);
+	case SS_GT:
+	case SS_GTE:
+		sv_mergeiter_gt(im);
 		break;
-	case SR_LT:
-	case SR_LTE:
-		sv_mergeiter_lt(it);
+	case SS_LT:
+	case SS_LTE:
+		sv_mergeiter_lt(im);
 		break;
 	default: assert(0);
 	}
 }
 
 static inline int
-sv_mergeiter_open(sriter *i, svmerge *m, srorder o)
+sv_mergeiter_open(ssiter *i, sr *r, svmerge *m, ssorder o)
 {
 	svmergeiter *im = (svmergeiter*)i->priv;
 	im->merge = m;
+	im->r     = r;
 	im->order = o;
 	im->src   = (svmergesrc*)(im->merge->buf.s);
 	im->end   = (svmergesrc*)(im->merge->buf.p);
@@ -13957,27 +15394,27 @@ sv_mergeiter_open(sriter *i, svmerge *m, srorder o)
 }
 
 static inline void
-sv_mergeiter_close(sriter *i srunused)
+sv_mergeiter_close(ssiter *i ssunused)
 { }
 
 static inline int
-sv_mergeiter_has(sriter *i)
+sv_mergeiter_has(ssiter *i)
 {
 	svmergeiter *im = (svmergeiter*)i->priv;
 	return im->v != NULL;
 }
 
 static inline void*
-sv_mergeiter_of(sriter *i)
+sv_mergeiter_of(ssiter *i)
 {
 	svmergeiter *im = (svmergeiter*)i->priv;
-	if (srunlikely(im->v == NULL))
+	if (ssunlikely(im->v == NULL))
 		return NULL;
-	return sr_iteratorof(im->v->i);
+	return ss_iteratorof(im->v->i);
 }
 
 static inline uint32_t
-sv_mergeisdup(sriter *i)
+sv_mergeisdup(ssiter *i)
 {
 	svmergeiter *im = (svmergeiter*)i->priv;
 	assert(im->v != NULL);
@@ -13986,7 +15423,7 @@ sv_mergeisdup(sriter *i)
 	return 0;
 }
 
-extern sriterif sv_mergeiter;
+extern ssiterif sv_mergeiter;
 
 #endif
 #line 1 "sophia/version/sv_readiter.h"
@@ -14004,82 +15441,130 @@ extern sriterif sv_mergeiter;
 typedef struct svreaditer svreaditer;
 
 struct svreaditer {
-	sriter *merge;
+	ssiter *merge;
 	uint64_t vlsn;
 	int next;
 	int nextdup;
+	int save_delete;
+	svupdate *u;
+	sr *r;
 	sv *v;
-} srpacked;
+} sspacked;
+
+static inline int
+sv_readiter_update(svreaditer *i)
+{
+	sv_updatereset(i->u);
+	/* update begin */
+	sv *v = ss_iterof(sv_mergeiter, i->merge);
+	assert(v != NULL);
+	assert(sv_flags(v) & SVUPDATE);
+	int rc = sv_updatepush(i->u, i->r, v);
+	if (ssunlikely(rc == -1))
+		return -1;
+	ss_iternext(sv_mergeiter, i->merge);
+	/* iterate over update statements */
+	int skip = 0;
+	for (; ss_iterhas(sv_mergeiter, i->merge); ss_iternext(sv_mergeiter, i->merge))
+	{
+		v = ss_iterof(sv_mergeiter, i->merge);
+		int dup = sv_is(v, SVDUP) || sv_mergeisdup(i->merge);
+		if (! dup)
+			break;
+		if (skip)
+			continue;
+		int rc = sv_updatepush(i->u, i->r, v);
+		if (ssunlikely(rc == -1))
+			return -1;
+		if (! (sv_flags(v) & SVUPDATE))
+			skip = 1;
+	}
+	/* update */
+	rc = sv_update(i->u, i->r);
+	if (ssunlikely(rc == -1))
+		return -1;
+	return 0;
+}
 
 static inline void
-sv_readiter_next(sriter *i)
+sv_readiter_next(ssiter *i)
 {
 	svreaditer *im = (svreaditer*)i->priv;
 	if (im->next)
-		sr_iternext(sv_mergeiter, im->merge);
+		ss_iternext(sv_mergeiter, im->merge);
 	im->next = 0;
 	im->v = NULL;
-	for (; sr_iterhas(sv_mergeiter, im->merge); sr_iternext(sv_mergeiter, im->merge))
+	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
-		sv *v = sr_iterof(sv_mergeiter, im->merge);
-		/* distinguish duplicates between merge
-		 * streams only */
-		int dup = sv_mergeisdup(im->merge);
+		sv *v = ss_iterof(sv_mergeiter, im->merge);
+		int dup = sv_is(v, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->nextdup) {
 			if (dup)
 				continue;
 			else
 				im->nextdup = 0;
 		}
-		/* assume that iteration sources are
-		 * version aware */
-		assert(sv_lsn(v) <= im->vlsn);
-		im->nextdup = 1;
-		int del = (sv_flags(v) & SVDELETE) > 0;
-		if (srunlikely(del))
+		/* skip version out of visible range */
+		if (sv_lsn(v) > im->vlsn) {
 			continue;
-		im->v = v;
-		im->next = 1;
+		}
+		im->nextdup = 1;
+		if (ssunlikely(!im->save_delete && sv_is(v, SVDELETE)))
+			continue;
+		if (ssunlikely(sv_is(v, SVUPDATE))) {
+			int rc = sv_readiter_update(im);
+			if (ssunlikely(rc == -1))
+				return;
+			im->v = &im->u->result;
+			im->next = 0;
+		} else {
+			im->v = v;
+			im->next = 1;
+		}
 		break;
 	}
 }
 
 static inline int
-sv_readiter_open(sriter *i, sriter *iterator, uint64_t vlsn)
+sv_readiter_open(ssiter *i, sr *r, ssiter *iterator, svupdate *u,
+                 uint64_t vlsn, int save_delete)
 {
 	svreaditer *im = (svreaditer*)i->priv;
+	im->r     = r;
+	im->u     = u;
 	im->merge = iterator;
 	im->vlsn  = vlsn;
 	assert(im->merge->vif == &sv_mergeiter);
 	im->v = NULL;
 	im->next = 0;
 	im->nextdup = 0;
+	im->save_delete = save_delete;
 	/* iteration can start from duplicate */
 	sv_readiter_next(i);
 	return 0;
 }
 
 static inline void
-sv_readiter_close(sriter *i srunused)
+sv_readiter_close(ssiter *i ssunused)
 { }
 
 static inline int
-sv_readiter_has(sriter *i)
+sv_readiter_has(ssiter *i)
 {
 	svreaditer *im = (svreaditer*)i->priv;
 	return im->v != NULL;
 }
 
 static inline void*
-sv_readiter_of(sriter *i)
+sv_readiter_of(ssiter *i)
 {
 	svreaditer *im = (svreaditer*)i->priv;
-	if (srunlikely(im->v == NULL))
+	if (ssunlikely(im->v == NULL))
 		return NULL;
 	return im->v;
 }
 
-extern sriterif sv_readiter;
+extern ssiterif sv_readiter;
 
 #endif
 #line 1 "sophia/version/sv_writeiter.h"
@@ -14097,197 +15582,209 @@ extern sriterif sv_readiter;
 typedef struct svwriteiter svwriteiter;
 
 struct svwriteiter {
-	sriter *merge;
+	ssiter *merge;
 	uint64_t limit;
 	uint64_t size;
 	uint32_t sizev;
 	uint64_t vlsn;
 	int save_delete;
+	int save_update;
 	int next;
+	int update;
 	uint64_t prevlsn;
 	sv *v;
-} srpacked;
+	int vdup;
+	svupdate *u;
+	sr *r;
+} sspacked;
+
+static inline int
+sv_writeiter_update(svwriteiter *i)
+{
+	/* apply update only on duplicate statements which are
+	 * ready to be garbage-collected */
+	sv_updatereset(i->u);
+
+	/* update begin */
+	sv *v = ss_iterof(sv_mergeiter, i->merge);
+	assert(v != NULL);
+	assert(sv_flags(v) & SVUPDATE);
+	int rc = sv_updatepush(i->u, i->r, v);
+	if (ssunlikely(rc == -1))
+		return -1;
+	uint64_t prevlsn = sv_lsn(v);
+	ss_iternext(sv_mergeiter, i->merge);
+
+	/* iterate over update statements */
+	int last_non_upd = 0;
+	for (; ss_iterhas(sv_mergeiter, i->merge); ss_iternext(sv_mergeiter, i->merge))
+	{
+		v = ss_iterof(sv_mergeiter, i->merge);
+		int dup = sv_is(v, SVDUP) || sv_mergeisdup(i->merge);
+		if (! dup) {
+			break;
+		}
+		if (prevlsn > i->vlsn)
+			break;
+		/* stop forming updates on a second non-update stmt,
+		 * but continue to iterate stream */
+		if (last_non_upd) {
+			continue;
+		}
+		last_non_upd = ! (sv_flags(v) & SVUPDATE);
+		int rc = sv_updatepush(i->u, i->r, v);
+		if (ssunlikely(rc == -1))
+			return -1;
+		prevlsn = sv_lsn(v);
+	}
+
+	/* update */
+	rc = sv_update(i->u, i->r);
+	if (ssunlikely(rc == -1))
+		return -1;
+	return 0;
+}
 
 static inline void
-sv_writeiter_next(sriter *i)
+sv_writeiter_next(ssiter *i)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
 	if (im->next)
-		sr_iternext(sv_mergeiter, im->merge);
+		ss_iternext(sv_mergeiter, im->merge);
 	im->next = 0;
 	im->v = NULL;
-	for (; sr_iterhas(sv_mergeiter, im->merge); sr_iternext(sv_mergeiter, im->merge))
+	im->vdup = 0;
+
+	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
-		sv *v = sr_iterof(sv_mergeiter, im->merge);
-		int dup = (sv_flags(v) & SVDUP) | sv_mergeisdup(im->merge);
+		sv *v = ss_iterof(sv_mergeiter, im->merge);
+		int dup = sv_is(v, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->size >= im->limit) {
 			if (! dup)
 				break;
 		}
 		uint64_t lsn = sv_lsn(v);
-		int kv = sv_keysize(v) + sv_valuesize(v);
-		if (srunlikely(dup)) {
+		if (ssunlikely(dup)) {
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn)
-				continue;
+			{
+				if (im->update) {
+					im->update = (sv_flags(v) & SVUPDATE) > 0;
+				} else {
+					continue;
+				}
+			}
 		} else {
-			/* branched or stray deletes */
-			if (! im->save_delete) {
-				int del = (sv_flags(v) & SVDELETE) > 0;
-				if (srunlikely(del && (lsn <= im->vlsn))) {
+			im->update = 0;
+			/* delete (stray or on branch) */
+			if (!im->save_delete) {
+				int del = sv_is(v, SVDELETE);
+				if (ssunlikely(del && (lsn <= im->vlsn))) {
 					im->prevlsn = lsn;
 					continue;
 				}
 			}
-			im->size += im->sizev + kv;
+			im->size += im->sizev + sv_size(v);
+			/* update */
+			if (sv_is(v, SVUPDATE)) {
+				int rc;
+				/* compaction */
+				if (! im->save_update) {
+					rc = sv_writeiter_update(im);
+					if (ssunlikely(rc == -1))
+						return;
+					im->prevlsn = lsn;
+					im->v = &im->u->result;
+					im->vdup = dup;
+					im->next = 0;
+					break;
+				}
+				/* branch
+				 * keep next ready-to-gc statements to
+				 * apply update.
+				 */
+				im->update = 1;
+			}
 		}
 		im->prevlsn = lsn;
 		im->v = v;
+		im->vdup = dup;
 		im->next = 1;
 		break;
 	}
 }
 
 static inline int
-sv_writeiter_open(sriter *i, sriter *iterator, uint64_t limit,
+sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupdate *u,
+                  uint64_t limit,
                   uint32_t sizev, uint64_t vlsn,
-                  int save_delete)
+                  int save_delete,
+                  int save_update)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
-	im->merge = iterator;
+	im->u     = u;
+	im->r     = r;
+	im->merge = merge;
 	im->limit = limit;
 	im->size  = 0;
 	im->sizev = sizev;
 	im->vlsn  = vlsn;;
 	im->save_delete = save_delete;
+	im->save_update = save_update;
 	assert(im->merge->vif == &sv_mergeiter);
 	im->next  = 0;
 	im->prevlsn  = 0;
 	im->v = NULL;
+	im->vdup = 0;
+	im->update = 0;
 	sv_writeiter_next(i);
 	return 0;
 }
 
 static inline void
-sv_writeiter_close(sriter *i srunused)
+sv_writeiter_close(ssiter *i ssunused)
 { }
 
 static inline int
-sv_writeiter_has(sriter *i)
+sv_writeiter_has(ssiter *i)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
 	return im->v != NULL;
 }
 
 static inline void*
-sv_writeiter_of(sriter *i)
+sv_writeiter_of(ssiter *i)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
-	if (srunlikely(im->v == NULL))
+	if (ssunlikely(im->v == NULL))
 		return NULL;
 	return im->v;
 }
 
 static inline int
-sv_writeiter_resume(sriter *i)
+sv_writeiter_resume(ssiter *i)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
-	im->v    = sr_iterof(sv_mergeiter, im->merge);
-	if (srunlikely(im->v == NULL))
+	im->v       = ss_iterof(sv_mergeiter, im->merge);
+	if (ssunlikely(im->v == NULL))
 		return 0;
-	im->next = 1;
-	im->size = im->sizev + sv_keysize(im->v) +
-	           sv_valuesize(im->v);
+	im->vdup    = sv_is(im->v, SVDUP) || sv_mergeisdup(im->merge);
+	im->prevlsn = sv_lsn(im->v);
+	im->next    = 1;
+	im->update  = 0;
+	im->size    = im->sizev + sv_size(im->v);
 	return 1;
 }
 
-extern sriterif sv_writeiter;
-
-#endif
-#line 1 "sophia/version/sv_v.h"
-#ifndef SV_V_H_
-#define SV_V_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct svv svv;
-
-struct svv {
-	uint64_t  lsn;
-	uint32_t  valuesize;
-	uint16_t  keysize;
-	uint8_t   flags;
-	void     *log;
-	svv      *next;
-	srrbnode node;
-} srpacked;
-
-extern svif sv_vif;
-
-static inline char*
-sv_vkey(svv *v) {
-	return (char*)(v) + sizeof(svv);
-}
-
-static inline void*
-sv_vvalue(svv *v) {
-	return (char*)(v) + sizeof(svv) + v->keysize;
-}
-
-static inline svv*
-sv_valloc(sra *a, sv *v)
+static inline int
+sv_writeiter_is_duplicate(ssiter *i)
 {
-	int keysize = sv_keysize(v);
-	int valuesize = sv_valuesize(v);
-	int size = sizeof(svv) + keysize + valuesize;
-	svv *vv = sr_malloc(a, size);
-	if (srunlikely(vv == NULL))
-		return NULL;
-	vv->keysize   = keysize; 
-	vv->valuesize = valuesize;
-	vv->flags     = sv_flags(v);
-	vv->lsn       = sv_lsn(v);
-	vv->next      = NULL;
-	vv->log       = NULL;
-	memset(&vv->node, 0, sizeof(vv->node));
-	char *key = sv_vkey(vv);
-	memcpy(key, sv_key(v), keysize);
-	memcpy(key + keysize, sv_value(v), valuesize);
-	return vv;
+	svwriteiter *im = (svwriteiter*)i->priv;
+	assert(im->v != NULL);
+	return im->vdup;
 }
 
-static inline void
-sv_vfree(sra *a, svv *v)
-{
-	while (v) {
-		svv *n = v->next;
-		sr_free(a, v);
-		v = n;
-	}
-}
-
-static inline svv*
-sv_visible(svv *v, uint64_t vlsn) {
-	while (v && v->lsn > vlsn)
-		v = v->next;
-	return v;
-}
-
-static inline uint32_t
-sv_vsize(svv *v) {
-	return sizeof(svv) + v->keysize + v->valuesize;
-}
-
-static inline uint32_t
-sv_vsizeof(sv *v) {
-	return sizeof(svv) + sv_keysize(v) + sv_valuesize(v);
-}
+extern ssiterif sv_writeiter;
 
 #endif
 #line 1 "sophia/version/sv_index.h"
@@ -14302,24 +15799,39 @@ sv_vsizeof(sv *v) {
  * BSD License
 */
 
+typedef struct svindexpos svindexpos;
 typedef struct svindex svindex;
 
+struct svindexpos {
+	ssrbnode *node;
+	int rc;
+};
+
 struct svindex {
-	srrb i;
+	ssrb i;
 	uint32_t count;
 	uint32_t used;
-	uint16_t keymax;
 	uint64_t lsnmin;
-} srpacked;
+} sspacked;
 
-sr_rbget(sv_indexmatch,
-         sr_compare(cmp, sv_vkey(srcast(n, svv, node)),
-                    (srcast(n, svv, node))->keysize,
+ss_rbget(sv_indexmatch,
+         sr_compare(scheme, sv_vpointer(sscast(n, svv, node)),
+                    (sscast(n, svv, node))->size,
                     key, keysize))
 
-int sv_indexinit(svindex*);
-int sv_indexfree(svindex*, sr*);
-int sv_indexset(svindex*, sr*, uint64_t, svv*, svv**);
+int  sv_indexinit(svindex*);
+int  sv_indexfree(svindex*, sr*);
+svv *sv_indexget(svindex*, sr*, svindexpos*, svv*);
+int  sv_indexupdate(svindex*, svindexpos*, svv*);
+
+static inline int
+sv_indexset(svindex *i, sr *r, svv  *v)
+{
+	svindexpos pos;
+	sv_indexget(i, r, &pos, v);
+	sv_indexupdate(i, &pos, v);
+	return 0;
+}
 
 static inline uint32_t
 sv_indexused(svindex *i) {
@@ -14343,245 +15855,126 @@ typedef struct svindexiter svindexiter;
 
 struct svindexiter {
 	svindex *index;
-	srrbnode *v;
+	ssrbnode *v;
 	svv *vcur;
 	sv current;
-	srorder order;
-	void *key;
-	int keysize;
-	uint64_t vlsn;
-} srpacked;
-
-static inline void
-sv_indexiter_fwd(svindexiter *i)
-{
-	while (i->v) {
-		svv *v = srcast(i->v, svv, node);
-		i->vcur = sv_visible(v, i->vlsn);
-		if (srlikely(i->vcur))
-			return;
-		i->v = sr_rbnext(&i->index->i, i->v);
-	}
-}
-
-static inline void
-sv_indexiter_bkw(svindexiter *i)
-{
-	while (i->v) {
-		svv *v = srcast(i->v, svv, node);
-		i->vcur = sv_visible(v, i->vlsn);
-		if (srlikely(i->vcur))
-			return;
-		i->v = sr_rbprev(&i->index->i, i->v);
-	}
-}
+	ssorder order;
+} sspacked;
 
 static inline int
-sv_indexiter_open(sriter *i, svindex *index, srorder o, void *key, int keysize, uint64_t vlsn)
+sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int keysize)
 {
 	svindexiter *ii = (svindexiter*)i->priv;
 	ii->index   = index;
 	ii->order   = o;
-	ii->key     = key;
-	ii->keysize = keysize;
-	ii->vlsn    = vlsn;
 	ii->v       = NULL;
 	ii->vcur    = NULL;
 	memset(&ii->current, 0, sizeof(ii->current));
-	srrbnode *n = NULL;
-	int eq = 0;
 	int rc;
+	int eq = 0;
 	switch (ii->order) {
-	case SR_LT:
-	case SR_LTE:
-	case SR_EQ:
-		if (srunlikely(ii->key == NULL)) {
-			ii->v = sr_rbmax(&ii->index->i);
-			sv_indexiter_bkw(ii);
+	case SS_LT:
+	case SS_LTE:
+		if (ssunlikely(key == NULL)) {
+			ii->v = ss_rbmax(&ii->index->i);
 			break;
 		}
-		rc = sv_indexmatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, r->scheme, key, keysize, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
 		case 0:
 			eq = 1;
-			if (ii->order == SR_LT)
-				ii->v = sr_rbprev(&ii->index->i, ii->v);
+			if (ii->order == SS_LT)
+				ii->v = ss_rbprev(&ii->index->i, ii->v);
 			break;
 		case 1:
-			ii->v = sr_rbprev(&ii->index->i, ii->v);
+			ii->v = ss_rbprev(&ii->index->i, ii->v);
 			break;
 		}
-		n = ii->v;
-		sv_indexiter_bkw(ii);
 		break;
-	case SR_GT:
-	case SR_GTE:
-		if (srunlikely(ii->key == NULL)) {
-			ii->v = sr_rbmin(&ii->index->i);
-			sv_indexiter_fwd(ii);
+	case SS_GT:
+	case SS_GTE:
+		if (ssunlikely(key == NULL)) {
+			ii->v = ss_rbmin(&ii->index->i);
 			break;
 		}
-		rc = sv_indexmatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, r->scheme, key, keysize, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
 		case  0:
 			eq = 1;
-			if (ii->order == SR_GT)
-				ii->v = sr_rbnext(&ii->index->i, ii->v);
+			if (ii->order == SS_GT)
+				ii->v = ss_rbnext(&ii->index->i, ii->v);
 			break;
 		case -1:
-			ii->v = sr_rbnext(&ii->index->i, ii->v);
+			ii->v = ss_rbnext(&ii->index->i, ii->v);
 			break;
 		}
-		n = ii->v;
-		sv_indexiter_fwd(ii);
-		break;
-	case SR_RANDOM: {
-		assert(ii->key != NULL);
-		if (srunlikely(ii->index->count == 0)) {
-			ii->v = NULL;
-			ii->vcur = NULL;
-			break;
-		}
-		uint32_t rnd = *(uint32_t*)ii->key;
-		rnd %= ii->index->count;
-		ii->v = sr_rbmin(&ii->index->i);
-		uint32_t pos = 0;
-		while (pos != rnd) {
-			ii->v = sr_rbnext(&ii->index->i, ii->v);
-			pos++;
-		}
-		svv *v = srcast(ii->v, svv, node);
-		ii->vcur = v;
-		break;
-	}
-	case SR_UPDATE:
-		rc = sv_indexmatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
-		if (rc == 0 && ii->v) {
-			svv *v = srcast(ii->v, svv, node);
-			ii->vcur = v;
-			return v->lsn > ii->vlsn;
-		}
-		return 0;
-	default: assert(0);
-	}
-	return eq && (n == ii->v);
-}
-
-static inline void
-sv_indexiter_close(sriter *i srunused)
-{}
-
-static inline int
-sv_indexiter_has(sriter *i)
-{
-	svindexiter *ii = (svindexiter*)i->priv;
-	return ii->v != NULL;
-}
-
-static inline void*
-sv_indexiter_of(sriter *i)
-{
-	svindexiter *ii = (svindexiter*)i->priv;
-	if (srunlikely(ii->v == NULL))
-		return NULL;
-	assert(ii->vcur != NULL);
-	sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
-	return &ii->current;
-}
-
-static inline void
-sv_indexiter_next(sriter *i)
-{
-	svindexiter *ii = (svindexiter*)i->priv;
-	if (srunlikely(ii->v == NULL))
-		return;
-	switch (ii->order) {
-	case SR_LT:
-	case SR_LTE:
-		ii->v = sr_rbprev(&ii->index->i, ii->v);
-		ii->vcur = NULL;
-		sv_indexiter_bkw(ii);
-		break;
-	case SR_RANDOM:
-	case SR_GT:
-	case SR_GTE:
-		ii->v = sr_rbnext(&ii->index->i, ii->v);
-		ii->vcur = NULL;
-		sv_indexiter_fwd(ii);
 		break;
 	default: assert(0);
 	}
-}
-
-typedef struct svindexiterraw svindexiterraw;
-
-struct svindexiterraw {
-	svindex *index;
-	srrbnode *v;
-	svv *vcur;
-	sv current;
-} srpacked;
-
-static inline int
-sv_indexiterraw_open(sriter *i, svindex *index)
-{
-	svindexiterraw *ii = (svindexiterraw*)i->priv;
-	ii->index = index;
-	ii->v = sr_rbmin(&ii->index->i);
 	ii->vcur = NULL;
 	if (ii->v) {
-		ii->vcur = srcast(ii->v, svv, node);
+		ii->vcur = sscast(ii->v, svv, node);
+		sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
 	}
-	return 0;
+	return eq;
 }
 
 static inline void
-sv_indexiterraw_close(sriter *i srunused)
+sv_indexiter_close(ssiter *i ssunused)
 {}
 
 static inline int
-sv_indexiterraw_has(sriter *i)
+sv_indexiter_has(ssiter *i)
 {
-	svindexiterraw *ii = (svindexiterraw*)i->priv;
+	svindexiter *ii = (svindexiter*)i->priv;
 	return ii->v != NULL;
 }
 
 static inline void*
-sv_indexiterraw_of(sriter *i)
+sv_indexiter_of(ssiter *i)
 {
-	svindexiterraw *ii = (svindexiterraw*)i->priv;
-	if (srunlikely(ii->v == NULL))
+	svindexiter *ii = (svindexiter*)i->priv;
+	if (ssunlikely(ii->v == NULL))
 		return NULL;
-	assert(ii->vcur != NULL);
-	sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
 	return &ii->current;
 }
 
 static inline void
-sv_indexiterraw_next(sriter *i)
+sv_indexiter_next(ssiter *i)
 {
-	svindexiterraw *ii = (svindexiterraw*)i->priv;
-	if (srunlikely(ii->v == NULL))
+	svindexiter *ii = (svindexiter*)i->priv;
+	if (ssunlikely(ii->v == NULL))
 		return;
 	assert(ii->vcur != NULL);
 	svv *v = ii->vcur->next;
 	if (v) {
 		ii->vcur = v;
+		sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
 		return;
 	}
-	ii->v = sr_rbnext(&ii->index->i, ii->v);
+	switch (ii->order) {
+	case SS_LT:
+	case SS_LTE:
+		ii->v = ss_rbprev(&ii->index->i, ii->v);
+		break;
+	case SS_GT:
+	case SS_GTE:
+		ii->v = ss_rbnext(&ii->index->i, ii->v);
+		break;
+	default: assert(0);
+	}
 	ii->vcur = NULL;
 	if (ii->v) {
-		ii->vcur = srcast(ii->v, svv, node);
+		ii->vcur = sscast(ii->v, svv, node);
+		sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
 	}
 }
 
-extern sriterif sv_indexiter;
-extern sriterif sv_indexiterraw;
+extern ssiterif sv_indexiter;
 
 #endif
 #line 1 "sophia/version/sv_index.c"
@@ -14597,16 +15990,18 @@ extern sriterif sv_indexiterraw;
 
 
 
-sr_rbtruncate(sv_indextruncate,
-              sv_vfree((sra*)arg, srcast(n, svv, node)))
+
+
+
+ss_rbtruncate(sv_indextruncate,
+              sv_vfree((ssa*)arg, sscast(n, svv, node)))
 
 int sv_indexinit(svindex *i)
 {
-	i->keymax = 0;
 	i->lsnmin = UINT64_MAX;
 	i->count  = 0;
 	i->used   = 0;
-	sr_rbinit(&i->i);
+	ss_rbinit(&i->i);
 	return 0;
 }
 
@@ -14614,7 +16009,7 @@ int sv_indexfree(svindex *i, sr *r)
 {
 	if (i->i.root)
 		sv_indextruncate(i->i.root, r->a);
-	sr_rbinit(&i->i);
+	ss_rbinit(&i->i);
 	return 0;
 }
 
@@ -14622,7 +16017,7 @@ static inline svv*
 sv_vset(svv *head, svv *v)
 {
 	/* default */
-	if (srlikely(head->lsn < v->lsn)) {
+	if (sslikely(head->lsn < v->lsn)) {
 		v->next = head;
 		head->flags |= SVDUP;
 		return v;
@@ -14643,65 +16038,29 @@ sv_vset(svv *head, svv *v)
 	return head;
 }
 
-#if 0
-static inline svv*
-sv_vgc(svv *v, uint64_t vlsn)
+svv *sv_indexget(svindex *i, sr *r, svindexpos *p, svv *v)
 {
-	svv *prev = v;
-	svv *c = v->next;
-	while (c) {
-		if (c->lsn < vlsn) {
-			prev->next = NULL;
-			return c;
-		}
-		prev = c;
-		c = c->next;
-	}
+	p->rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(v), v->size, &p->node);
+	if (p->rc == 0 && p->node)
+		return sscast(p->node, svv, node);
 	return NULL;
 }
 
-static inline uint32_t
-sv_vstat(svv *v, uint32_t *count) {
-	uint32_t size = 0;
-	*count = 0;
-	while (v) {
-		size += v->keysize + v->valuesize;
-		(*count)++;
-		v = v->next;
-	}
-	return size;
-}
-#endif
-
-int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
-                svv  *v,
-                svv **gc srunused)
+int sv_indexupdate(svindex *i, svindexpos *p, svv *v)
 {
-	srrbnode *n = NULL;
-	svv *head = NULL;
-	if (v->lsn < i->lsnmin)
-		i->lsnmin = v->lsn;
-	int rc = sv_indexmatch(&i->i, r->cmp, sv_vkey(v), v->keysize, &n);
-	if (rc == 0 && n) {
-		head = srcast(n, svv, node);
+	if (p->rc == 0 && p->node)
+	{
+		svv *head = sscast(p->node, svv, node);
 		svv *update = sv_vset(head, v);
 		if (head != update)
-			sr_rbreplace(&i->i, n, &update->node);
-#if 0
-		*gc = sv_vgc(update, vlsn);
-		if (*gc) {
-			uint32_t count = 0;
-			i->used  -= sv_vstat(*gc, &count);
-			i->count -= count;
-		}
-#endif
+			ss_rbreplace(&i->i, p->node, &update->node);
 	} else {
-		sr_rbset(&i->i, n, rc, &v->node);
+		ss_rbset(&i->i, p->node, p->rc, &v->node);
 	}
+	if (v->lsn < i->lsnmin)
+		i->lsnmin = v->lsn;
 	i->count++;
-	i->used += v->keysize + v->valuesize;
-	if (srunlikely(v->keysize > i->keymax))
-		i->keymax = v->keysize;
+	i->used += v->size;
 	return 0;
 }
 #line 1 "sophia/version/sv_indexiter.c"
@@ -14717,80 +16076,14 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
 
 
 
-sriterif sv_indexiter =
+
+
+ssiterif sv_indexiter =
 {
 	.close   = sv_indexiter_close,
 	.has     = sv_indexiter_has,
 	.of      = sv_indexiter_of,
 	.next    = sv_indexiter_next
-};
-
-sriterif sv_indexiterraw =
-{
-	.close   = sv_indexiterraw_close,
-	.has     = sv_indexiterraw_has,
-	.of      = sv_indexiterraw_of,
-	.next    = sv_indexiterraw_next
-};
-#line 1 "sophia/version/sv_local.c"
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-
-
-
-static uint8_t
-sv_localifflags(sv *v) {
-	return ((svlocal*)v->v)->flags;
-}
-
-static uint64_t
-sv_localiflsn(sv *v) {
-	return ((svlocal*)v->v)->lsn;
-}
-
-static void
-sv_localiflsnset(sv *v, uint64_t lsn) {
-	((svlocal*)v->v)->lsn = lsn;
-}
-
-static char*
-sv_localifkey(sv *v) {
-	return ((svlocal*)v->v)->key;
-}
-
-static uint16_t
-sv_localifkeysize(sv *v) {
-	return ((svlocal*)v->v)->keysize;
-}
-
-static char*
-sv_localifvalue(sv *v)
-{
-	svlocal *lv = v->v;
-	return lv->value;
-}
-
-static uint32_t
-sv_localifvaluesize(sv *v) {
-	return ((svlocal*)v->v)->valuesize;
-}
-
-svif sv_localif =
-{
-	.flags     = sv_localifflags,
-	.lsn       = sv_localiflsn,
-	.lsnset    = sv_localiflsnset,
-	.key       = sv_localifkey,
-	.keysize   = sv_localifkeysize,
-	.value     = sv_localifvalue,
-	.valuesize = sv_localifvaluesize
 };
 #line 1 "sophia/version/sv_mergeiter.c"
 
@@ -14805,7 +16098,9 @@ svif sv_localif =
 
 
 
-sriterif sv_mergeiter =
+
+
+ssiterif sv_mergeiter =
 {
 	.close = sv_mergeiter_close,
 	.has   = sv_mergeiter_has,
@@ -14825,12 +16120,67 @@ sriterif sv_mergeiter =
 
 
 
-sriterif sv_readiter =
+
+
+ssiterif sv_readiter =
 {
 	.close   = sv_readiter_close,
 	.has     = sv_readiter_has,
 	.of      = sv_readiter_of,
 	.next    = sv_readiter_next
+};
+#line 1 "sophia/version/sv_updatev.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+static uint8_t
+sv_updatevifflags(sv *v) {
+	svupdatenode *n = v->v;
+	return n->flags;
+}
+
+static uint64_t
+sv_updateviflsn(sv *v) {
+	svupdatenode *n = v->v;
+	return n->lsn;
+}
+
+static void
+sv_updateviflsnset(sv *v ssunused, uint64_t lsn ssunused) {
+	assert(0);
+}
+
+static char*
+sv_updatevifpointer(sv *v) {
+	svupdatenode *n = v->v;
+	return n->buf.s;
+}
+
+static uint32_t
+sv_updatevifsize(sv *v) {
+	svupdatenode *n = v->v;
+	return ss_bufused(&n->buf);
+}
+
+svif sv_updatevif =
+{
+	.flags   = sv_updatevifflags,
+	.lsn     = sv_updateviflsn,
+	.lsnset  = sv_updateviflsnset,
+	.pointer = sv_updatevifpointer,
+	.size    = sv_updatevifsize
 };
 #line 1 "sophia/version/sv_v.c"
 
@@ -14841,6 +16191,8 @@ sriterif sv_readiter =
  * Copyright (c) Dmitry Simonenko
  * BSD License
 */
+
+
 
 
 
@@ -14861,38 +16213,22 @@ sv_viflsnset(sv *v, uint64_t lsn) {
 }
 
 static char*
-sv_vifkey(sv *v) {
-	return sv_vkey(((svv*)v->v));
-}
-
-static uint16_t
-sv_vifkeysize(sv *v) {
-	return ((svv*)v->v)->keysize;
-}
-
-static char*
-sv_vifvalue(sv *v)
-{
-	svv *vv = v->v;
-	if (vv->valuesize == 0)
-		return NULL;
-	return sv_vvalue(vv);
+sv_vifpointer(sv *v) {
+	return sv_vpointer(((svv*)v->v));
 }
 
 static uint32_t
-sv_vifvaluesize(sv *v) {
-	return ((svv*)v->v)->valuesize;
+sv_vifsize(sv *v) {
+	return ((svv*)v->v)->size;
 }
 
 svif sv_vif =
 {
-	.flags     = sv_vifflags,
-	.lsn       = sv_viflsn,
-	.lsnset    = sv_viflsnset,
-	.key       = sv_vifkey,
-	.keysize   = sv_vifkeysize,
-	.value     = sv_vifvalue,
-	.valuesize = sv_vifvaluesize
+	.flags   = sv_vifflags,
+	.lsn     = sv_viflsn,
+	.lsnset  = sv_viflsnset,
+	.pointer = sv_vifpointer,
+	.size    = sv_vifsize
 };
 #line 1 "sophia/version/sv_writeiter.c"
 
@@ -14907,7 +16243,9 @@ svif sv_vif =
 
 
 
-sriterif sv_writeiter =
+
+
+ssiterif sv_writeiter =
 {
 	.close   = sv_writeiter_close,
 	.has     = sv_writeiter_has,
@@ -14934,16 +16272,16 @@ struct sxv {
 	svv *v;
 	sxv *next;
 	sxv *prev;
-	srrbnode node;
-} srpacked;
+	ssrbnode node;
+} sspacked;
 
 extern svif sx_vif;
 
 static inline sxv*
-sx_valloc(sra *asxv, svv *v)
+sx_valloc(ssa *asxv, svv *v)
 {
-	sxv *vv = sr_malloc(asxv, sizeof(sxv));
-	if (srunlikely(vv == NULL))
+	sxv *vv = ss_malloc(asxv, sizeof(sxv));
+	if (ssunlikely(vv == NULL))
 		return NULL;
 	vv->index = NULL;
 	vv->id    = 0;
@@ -14956,10 +16294,10 @@ sx_valloc(sra *asxv, svv *v)
 }
 
 static inline void
-sx_vfree(sra *a, sra *asxv, sxv *v)
+sx_vfree(ssa *a, ssa *asxv, sxv *v)
 {
-	sr_free(a, v->v);
-	sr_free(asxv, v);
+	ss_free(a, v->v);
+	ss_free(asxv, v);
 }
 
 static inline sxv*
@@ -15041,40 +16379,45 @@ typedef enum {
 typedef sxstate (*sxpreparef)(sx*, sv*, void*, void*);
 
 struct sxindex {
-	srrb i;
+	ssrb i;
 	uint32_t count;
 	uint32_t dsn;
-	srcomparator *cmp;
+	srscheme *scheme;
 	void *ptr;
+	sr *r;
 };
 
 struct sx {
 	uint32_t id;
+	int complete;
 	sxstate s;
 	uint64_t vlsn;
 	svlog log;
-	srlist deadlock;
+	sslist deadlock;
 	sxmanager *manager;
-	srrbnode node;
+	ssrbnode node;
 };
 
 struct sxmanager {
-	srspinlock lock;
-	srrb i;
+	ssspinlock lock;
+	ssrb i;
 	uint32_t count;
-	sra *asxv;
-	sr *r;
+	ssa *asxv;
+	ssa *a;
+	srseq *seq;
 };
 
-int       sx_init(sxmanager*, sr*, sra*);
-int       sx_free(sxmanager*);
-int       sx_indexinit(sxindex*, void*);
-int       sx_indexset(sxindex*, uint32_t, srcomparator*);
+int       sx_managerinit(sxmanager*, srseq*, ssa*, ssa*);
+int       sx_managerfree(sxmanager*);
+int       sx_indexinit(sxindex*, sr*, void*);
+int       sx_indexset(sxindex*, uint32_t, srscheme*);
 int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint32_t);
+void      sx_init(sxmanager*, sx*);
 sxstate   sx_begin(sxmanager*, sx*, uint64_t);
-sxstate   sx_end(sx*);
+void      sx_gc(sx*, sr*);
 sxstate   sx_prepare(sx*, sxpreparef, void*);
+sxstate   sx_complete(sx*);
 sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);
 int       sx_set(sx*, sxindex*, svv*);
@@ -15115,47 +16458,50 @@ int sx_deadlock(sx*);
 
 
 
-int sx_init(sxmanager *m, sr *r, sra *asxv)
+
+
+int sx_managerinit(sxmanager *m, srseq *seq, ssa *a, ssa *asxv)
 {
-	sr_rbinit(&m->i);
+	ss_rbinit(&m->i);
 	m->count = 0;
-	sr_spinlockinit(&m->lock);
+	ss_spinlockinit(&m->lock);
+	m->seq = seq;
 	m->asxv = asxv;
-	m->r = r;
+	m->a = a;
 	return 0;
 }
 
-int sx_free(sxmanager *m)
+int sx_managerfree(sxmanager *m)
 {
-	/* rollback active transactions */
-
-	sr_spinlockfree(&m->lock);
+	assert(m->count == 0);
+	ss_spinlockfree(&m->lock);
 	return 0;
 }
 
-int sx_indexinit(sxindex *i, void *ptr)
+int sx_indexinit(sxindex *i, sr *r, void *ptr)
 {
-	sr_rbinit(&i->i);
+	ss_rbinit(&i->i);
 	i->count = 0;
-	i->cmp = NULL;
+	i->scheme = NULL;
 	i->ptr = ptr;
+	i->r = r;
 	return 0;
 }
 
-int sx_indexset(sxindex *i, uint32_t dsn, srcomparator *cmp)
+int sx_indexset(sxindex *i, uint32_t dsn, srscheme *scheme)
 {
 	i->dsn = dsn;
-	i->cmp = cmp;
+	i->scheme = scheme;
 	return 0;
 }
 
-sr_rbtruncate(sx_truncate,
-              sx_vfree(((sra**)arg)[0],
-                       ((sra**)arg)[1], srcast(n, sxv, node)))
+ss_rbtruncate(sx_truncate,
+              sx_vfree(((ssa**)arg)[0],
+                       ((ssa**)arg)[1], sscast(n, sxv, node)))
 
 int sx_indexfree(sxindex *i, sxmanager *m)
 {
-	sra *allocators[2] = { m->r->a, m->asxv };
+	ssa *allocators[2] = { m->a, m->asxv };
 	if (i->i.root)
 		sx_truncate(i->i.root, allocators);
 	return 0;
@@ -15163,124 +16509,158 @@ int sx_indexfree(sxindex *i, sxmanager *m)
 
 uint32_t sx_min(sxmanager *m)
 {
-	sr_spinlock(&m->lock);
+	ss_spinlock(&m->lock);
 	uint32_t id = 0;
 	if (m->count) {
-		srrbnode *node = sr_rbmin(&m->i);
-		sx *min = srcast(node, sx, node);
+		ssrbnode *node = ss_rbmin(&m->i);
+		sx *min = sscast(node, sx, node);
 		id = min->id;
 	}
-	sr_spinunlock(&m->lock);
+	ss_spinunlock(&m->lock);
 	return id;
 }
 
 uint32_t sx_max(sxmanager *m)
 {
-	sr_spinlock(&m->lock);
+	ss_spinlock(&m->lock);
 	uint32_t id = 0;
 	if (m->count) {
-		srrbnode *node = sr_rbmax(&m->i);
-		sx *max = srcast(node, sx, node);
+		ssrbnode *node = ss_rbmax(&m->i);
+		sx *max = sscast(node, sx, node);
 		id = max->id;
 	}
-	sr_spinunlock(&m->lock);
+	ss_spinunlock(&m->lock);
 	return id;
 }
 
 uint64_t sx_vlsn(sxmanager *m)
 {
-	sr_spinlock(&m->lock);
+	ss_spinlock(&m->lock);
 	uint64_t vlsn;
 	if (m->count) {
-		srrbnode *node = sr_rbmin(&m->i);
-		sx *min = srcast(node, sx, node);
+		ssrbnode *node = ss_rbmin(&m->i);
+		sx *min = sscast(node, sx, node);
 		vlsn = min->vlsn;
 	} else {
-		vlsn = sr_seq(m->r->seq, SR_LSN);
+		vlsn = sr_seq(m->seq, SR_LSN);
 	}
-	sr_spinunlock(&m->lock);
+	ss_spinunlock(&m->lock);
 	return vlsn;
 }
 
-sr_rbget(sx_matchtx,
-         sr_cmpu32((char*)&(srcast(n, sx, node))->id, sizeof(uint32_t),
-                   (char*)key, sizeof(uint32_t), NULL))
+ss_rbget(sx_matchtx, ss_cmp((sscast(n, sx, node))->id, *(uint32_t*)key))
 
 sx *sx_find(sxmanager *m, uint32_t id)
 {
-	srrbnode *n = NULL;
+	ssrbnode *n = NULL;
 	int rc = sx_matchtx(&m->i, NULL, (char*)&id, sizeof(id), &n);
 	if (rc == 0 && n)
-		return  srcast(n, sx, node);
+		return  sscast(n, sx, node);
 	return NULL;
+}
+
+void sx_init(sxmanager *m, sx *t)
+{
+	t->manager = m;
+	sv_loginit(&t->log);
+	ss_listinit(&t->deadlock);
 }
 
 sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 {
 	t->s = SXREADY; 
-	t->manager = m;
-	sr_seqlock(m->r->seq);
-	t->id = sr_seqdo(m->r->seq, SR_TSNNEXT);
-	if (srlikely(vlsn == 0))
-		t->vlsn = sr_seqdo(m->r->seq, SR_LSN);
+	t->complete = 0;
+	sr_seqlock(m->seq);
+	t->id = sr_seqdo(m->seq, SR_TSNNEXT);
+	if (sslikely(vlsn == 0))
+		t->vlsn = sr_seqdo(m->seq, SR_LSN);
 	else
 		t->vlsn = vlsn;
-	sr_sequnlock(m->r->seq);
-	sv_loginit(&t->log);
-	sr_listinit(&t->deadlock);
-	sr_spinlock(&m->lock);
-	srrbnode *n = NULL;
+	sr_sequnlock(m->seq);
+	sx_init(m, t);
+	ss_spinlock(&m->lock);
+	ssrbnode *n = NULL;
 	int rc = sx_matchtx(&m->i, NULL, (char*)&t->id, sizeof(t->id), &n);
 	if (rc == 0 && n) {
 		assert(0);
 	} else {
-		sr_rbset(&m->i, n, rc, &t->node);
+		ss_rbset(&m->i, n, rc, &t->node);
 	}
 	m->count++;
-	sr_spinunlock(&m->lock);
+	ss_spinunlock(&m->lock);
 	return SXREADY;
 }
 
-sxstate sx_end(sx *t)
+void sx_gc(sx *t, sr *r)
 {
 	sxmanager *m = t->manager;
-	assert(t->s != SXUNDEF);
-	sr_spinlock(&m->lock);
-	sr_rbremove(&m->i, &t->node);
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	if (sslikely(t->s == SXCOMMIT)) {
+		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
+		{
+			svlogv *lv = ss_iterof(ss_bufiter, &i);
+			sxv *v = lv->vgc;
+			ss_free(m->asxv, v);
+		}
+	} else
+	if (t->s == SXROLLBACK) {
+		int gc = 0;
+		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
+		{
+			svlogv *lv = ss_iterof(ss_bufiter, &i);
+			sxv *v = lv->v.v;
+			gc += sv_vsize((svv*)v->v);
+			sx_vfree(m->a, m->asxv, v);
+		}
+		ss_quota(r->quota, SS_QREMOVE, gc);
+	}
+	sv_logfree(&t->log, m->a);
 	t->s = SXUNDEF;
+}
+
+static inline void
+sx_end(sx *t)
+{
+	sxmanager *m = t->manager;
+	ss_spinlock(&m->lock);
+	ss_rbremove(&m->i, &t->node);
 	m->count--;
-	sr_spinunlock(&m->lock);
-	sv_logfree(&t->log, m->r->a);
-	return SXUNDEF;
+	ss_spinunlock(&m->lock);
 }
 
 sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
 {
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, NULL);
-	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	sxstate s;
-	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	sxstate s = SXPREPARE;
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(sr_bufiter, &i);
+		svlogv *lv = ss_iterof(ss_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* cancelled by a concurrent commited
 		 * transaction */
-		if (v->v->flags & SVABORT)
-			return SXROLLBACK;
+		if (v->v->flags & SVABORT) {
+			s = SXROLLBACK;
+			goto done;
+		}
 		/* concurrent update in progress */
-		if (v->prev != NULL)
-			return SXLOCK;
+		if (v->prev != NULL) {
+			s = SXLOCK;
+			goto done;
+		}
 		/* check that new key has not been committed by
 		 * a concurrent transaction */
 		if (prepare) {
 			sxindex *i = v->index;
 			s = prepare(t, &lv->v, arg, i->ptr);
-			if (srunlikely(s != SXPREPARE))
-				return s;
+			if (ssunlikely(s != SXPREPARE))
+				goto done;
 		}
 	}
-	s = SXPREPARE;
+done:
 	t->s = s;
 	return s;
 }
@@ -15288,13 +16668,14 @@ sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
 sxstate sx_commit(sx *t)
 {
 	assert(t->s == SXPREPARE);
-	sxmanager *m = t->manager;
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, NULL);
-	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+	if (t->complete)
+		goto complete;
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(sr_bufiter, &i);
+		svlogv *lv = ss_iterof(ss_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* mark waiters as aborted */
 		sx_vabortwaiters(v);
@@ -15302,28 +16683,30 @@ sxstate sx_commit(sx *t)
 		 * head with a first waiter */
 		sxindex *i = v->index;
 		if (v->next == NULL)
-			sr_rbremove(&i->i, &v->node);
+			ss_rbremove(&i->i, &v->node);
 		else
-			sr_rbreplace(&i->i, &v->node, &v->next->node);
+			ss_rbreplace(&i->i, &v->node, &v->next->node);
 		/* unlink version */
 		sx_vunlink(v);
 		/* translate log version from sxv to svv */
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
-		sr_free(m->asxv, v);
+		lv->vgc = v;
 	}
+complete:
 	t->s = SXCOMMIT;
+	sx_end(t);
 	return SXCOMMIT;
 }
 
-sxstate sx_rollback(sx *t)
+static inline void
+sx_rollback_index(sx *t, int translate)
 {
-	sxmanager *m = t->manager;
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, NULL);
-	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(sr_bufiter, &i);
+		svlogv *lv = ss_iterof(ss_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* remove from index and replace head with
 		 * a first waiter */
@@ -15331,20 +16714,40 @@ sxstate sx_rollback(sx *t)
 			goto unlink;
 		sxindex *i = v->index;
 		if (v->next == NULL)
-			sr_rbremove(&i->i, &v->node);
+			ss_rbremove(&i->i, &v->node);
 		else
-			sr_rbreplace(&i->i, &v->node, &v->next->node);
+			ss_rbreplace(&i->i, &v->node, &v->next->node);
 unlink:
 		sx_vunlink(v);
-		sx_vfree(m->r->a, m->asxv, v);
+		/* translate log version from sxv to svv */
+		if (translate) {
+			sv_init(&lv->v, &sv_vif, v->v, NULL);
+			lv->vgc = v;
+		}
 	}
+}
+
+sxstate sx_rollback(sx *t)
+{
+	if (! t->complete)
+		sx_rollback_index(t, 0);
 	t->s = SXROLLBACK;
+	sx_end(t);
 	return SXROLLBACK;
 }
 
-sr_rbget(sx_match,
-         sr_compare(cmp, sv_vkey((srcast(n, sxv, node))->v),
-                    (srcast(n, sxv, node))->v->keysize,
+sxstate sx_complete(sx *t)
+{
+	assert(t->complete == 0);
+	assert(t->s == SXPREPARE);
+	sx_rollback_index(t, 1);
+	t->complete = 1;
+	return SXPREPARE;
+}
+
+ss_rbget(sx_match,
+         sr_compare(scheme, sv_vpointer((sscast(n, sxv, node))->v),
+                    (sscast(n, sxv, node))->v->size,
                     key, keysize))
 
 int sx_set(sx *t, sxindex *index, svv *version)
@@ -15352,48 +16755,62 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	sxmanager *m = t->manager;
 	/* allocate mvcc container */
 	sxv *v = sx_valloc(m->asxv, version);
-	if (srunlikely(v == NULL))
+	if (ssunlikely(v == NULL)) {
+		sv_vfree(m->a, version);
 		return -1;
+	}
 	v->id = t->id;
 	v->index = index;
 	svlogv lv;
 	lv.id   = index->dsn;
-	lv.next = 0;
+	lv.vgc  = NULL;
+	lv.next = UINT32_MAX;
 	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
-	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp,
-	                  sv_vkey(version), version->keysize, &n);
-	if (rc == 0 && n) {
+	ssrbnode *n = NULL;
+	int rc = sx_match(&index->i, index->scheme, sv_vpointer(version),
+	                  version->size, &n);
+	if (ssunlikely(rc == 0 && n)) {
 		/* exists */
 	} else {
 		/* unique */
 		v->lo = sv_logcount(&t->log);
-		if (srunlikely(sv_logadd(&t->log, m->r->a, &lv, index->ptr) == -1))
-			return sr_error(m->r->e, "%s", "memory allocation failed");
-		sr_rbset(&index->i, n, rc, &v->node);
-		return 0;
+		if (ssunlikely((sv_logadd(&t->log, m->a, &lv, index->ptr)) == -1)) {
+			rc = sr_oom(index->r->e);
+		} else {
+			ss_rbset(&index->i, n, rc, &v->node);
+			rc = 0;
+		}
+		return rc;
 	}
-	sxv *head = srcast(n, sxv, node);
+	sxv *head = sscast(n, sxv, node);
 	/* match previous update made by current
 	 * transaction */
 	sxv *own = sx_vmatch(head, t->id);
-	if (srunlikely(own)) {
+	if (ssunlikely(own))
+	{
+		if (ssunlikely(version->flags & SVUPDATE)) {
+			sr_error(index->r->e, "%s", "only one update statement is "
+			         "allowed per a transaction key");
+			sx_vfree(m->a, m->asxv, v);
+			return -1;
+		}
 		/* replace old object with the new one */
+		lv.next = sv_logat(&t->log, own->lo)->next;
 		v->lo = own->lo;
 		sx_vreplace(own, v);
-		if (srlikely(head == own))
-			sr_rbreplace(&index->i, &own->node, &v->node);
+		if (sslikely(head == own))
+			ss_rbreplace(&index->i, &own->node, &v->node);
 		/* update log */
 		sv_logreplace(&t->log, v->lo, &lv);
-		sx_vfree(m->r->a, m->asxv, own);
+		sx_vfree(m->a, m->asxv, own);
 		return 0;
 	}
 	/* update log */
-	rc = sv_logadd(&t->log, m->r->a, &lv, index->ptr);
-	if (srunlikely(rc == -1)) {
-		sx_vfree(m->r->a, m->asxv, v);
-		return sr_error(m->r->e, "%s", "memory allocation failed");
+	rc = sv_logadd(&t->log, m->a, &lv, index->ptr);
+	if (ssunlikely(rc == -1)) {
+		sx_vfree(m->a, m->asxv, v);
+		return sr_oom(index->r->e);
 	}
 	/* add version */
 	sx_vlink(head, v);
@@ -15403,39 +16820,50 @@ int sx_set(sx *t, sxindex *index, svv *version)
 int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 {
 	sxmanager *m = t->manager;
-	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, sv_key(key),
-	                  sv_keysize(key), &n);
-	if (! (rc == 0 && n))
-		return 0;
-	sxv *head = srcast(n, sxv, node);
+	ssrbnode *n = NULL;
+	int rc = sx_match(&index->i, index->scheme,
+	                  sv_pointer(key),
+	                  sv_size(key), &n);
+	if (! (rc == 0 && n)) {
+		rc = 0;
+		goto done;
+	}
+	sxv *head = sscast(n, sxv, node);
 	sxv *v = sx_vmatch(head, t->id);
-	if (v == NULL)
-		return 0;
-	if (srunlikely((v->v->flags & SVDELETE) > 0))
-		return 2;
+	if (v == NULL) {
+		rc = 0;
+		goto done;
+	}
+	if (ssunlikely((v->v->flags & SVDELETE) > 0)) {
+		rc = 2;
+		goto done;
+	}
 	sv vv;
 	sv_init(&vv, &sv_vif, v->v, NULL);
-	svv *ret = sv_valloc(m->r->a, &vv);
-	if (srunlikely(ret == NULL))
-		return sr_error(m->r->e, "%s", "memory allocation failed");
-	sv_init(result, &sv_vif, ret, NULL);
-	return 1;
+	svv *ret = sv_vdup(m->a, &vv);
+	if (ssunlikely(ret == NULL)) {
+		rc = sr_oom(index->r->e);
+	} else {
+		sv_init(result, &sv_vif, ret, NULL);
+		rc = 1;
+	}
+done:
+	return rc;
 }
 
 sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
 {
-	sr_seq(m->r->seq, SR_TSNNEXT);
-	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, sv_key(v), sv_keysize(v), &n);
+	sr_seq(m->seq, SR_TSNNEXT);
+	ssrbnode *n = NULL;
+	int rc = sx_match(&index->i, index->scheme, sv_pointer(v), sv_size(v), &n);
 	if (rc == 0 && n)
 		return SXLOCK;
 	return SXCOMMIT;
 }
 
-sxstate sx_getstmt(sxmanager *m, sxindex *index srunused)
+sxstate sx_getstmt(sxmanager *m, sxindex *index ssunused)
 {
-	sr_seq(m->r->seq, SR_TSNNEXT);
+	sr_seq(m->seq, SR_TSNNEXT);
 	return SXCOMMIT;
 }
 #line 1 "sophia/transaction/sx_deadlock.c"
@@ -15452,28 +16880,30 @@ sxstate sx_getstmt(sxmanager *m, sxindex *index srunused)
 
 
 
+
+
 static inline int
-sx_deadlock_in(sxmanager *m, srlist *mark, sx *t, sx *p)
+sx_deadlock_in(sxmanager *m, sslist *mark, sx *t, sx *p)
 {
 	if (p->deadlock.next != &p->deadlock)
 		return 0;
-	sr_listappend(mark, &p->deadlock);
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, m->r);
-	sr_iteropen(sr_bufiter, &i, &p->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+	ss_listappend(mark, &p->deadlock);
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &p->log.buf, sizeof(svlogv));
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(sr_bufiter, &i);
+		svlogv *lv = ss_iterof(ss_bufiter, &i);
 		sxv *v = lv->v.v;
 		if (v->prev == NULL)
 			continue;
 		do {
 			sx *n = sx_find(m, v->id);
 			assert(n != NULL);
-			if (srunlikely(n == t))
+			if (ssunlikely(n == t))
 				return 1;
 			int rc = sx_deadlock_in(m, mark, t, n);
-			if (srunlikely(rc == 1))
+			if (ssunlikely(rc == 1))
 				return 1;
 			v = v->prev;
 		} while (v);
@@ -15482,39 +16912,39 @@ sx_deadlock_in(sxmanager *m, srlist *mark, sx *t, sx *p)
 }
 
 static inline void
-sx_deadlock_unmark(srlist *mark)
+sx_deadlock_unmark(sslist *mark)
 {
-	srlist *i, *n;
-	sr_listforeach_safe(mark, i, n) {
-		sx *t = srcast(i, sx, deadlock);
-		sr_listinit(&t->deadlock);
+	sslist *i, *n;
+	ss_listforeach_safe(mark, i, n) {
+		sx *t = sscast(i, sx, deadlock);
+		ss_listinit(&t->deadlock);
 	}
 }
 
 int sx_deadlock(sx *t)
 {
 	sxmanager *m = t->manager;
-	srlist mark;
-	sr_listinit(&mark);
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, m->r);
-	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	while (sr_iterhas(sr_bufiter, &i))
+	sslist mark;
+	ss_listinit(&mark);
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	while (ss_iterhas(ss_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(sr_bufiter, &i);
+		svlogv *lv = ss_iterof(ss_bufiter, &i);
 		sxv *v = lv->v.v;
 		if (v->prev == NULL) {
-			sr_iternext(sr_bufiter, &i);
+			ss_iternext(ss_bufiter, &i);
 			continue;
 		}
 		sx *p = sx_find(m, v->prev->id);
 		assert(p != NULL);
 		int rc = sx_deadlock_in(m, &mark, t, p);
-		if (srunlikely(rc)) {
+		if (ssunlikely(rc)) {
 			sx_deadlock_unmark(&mark);
 			return 1;
 		}
-		sr_iternext(sr_bufiter, &i);
+		ss_iternext(ss_bufiter, &i);
 	}
 	sx_deadlock_unmark(&mark);
 	return 0;
@@ -15528,6 +16958,8 @@ int sx_deadlock(sx *t)
  * Copyright (c) Dmitry Simonenko
  * BSD License
 */
+
+
 
 
 
@@ -15549,38 +16981,22 @@ sx_viflsnset(sv *v, uint64_t lsn) {
 }
 
 static char*
-sx_vifkey(sv *v) {
-	return sv_vkey(((sxv*)v->v)->v);
-}
-
-static uint16_t
-sx_vifkeysize(sv *v) {
-	return ((sxv*)v->v)->v->keysize;
-}
-
-static char*
-sx_vifvalue(sv *v)
-{
-	sxv *vv = v->v;
-	if (vv->v->valuesize == 0)
-		return NULL;
-	return sv_vvalue(vv->v);
+sx_vifpointer(sv *v) {
+	return sv_vpointer(((sxv*)v->v)->v);
 }
 
 static uint32_t
-sx_vifvaluesize(sv *v) {
-	return ((sxv*)v->v)->v->valuesize;
+sx_vifsize(sv *v) {
+	return ((sxv*)v->v)->v->size;
 }
 
 svif sx_vif =
 {
-	.flags     = sx_vifflags,
-	.lsn       = sx_viflsn,
-	.lsnset    = sx_viflsnset,
-	.key       = sx_vifkey,
-	.keysize   = sx_vifkeysize,
-	.value     = sx_vifvalue,
-	.valuesize = sx_vifvaluesize
+	.flags   = sx_vifflags,
+	.lsn     = sx_viflsn,
+	.lsnset  = sx_viflsnset,
+	.pointer = sx_vifpointer,
+	.size    = sx_vifsize
 };
 #line 1 "sophia/log/sl_conf.h"
 #ifndef SL_CONF_H_
@@ -15605,6 +17021,35 @@ struct slconf {
 };
 
 #endif
+#line 1 "sophia/log/sl_dir.h"
+#ifndef SL_DIR_H_
+#define SL_DIR_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sldirtype sldirtype;
+typedef struct sldirid sldirid;
+
+struct sldirtype {
+	char *ext;
+	uint32_t mask;
+	int count;
+};
+
+struct sldirid {
+	uint32_t mask;
+	uint64_t id;
+};
+
+int sl_dirread(ssbuf*, ssa*, sldirtype*, char*);
+
+#endif
 #line 1 "sophia/log/sl_v.h"
 #ifndef SL_V_H_
 #define SL_V_H_
@@ -15623,11 +17068,9 @@ struct slv {
 	uint32_t crc;
 	uint64_t lsn;
 	uint32_t dsn;
-	uint32_t valuesize;
+	uint32_t size;
 	uint8_t  flags;
-	uint16_t keysize;
-	uint64_t reserve;
-} srpacked;
+} sspacked;
 
 extern svif sl_vif;
 
@@ -15655,21 +17098,21 @@ typedef struct sltx sltx;
 
 struct sl {
 	uint32_t id;
-	srgc gc;
-	srmutex filelock;
-	srfile file;
+	ssgc gc;
+	ssmutex filelock;
+	ssfile file;
 	slpool *p;
-	srlist link;
-	srlist linkcopy;
+	sslist link;
+	sslist linkcopy;
 };
 
 struct slpool {
-	srspinlock lock;
+	ssspinlock lock;
 	slconf *conf;
-	srlist list;
+	sslist list;
 	int gc;
 	int n;
-	sriov iov;
+	ssiov iov;
 	sr *r;
 };
 
@@ -15687,7 +17130,7 @@ int sl_poolshutdown(slpool*);
 int sl_poolgc_enable(slpool*, int);
 int sl_poolgc(slpool*);
 int sl_poolfiles(slpool*);
-int sl_poolcopy(slpool*, char*, srbuf*);
+int sl_poolcopy(slpool*, char*, ssbuf*);
 
 int sl_begin(slpool*, sltx*);
 int sl_prepare(slpool*, svlog*, uint64_t);
@@ -15708,11 +17151,11 @@ int sl_write(sltx*, svlog*);
  * BSD License
 */
 
-int sl_iter_open(sriter *i, srfile*, int);
-int sl_iter_error(sriter*);
-int sl_iter_continue(sriter*);
+int sl_iter_open(ssiter *i, sr*, ssfile*, int);
+int sl_iter_error(ssiter*);
+int sl_iter_continue(ssiter*);
 
-extern sriterif sl_iter;
+extern ssiterif sl_iter;
 
 #endif
 #line 1 "sophia/log/sl.c"
@@ -15729,35 +17172,37 @@ extern sriterif sl_iter;
 
 
 
+
+
 static inline sl*
 sl_alloc(slpool *p, uint32_t id)
 {
-	sl *l = sr_malloc(p->r->a, sizeof(*l));
-	if (srunlikely(l == NULL)) {
-		sr_malfunction(p->r->e, "%s", "memory allocation failed");
+	sl *l = ss_malloc(p->r->a, sizeof(*l));
+	if (ssunlikely(l == NULL)) {
+		sr_oom_malfunction(p->r->e);
 		return NULL;
 	}
 	l->id   = id;
 	l->p    = NULL;
-	sr_gcinit(&l->gc);
-	sr_mutexinit(&l->filelock);
-	sr_fileinit(&l->file, p->r->a);
-	sr_listinit(&l->link);
-	sr_listinit(&l->linkcopy);
+	ss_gcinit(&l->gc);
+	ss_mutexinit(&l->filelock);
+	ss_fileinit(&l->file, p->r->a);
+	ss_listinit(&l->link);
+	ss_listinit(&l->linkcopy);
 	return l;
 }
 
 static inline int
 sl_close(slpool *p, sl *l)
 {
-	int rc = sr_fileclose(&l->file);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_fileclose(&l->file);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' close error: %s",
 		               l->file.file, strerror(errno));
 	}
-	sr_mutexfree(&l->filelock);
-	sr_gcfree(&l->gc);
-	sr_free(p->r->a, l);
+	ss_mutexfree(&l->filelock);
+	ss_gcfree(&l->gc);
+	ss_free(p->r->a, l);
 	return rc;
 }
 
@@ -15765,12 +17210,12 @@ static inline sl*
 sl_open(slpool *p, uint32_t id)
 {
 	sl *l = sl_alloc(p, id);
-	if (srunlikely(l == NULL))
+	if (ssunlikely(l == NULL))
 		return NULL;
-	srpath path;
-	sr_pathA(&path, p->conf->path, id, ".log");
-	int rc = sr_fileopen(&l->file, path.path);
-	if (srunlikely(rc == -1)) {
+	sspath path;
+	ss_pathA(&path, p->conf->path, id, ".log");
+	int rc = ss_fileopen(&l->file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' open error: %s",
 		               l->file.file, strerror(errno));
 		goto error;
@@ -15785,20 +17230,20 @@ static inline sl*
 sl_new(slpool *p, uint32_t id)
 {
 	sl *l = sl_alloc(p, id);
-	if (srunlikely(l == NULL))
+	if (ssunlikely(l == NULL))
 		return NULL;
-	srpath path;
-	sr_pathA(&path, p->conf->path, id, ".log");
-	int rc = sr_filenew(&l->file, path.path);
-	if (srunlikely(rc == -1)) {
+	sspath path;
+	ss_pathA(&path, p->conf->path, id, ".log");
+	int rc = ss_filenew(&l->file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' create error: %s",
 		               path.path, strerror(errno));
 		goto error;
 	}
 	srversion v;
 	sr_version(&v);
-	rc = sr_filewrite(&l->file, &v, sizeof(v));
-	if (srunlikely(rc == -1)) {
+	rc = ss_filewrite(&l->file, &v, sizeof(v));
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' header write error: %s",
 		               l->file.file, strerror(errno));
 		goto error;
@@ -15811,17 +17256,17 @@ error:
 
 int sl_poolinit(slpool *p, sr *r)
 {
-	sr_spinlockinit(&p->lock);
-	sr_listinit(&p->list);
+	ss_spinlockinit(&p->lock);
+	ss_listinit(&p->list);
 	p->n    = 0;
 	p->r    = r;
 	p->gc   = 1;
 	p->conf = NULL;
 	struct iovec *iov =
-		sr_malloc(r->a, sizeof(struct iovec) * 1021);
-	if (srunlikely(iov == NULL))
-		return sr_malfunction(r->e, "%s", "memory allocation failed");
-	sr_iovinit(&p->iov, iov, 1021);
+		ss_malloc(r->a, sizeof(struct iovec) * 1021);
+	if (ssunlikely(iov == NULL))
+		return sr_oom_malfunction(r->e);
+	ss_iovinit(&p->iov, iov, 1021);
 	return 0;
 }
 
@@ -15829,8 +17274,8 @@ static inline int
 sl_poolcreate(slpool *p)
 {
 	int rc;
-	rc = sr_filemkdir(p->conf->path);
-	if (srunlikely(rc == -1))
+	rc = ss_filemkdir(p->conf->path);
+	if (ssunlikely(rc == -1))
 		return sr_malfunction(p->r->e, "log directory '%s' create error: %s",
 		                      p->conf->path, strerror(errno));
 	return 1;
@@ -15839,34 +17284,34 @@ sl_poolcreate(slpool *p)
 static inline int
 sl_poolrecover(slpool *p)
 {
-	srbuf list;
-	sr_bufinit(&list);
-	srdirtype types[] =
+	ssbuf list;
+	ss_bufinit(&list);
+	sldirtype types[] =
 	{
 		{ "log", 1, 0 },
 		{ NULL,  0, 0 }
 	};
-	int rc = sr_dirread(&list, p->r->a, types, p->conf->path);
-	if (srunlikely(rc == -1))
+	int rc = sl_dirread(&list, p->r->a, types, p->conf->path);
+	if (ssunlikely(rc == -1))
 		return sr_malfunction(p->r->e, "log directory '%s' open error",
 		                      p->conf->path);
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, p->r);
-	sr_iteropen(sr_bufiter, &i, &list, sizeof(srdirid));
-	while(sr_iterhas(sr_bufiter, &i)) {
-		srdirid *id = sr_iterof(sr_bufiter, &i);
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &list, sizeof(sldirid));
+	while(ss_iterhas(ss_bufiter, &i)) {
+		sldirid *id = ss_iterof(ss_bufiter, &i);
 		sl *l = sl_open(p, id->id);
-		if (srunlikely(l == NULL)) {
-			sr_buffree(&list, p->r->a);
+		if (ssunlikely(l == NULL)) {
+			ss_buffree(&list, p->r->a);
 			return -1;
 		}
-		sr_listappend(&p->list, &l->link);
+		ss_listappend(&p->list, &l->link);
 		p->n++;
-		sr_iternext(sr_bufiter, &i);
+		ss_iternext(ss_bufiter, &i);
 	}
-	sr_buffree(&list, p->r->a);
+	ss_buffree(&list, p->r->a);
 	if (p->n) {
-		sl *last = srcast(p->list.prev, sl, link);
+		sl *last = sscast(p->list.prev, sl, link);
 		p->r->seq->lfsn = last->id;
 		p->r->seq->lfsn++;
 	}
@@ -15876,40 +17321,40 @@ sl_poolrecover(slpool *p)
 int sl_poolopen(slpool *p, slconf *conf)
 {
 	p->conf = conf;
-	if (srunlikely(! p->conf->enable))
+	if (ssunlikely(! p->conf->enable))
 		return 0;
-	int exists = sr_fileexists(p->conf->path);
+	int exists = ss_fileexists(p->conf->path);
 	int rc;
 	if (! exists)
 		rc = sl_poolcreate(p);
 	else
 		rc = sl_poolrecover(p);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
 }
 
 int sl_poolrotate(slpool *p)
 {
-	if (srunlikely(! p->conf->enable))
+	if (ssunlikely(! p->conf->enable))
 		return 0;
 	uint32_t lfsn = sr_seq(p->r->seq, SR_LFSNNEXT);
 	sl *l = sl_new(p, lfsn);
-	if (srunlikely(l == NULL))
+	if (ssunlikely(l == NULL))
 		return -1;
 	sl *log = NULL;
-	sr_spinlock(&p->lock);
+	ss_spinlock(&p->lock);
 	if (p->n) {
-		log = srcast(p->list.prev, sl, link);
-		sr_gccomplete(&log->gc);
+		log = sscast(p->list.prev, sl, link);
+		ss_gccomplete(&log->gc);
 	}
-	sr_listappend(&p->list, &l->link);
+	ss_listappend(&p->list, &l->link);
 	p->n++;
-	sr_spinunlock(&p->lock);
+	ss_spinunlock(&p->lock);
 	if (log) {
 		if (p->conf->sync_on_rotate) {
-			int rc = sr_filesync(&log->file);
-			if (srunlikely(rc == -1)) {
+			int rc = ss_filesync(&log->file);
+			if (ssunlikely(rc == -1)) {
 				sr_malfunction(p->r->e, "log file '%s' sync error: %s",
 				               log->file.file, strerror(errno));
 				return -1;
@@ -15921,13 +17366,13 @@ int sl_poolrotate(slpool *p)
 
 int sl_poolrotate_ready(slpool *p, int wm)
 {
-	if (srunlikely(! p->conf->enable))
+	if (ssunlikely(! p->conf->enable))
 		return 0;
-	sr_spinlock(&p->lock);
+	ss_spinlock(&p->lock);
 	assert(p->n > 0);
-	sl *l = srcast(p->list.prev, sl, link);
-	int ready = sr_gcrotateready(&l->gc, wm);
-	sr_spinunlock(&p->lock);
+	sl *l = sscast(p->list.prev, sl, link);
+	int ready = ss_gcrotateready(&l->gc, wm);
+	ss_spinunlock(&p->lock);
 	return ready;
 }
 
@@ -15936,17 +17381,17 @@ int sl_poolshutdown(slpool *p)
 	int rcret = 0;
 	int rc;
 	if (p->n) {
-		srlist *i, *n;
-		sr_listforeach_safe(&p->list, i, n) {
-			sl *l = srcast(i, sl, link);
+		sslist *i, *n;
+		ss_listforeach_safe(&p->list, i, n) {
+			sl *l = sscast(i, sl, link);
 			rc = sl_close(p, l);
-			if (srunlikely(rc == -1))
+			if (ssunlikely(rc == -1))
 				rcret = -1;
 		}
 	}
 	if (p->iov.v)
-		sr_free(p->r->a, p->iov.v);
-	sr_spinlockfree(&p->lock);
+		ss_free(p->r->a, p->iov.v);
+	ss_spinlockfree(&p->lock);
 	return rcret;
 }
 
@@ -15954,50 +17399,50 @@ static inline int
 sl_gc(slpool *p, sl *l)
 {
 	int rc;
-	rc = sr_fileunlink(l->file.file);
-	if (srunlikely(rc == -1)) {
+	rc = ss_fileunlink(l->file.file);
+	if (ssunlikely(rc == -1)) {
 		return sr_malfunction(p->r->e, "log file '%s' unlink error: %s",
 		                      l->file.file, strerror(errno));
 	}
 	rc = sl_close(p, l);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 1;
 }
 
 int sl_poolgc_enable(slpool *p, int enable)
 {
-	sr_spinlock(&p->lock);
+	ss_spinlock(&p->lock);
 	p->gc = enable;
-	sr_spinunlock(&p->lock);
+	ss_spinunlock(&p->lock);
 	return 0;
 }
 
 int sl_poolgc(slpool *p)
 {
-	if (srunlikely(! p->conf->enable))
+	if (ssunlikely(! p->conf->enable))
 		return 0;
 	for (;;) {
-		sr_spinlock(&p->lock);
-		if (srunlikely(! p->gc)) {
-			sr_spinunlock(&p->lock);
+		ss_spinlock(&p->lock);
+		if (ssunlikely(! p->gc)) {
+			ss_spinunlock(&p->lock);
 			return 0;
 		}
 		sl *current = NULL;
-		srlist *i;
-		sr_listforeach(&p->list, i) {
-			sl *l = srcast(i, sl, link);
-			if (srlikely(! sr_gcgarbage(&l->gc)))
+		sslist *i;
+		ss_listforeach(&p->list, i) {
+			sl *l = sscast(i, sl, link);
+			if (sslikely(! ss_gcgarbage(&l->gc)))
 				continue;
-			sr_listunlink(&l->link);
+			ss_listunlink(&l->link);
 			p->n--;
 			current = l;
 			break;
 		}
-		sr_spinunlock(&p->lock);
+		ss_spinunlock(&p->lock);
 		if (current) {
 			int rc = sl_gc(p, current);
-			if (srunlikely(rc == -1))
+			if (ssunlikely(rc == -1))
 				return -1;
 		} else {
 			break;
@@ -16008,71 +17453,71 @@ int sl_poolgc(slpool *p)
 
 int sl_poolfiles(slpool *p)
 {
-	sr_spinlock(&p->lock);
+	ss_spinlock(&p->lock);
 	int n = p->n;
-	sr_spinunlock(&p->lock);
+	ss_spinunlock(&p->lock);
 	return n;
 }
 
-int sl_poolcopy(slpool *p, char *dest, srbuf *buf)
+int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 {
-	srlist list;
-	sr_listinit(&list);
-	sr_spinlock(&p->lock);
-	srlist *i;
-	sr_listforeach(&p->list, i) {
-		sl *l = srcast(i, sl, link);
-		if (sr_gcinprogress(&l->gc))
+	sslist list;
+	ss_listinit(&list);
+	ss_spinlock(&p->lock);
+	sslist *i;
+	ss_listforeach(&p->list, i) {
+		sl *l = sscast(i, sl, link);
+		if (ss_gcinprogress(&l->gc))
 			break;
-		sr_listappend(&list, &l->linkcopy);
+		ss_listappend(&list, &l->linkcopy);
 	}
-	sr_spinunlock(&p->lock);
+	ss_spinunlock(&p->lock);
 
-	sr_bufinit(buf);
-	srlist *n;
-	sr_listforeach_safe(&list, i, n)
+	ss_bufinit(buf);
+	sslist *n;
+	ss_listforeach_safe(&list, i, n)
 	{
-		sl *l = srcast(i, sl, linkcopy);
-		sr_listinit(&l->linkcopy);
-		srpath path;
-		sr_pathA(&path, dest, l->id, ".log");
-		srfile file;
-		sr_fileinit(&file, p->r->a);
-		int rc = sr_filenew(&file, path.path);
-		if (srunlikely(rc == -1)) {
+		sl *l = sscast(i, sl, linkcopy);
+		ss_listinit(&l->linkcopy);
+		sspath path;
+		ss_pathA(&path, dest, l->id, ".log");
+		ssfile file;
+		ss_fileinit(&file, p->r->a);
+		int rc = ss_filenew(&file, path.path);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' create error: %s",
 			               path.path, strerror(errno));
 			return -1;
 		}
-		rc = sr_bufensure(buf, p->r->a, l->file.size);
-		if (srunlikely(rc == -1)) {
-			sr_malfunction(p->r->e, "%s", "memory allocation failed");
-			sr_fileclose(&file);
+		rc = ss_bufensure(buf, p->r->a, l->file.size);
+		if (ssunlikely(rc == -1)) {
+			sr_oom_malfunction(p->r->e);
+			ss_fileclose(&file);
 			return -1;
 		}
-		rc = sr_filepread(&l->file, 0, buf->s, l->file.size);
-		if (srunlikely(rc == -1)) {
+		rc = ss_filepread(&l->file, 0, buf->s, l->file.size);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' read error: %s",
 			               l->file.file, strerror(errno));
-			sr_fileclose(&file);
+			ss_fileclose(&file);
 			return -1;
 		}
-		sr_bufadvance(buf, l->file.size);
-		rc = sr_filewrite(&file, buf->s, l->file.size);
-		if (srunlikely(rc == -1)) {
+		ss_bufadvance(buf, l->file.size);
+		rc = ss_filewrite(&file, buf->s, l->file.size);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' write error: %s",
 			               path.path, strerror(errno));
-			sr_fileclose(&file);
+			ss_fileclose(&file);
 			return -1;
 		}
 		/* sync? */
-		rc = sr_fileclose(&file);
-		if (srunlikely(rc == -1)) {
+		rc = ss_fileclose(&file);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' close error: %s",
 			               path.path, strerror(errno));
 			return -1;
 		}
-		sr_bufreset(buf);
+		ss_bufreset(buf);
 	}
 	return 0;
 }
@@ -16080,14 +17525,14 @@ int sl_poolcopy(slpool *p, char *dest, srbuf *buf)
 int sl_begin(slpool *p, sltx *t)
 {
 	memset(t, 0, sizeof(*t));
-	sr_spinlock(&p->lock);
+	ss_spinlock(&p->lock);
 	t->p = p;
 	if (! p->conf->enable)
 		return 0;
 	assert(p->n > 0);
-	sl *l = srcast(p->list.prev, sl, link);
-	sr_mutexlock(&l->filelock);
-	t->svp = sr_filesvp(&l->file);
+	sl *l = sscast(p->list.prev, sl, link);
+	ss_mutexlock(&l->filelock);
+	t->svp = ss_filesvp(&l->file);
 	t->l = l;
 	t->p = p;
 	return 0;
@@ -16096,8 +17541,8 @@ int sl_begin(slpool *p, sltx *t)
 int sl_commit(sltx *t)
 {
 	if (t->p->conf->enable)
-		sr_mutexunlock(&t->l->filelock);
-	sr_spinunlock(&t->p->lock);
+		ss_mutexunlock(&t->l->filelock);
+	ss_spinunlock(&t->p->lock);
 	return 0;
 }
 
@@ -16105,13 +17550,13 @@ int sl_rollback(sltx *t)
 {
 	int rc = 0;
 	if (t->p->conf->enable) {
-		rc = sr_filerlb(&t->l->file, t->svp);
-		if (srunlikely(rc == -1))
+		rc = ss_filerlb(&t->l->file, t->svp);
+		if (ssunlikely(rc == -1))
 			sr_malfunction(t->p->r->e, "log file '%s' truncate error: %s",
 			               t->l->file.file, strerror(errno));
-		sr_mutexunlock(&t->l->filelock);
+		ss_mutexunlock(&t->l->filelock);
 	}
-	sr_spinunlock(&t->p->lock);
+	ss_spinunlock(&t->p->lock);
 	return rc;
 }
 
@@ -16127,16 +17572,16 @@ sl_follow(slpool *p, uint64_t lsn)
 
 int sl_prepare(slpool *p, svlog *vlog, uint64_t lsn)
 {
-	if (srlikely(lsn == 0))
+	if (sslikely(lsn == 0))
 		lsn = sr_seq(p->r->seq, SR_LSNNEXT);
 	else
 		sl_follow(p, lsn);
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, NULL);
-	sr_iteropen(sr_bufiter, &i, &vlog->buf, sizeof(svlogv));
-	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &vlog->buf, sizeof(svlogv));
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
-		svlogv *v = sr_iterof(sr_bufiter, &i);
+		svlogv *v = ss_iterof(ss_bufiter, &i);
 		sv_lsnset(&v->v, lsn);
 	}
 	return 0;
@@ -16146,18 +17591,14 @@ static inline void
 sl_write_prepare(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
-	lv->lsn       = sv_lsn(v);
-	lv->dsn       = logv->id;
-	lv->flags     = sv_flags(v);
-	lv->valuesize = sv_valuesize(v);
-	lv->keysize   = sv_keysize(v);
-	lv->reserve   = 0;
-	lv->crc       = sr_crcp(p->r->crc, sv_key(v), lv->keysize, 0);
-	lv->crc       = sr_crcp(p->r->crc, sv_value(v), lv->valuesize, lv->crc);
-	lv->crc       = sr_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
-	sr_iovadd(&p->iov, lv, sizeof(slv));
-	sr_iovadd(&p->iov, sv_key(v), lv->keysize);
-	sr_iovadd(&p->iov, sv_value(v), lv->valuesize);
+	lv->lsn   = sv_lsn(v);
+	lv->dsn   = logv->id;
+	lv->flags = sv_flags(v);
+	lv->size  = sv_size(v);
+	lv->crc   = ss_crcp(p->r->crc, sv_pointer(v), lv->size, 0);
+	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
+	ss_iovadd(&p->iov, lv, sizeof(slv));
+	ss_iovadd(&p->iov, sv_pointer(v), lv->size);
 	((svv*)v->v)->log = t->l;
 }
 
@@ -16168,14 +17609,14 @@ sl_write_stmt(sltx *t, svlog *vlog)
 	slv lv;
 	svlogv *logv = (svlogv*)vlog->buf.s;
 	sl_write_prepare(t->p, t, &lv, logv);
-	int rc = sr_filewritev(&t->l->file, &p->iov);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_filewritev(&t->l->file, &p->iov);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' write error: %s",
 		               t->l->file.file, strerror(errno));
 		return -1;
 	}
-	sr_gcmark(&t->l->gc, 1);
-	sr_iovreset(&p->iov);
+	ss_gcmark(&t->l->gc, 1);
+	ss_iovreset(&p->iov);
 	return 0;
 }
 
@@ -16184,53 +17625,51 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 {
 	slpool *p = t->p;
 	sl *l = t->l;
-	slv lvbuf[341]; /* 1 + 340 per syscall */
+	slv lvbuf[510]; /* 1 + 510 per syscall */
 	int lvp;
 	int rc;
 	lvp = 0;
 	/* transaction header */
 	slv *lv = &lvbuf[0];
-	lv->lsn       = lsn;
-	lv->dsn       = 0;
-	lv->flags     = SVBEGIN;
-	lv->valuesize = sv_logcount(vlog);
-	lv->keysize   = 0;
-	lv->reserve   = 0;
-	lv->crc       = sr_crcs(p->r->crc, lv, sizeof(slv), 0);
-	sr_iovadd(&p->iov, lv, sizeof(slv));
+	lv->lsn   = lsn;
+	lv->dsn   = 0;
+	lv->flags = SVBEGIN;
+	lv->size  = sv_logcount(vlog);
+	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), 0);
+	ss_iovadd(&p->iov, lv, sizeof(slv));
 	lvp++;
 	/* body */
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, p->r);
-	sr_iteropen(sr_bufiter, &i, &vlog->buf, sizeof(svlogv));
-	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &vlog->buf, sizeof(svlogv));
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
-		if (srunlikely(! sr_iovensure(&p->iov, 3))) {
-			rc = sr_filewritev(&l->file, &p->iov);
-			if (srunlikely(rc == -1)) {
+		if (ssunlikely(! ss_iovensure(&p->iov, 2))) {
+			rc = ss_filewritev(&l->file, &p->iov);
+			if (ssunlikely(rc == -1)) {
 				sr_malfunction(p->r->e, "log file '%s' write error: %s",
 				               l->file.file, strerror(errno));
 				return -1;
 			}
-			sr_iovreset(&p->iov);
+			ss_iovreset(&p->iov);
 			lvp = 0;
 		}
-		svlogv *logv = sr_iterof(sr_bufiter, &i);
+		svlogv *logv = ss_iterof(ss_bufiter, &i);
 		assert(logv->v.i == &sv_vif);
 		lv = &lvbuf[lvp];
 		sl_write_prepare(p, t, lv, logv);
 		lvp++;
 	}
-	if (srlikely(sr_iovhas(&p->iov))) {
-		rc = sr_filewritev(&l->file, &p->iov);
-		if (srunlikely(rc == -1)) {
+	if (sslikely(ss_iovhas(&p->iov))) {
+		rc = ss_filewritev(&l->file, &p->iov);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' write error: %s",
 			               l->file.file, strerror(errno));
 			return -1;
 		}
-		sr_iovreset(&p->iov);
+		ss_iovreset(&p->iov);
 	}
-	sr_gcmark(&l->gc, sv_logcount(vlog));
+	ss_gcmark(&l->gc, sv_logcount(vlog));
 	return 0;
 }
 
@@ -16238,29 +17677,141 @@ int sl_write(sltx *t, svlog *vlog)
 {
 	/* assume transaction log is prepared
 	 * (lsn set) */
-	if (srunlikely(! t->p->conf->enable))
+	if (ssunlikely(! t->p->conf->enable))
 		return 0;
 	int count = sv_logcount(vlog);
 	int rc;
-	if (srlikely(count == 1)) {
+	if (sslikely(count == 1)) {
 		rc = sl_write_stmt(t, vlog);
 	} else {
 		svlogv *lv = (svlogv*)vlog->buf.s;
 		uint64_t lsn = sv_lsn(&lv->v);
 		rc = sl_write_multi_stmt(t, vlog, lsn);
 	}
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	/* sync */
 	if (t->p->conf->enable && t->p->conf->sync_on_write) {
-		rc = sr_filesync(&t->l->file);
-		if (srunlikely(rc == -1)) {
+		rc = ss_filesync(&t->l->file);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(t->p->r->e, "log file '%s' sync error: %s",
 			               t->l->file.file, strerror(errno));
 			return -1;
 		}
 	}
 	return 0;
+}
+#line 1 "sophia/log/sl_dir.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+static inline ssize_t sl_diridof(char *s)
+{
+	size_t v = 0;
+	while (*s && *s != '.') {
+		if (ssunlikely(!isdigit(*s)))
+			return -1;
+		v = (v * 10) + *s - '0';
+		s++;
+	}
+	return v;
+}
+
+static inline sldirid*
+sl_dirmatch(ssbuf *list, uint64_t id)
+{
+	if (ssunlikely(ss_bufused(list) == 0))
+		return NULL;
+	sldirid *n = (sldirid*)list->s;
+	while ((char*)n < list->p) {
+		if (n->id == id)
+			return n;
+		n++;
+	}
+	return NULL;
+}
+
+static inline sldirtype*
+sl_dirtypeof(sldirtype *types, char *ext)
+{
+	sldirtype *p = &types[0];
+	int n = 0;
+	while (p[n].ext != NULL) {
+		if (strcmp(p[n].ext, ext) == 0)
+			return &p[n];
+		n++;
+	}
+	return NULL;
+}
+
+static int
+sl_dircmp(const void *p1, const void *p2)
+{
+	sldirid *a = (sldirid*)p1;
+	sldirid *b = (sldirid*)p2;
+	assert(a->id != b->id);
+	return (a->id > b->id)? 1: -1;
+}
+
+int sl_dirread(ssbuf *list, ssa *a, sldirtype *types, char *dir)
+{
+	DIR *d = opendir(dir);
+	if (ssunlikely(d == NULL))
+		return -1;
+
+	struct dirent *de;
+	while ((de = readdir(d))) {
+		if (ssunlikely(de->d_name[0] == '.'))
+			continue;
+		ssize_t id = sl_diridof(de->d_name);
+		if (ssunlikely(id == -1))
+			goto error;
+		char *ext = strstr(de->d_name, ".");
+		if (ssunlikely(ext == NULL))
+			goto error;
+		ext++;
+		sldirtype *type = sl_dirtypeof(types, ext);
+		if (ssunlikely(type == NULL))
+			continue;
+		sldirid *n = sl_dirmatch(list, id);
+		if (n) {
+			n->mask |= type->mask;
+			type->count++;
+			continue;
+		}
+		int rc = ss_bufensure(list, a, sizeof(sldirid));
+		if (ssunlikely(rc == -1))
+			goto error;
+		n = (sldirid*)list->p;
+		ss_bufadvance(list, sizeof(sldirid));
+		n->id  = id;
+		n->mask = type->mask;
+		type->count++;
+	}
+	closedir(d);
+
+	if (ssunlikely(ss_bufused(list) == 0))
+		return 0;
+
+	int n = ss_bufused(list) / sizeof(sldirid);
+	qsort(list->s, n, sizeof(sldirid), sl_dircmp);
+	return n;
+
+error:
+	closedir(d);
+	return -1;
 }
 #line 1 "sophia/log/sl_iter.c"
 
@@ -16276,19 +17827,22 @@ int sl_write(sltx *t, svlog *vlog)
 
 
 
+
+
 typedef struct sliter sliter;
 
 struct sliter {
 	int validate;
 	int error;
-	srfile *log;
-	srmap map;
+	ssfile *log;
+	ssmmap map;
 	slv *v;
 	slv *next;
 	uint32_t count;
 	uint32_t pos;
 	sv current;
-} srpacked;
+	sr *r;
+} sspacked;
 
 static void
 sl_iterseterror(sliter *i)
@@ -16299,170 +17853,164 @@ sl_iterseterror(sliter *i)
 }
 
 static int
-sl_iternext_of(sriter *i, slv *next, int validate)
+sl_iternext_of(sliter *i, slv *next, int validate)
 {
-	sliter *li = (sliter*)i->priv;
 	if (next == NULL)
 		return 0;
-	char *eof   = (char*)li->map.p + li->map.size;
+	char *eof   = (char*)i->map.p + i->map.size;
 	char *start = (char*)next;
 
 	/* eof */
-	if (srunlikely(start == eof)) {
-		if (li->count != li->pos) {
+	if (ssunlikely(start == eof)) {
+		if (i->count != i->pos) {
 			sr_malfunction(i->r->e, "corrupted log file '%s': transaction is incomplete",
-			               li->log->file);
-			sl_iterseterror(li);
+			               i->log->file);
+			sl_iterseterror(i);
 			return -1;
 		}
-		li->v = NULL;
-		li->next = NULL;
+		i->v = NULL;
+		i->next = NULL;
 		return 0;
 	}
 
-	char *end = start + next->keysize + next->valuesize;
-	if (srunlikely((start > eof || (end > eof)))) {
+	char *end = start + next->size;
+	if (ssunlikely((start > eof || (end > eof)))) {
 		sr_malfunction(i->r->e, "corrupted log file '%s': bad record size",
-		               li->log->file);
-		sl_iterseterror(li);
+		               i->log->file);
+		sl_iterseterror(i);
 		return -1;
 	}
-	if (validate && li->validate)
+	if (validate && i->validate)
 	{
 		uint32_t crc = 0;
 		if (! (next->flags & SVBEGIN)) {
-			crc = sr_crcp(i->r->crc, start + sizeof(slv), next->keysize, 0);
-			crc = sr_crcp(i->r->crc, start + sizeof(slv) + next->keysize,
-			              next->valuesize, crc);
+			crc = ss_crcp(i->r->crc, start + sizeof(slv), next->size, 0);
 		}
-		crc = sr_crcs(i->r->crc, start, sizeof(slv), crc);
-		if (srunlikely(crc != next->crc)) {
+		crc = ss_crcs(i->r->crc, start, sizeof(slv), crc);
+		if (ssunlikely(crc != next->crc)) {
 			sr_malfunction(i->r->e, "corrupted log file '%s': bad record crc",
-			               li->log->file);
-			sl_iterseterror(li);
+			               i->log->file);
+			sl_iterseterror(i);
 			return -1;
 		}
 	}
-	li->pos++;
-	if (li->pos > li->count) {
+	i->pos++;
+	if (i->pos > i->count) {
 		/* next transaction */
-		li->v     = NULL;
-		li->pos   = 0;
-		li->count = 0;
-		li->next  = next;
+		i->v     = NULL;
+		i->pos   = 0;
+		i->count = 0;
+		i->next  = next;
 		return 0;
 	}
-	li->v = next;
-	sv_init(&li->current, &sl_vif, li->v, NULL);
+	i->v = next;
+	sv_init(&i->current, &sl_vif, i->v, NULL);
 	return 1;
 }
 
-int sl_itercontinue_of(sriter *i)
+int sl_itercontinue_of(sliter *i)
 {
-	sliter *li = (sliter*)i->priv;
-	if (srunlikely(li->error))
+	if (ssunlikely(i->error))
 		return -1;
-	if (srunlikely(li->v))
+	if (ssunlikely(i->v))
 		return 1;
-	if (srunlikely(li->next == NULL))
+	if (ssunlikely(i->next == NULL))
 		return 0;
 	int validate = 0;
-	li->pos   = 0;
-	li->count = 0;
-	slv *v = li->next;
+	i->pos   = 0;
+	i->count = 0;
+	slv *v = i->next;
 	if (v->flags & SVBEGIN) {
 		validate = 1;
-		li->count = v->valuesize;
-		v = (slv*)((char*)li->next + sizeof(slv));
+		i->count = v->size;
+		v = (slv*)((char*)i->next + sizeof(slv));
 	} else {
-		li->count = 1;
-		v = li->next;
+		i->count = 1;
+		v = i->next;
 	}
 	return sl_iternext_of(i, v, validate);
 }
 
 static inline int
-sl_iterprepare(sriter *i)
+sl_iterprepare(sliter *i)
 {
-	sliter *li = (sliter*)i->priv;
-	srversion *ver = (srversion*)li->map.p;
+	srversion *ver = (srversion*)i->map.p;
 	if (! sr_versioncheck(ver))
 		return sr_malfunction(i->r->e, "bad log file '%s' version",
-		                      li->log->file);
-	if (srunlikely(li->log->size < (sizeof(srversion))))
+		                      i->log->file);
+	if (ssunlikely(i->log->size < (sizeof(srversion))))
 		return sr_malfunction(i->r->e, "corrupted log file '%s': bad size",
-		                      li->log->file);
-	slv *next = (slv*)((char*)li->map.p + sizeof(srversion));
+		                      i->log->file);
+	slv *next = (slv*)((char*)i->map.p + sizeof(srversion));
 	int rc = sl_iternext_of(i, next, 1);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
-	if (srlikely(li->next))
+	if (sslikely(i->next))
 		return sl_itercontinue_of(i);
 	return 0;
 }
 
-int sl_iter_open(sriter *i, srfile *file, int validate)
+int sl_iter_open(ssiter *i, sr *r, ssfile *file, int validate)
 {
 	sliter *li = (sliter*)i->priv;
 	memset(li, 0, sizeof(*li));
+	li->r        = r;
 	li->log      = file;
 	li->validate = validate;
-	if (srunlikely(li->log->size < sizeof(srversion))) {
-		sr_malfunction(i->r->e, "corrupted log file '%s': bad size",
+	if (ssunlikely(li->log->size < sizeof(srversion))) {
+		sr_malfunction(li->r->e, "corrupted log file '%s': bad size",
 		               li->log->file);
 		return -1;
 	}
-	if (srunlikely(li->log->size == sizeof(srversion)))
+	if (ssunlikely(li->log->size == sizeof(srversion)))
 		return 0;
-	int rc = sr_map(&li->map, li->log->fd, li->log->size, 1);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(i->r->e, "failed to mmap log file '%s': %s",
+	int rc = ss_mmap(&li->map, li->log->fd, li->log->size, 1);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(li->r->e, "failed to mmap log file '%s': %s",
 		               li->log->file, strerror(errno));
 		return -1;
 	}
-	rc = sl_iterprepare(i);
-	if (srunlikely(rc == -1))
-		sr_mapunmap(&li->map);
+	rc = sl_iterprepare(li);
+	if (ssunlikely(rc == -1))
+		ss_munmap(&li->map);
 	return 0;
 }
 
 static void
-sl_iter_close(sriter *i srunused)
+sl_iter_close(ssiter *i ssunused)
 {
 	sliter *li = (sliter*)i->priv;
-	sr_mapunmap(&li->map);
+	ss_munmap(&li->map);
 }
 
 static int
-sl_iter_has(sriter *i)
+sl_iter_has(ssiter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	return li->v != NULL;
 }
 
 static void*
-sl_iter_of(sriter *i)
+sl_iter_of(ssiter *i)
 {
 	sliter *li = (sliter*)i->priv;
-	if (srunlikely(li->v == NULL))
+	if (ssunlikely(li->v == NULL))
 		return NULL;
 	return &li->current;
 }
 
 static void
-sl_iter_next(sriter *i)
+sl_iter_next(ssiter *i)
 {
 	sliter *li = (sliter*)i->priv;
-	if (srunlikely(li->v == NULL))
+	if (ssunlikely(li->v == NULL))
 		return;
 	slv *next =
-		(slv*)((char*)li->v + sizeof(slv) +
-	           li->v->keysize +
-	           li->v->valuesize);
-	sl_iternext_of(i, next, 1);
+		(slv*)((char*)li->v + sizeof(slv) + li->v->size);
+	sl_iternext_of(li, next, 1);
 }
 
-sriterif sl_iter =
+ssiterif sl_iter =
 {
 	.close   = sl_iter_close,
 	.has     = sl_iter_has,
@@ -16470,15 +18018,16 @@ sriterif sl_iter =
 	.next    = sl_iter_next
 };
 
-int sl_iter_error(sriter *i)
+int sl_iter_error(ssiter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	return li->error;
 }
 
-int sl_iter_continue(sriter *i)
+int sl_iter_continue(ssiter *i)
 {
-	return sl_itercontinue_of(i);
+	sliter *li = (sliter*)i->priv;
+	return sl_itercontinue_of(li);
 }
 #line 1 "sophia/log/sl_v.c"
 
@@ -16489,6 +18038,8 @@ int sl_iter_continue(sriter *i)
  * Copyright (c) Dmitry Simonenko
  * BSD License
 */
+
+
 
 
 
@@ -16505,36 +18056,22 @@ sl_viflsn(sv *v) {
 }
 
 static char*
-sl_vifkey(sv *v) {
+sl_vifpointer(sv *v) {
 	return (char*)v->v + sizeof(slv);
 }
 
-static uint16_t
-sl_vifkeysize(sv *v) {
-	return ((slv*)v->v)->keysize;
-}
-
-static char*
-sl_vifvalue(sv *v)
-{
-	return (char*)v->v + sizeof(slv) +
-	       ((slv*)v->v)->keysize;
-}
-
 static uint32_t
-sl_vifvaluesize(sv *v) {
-	return ((slv*)v->v)->valuesize;
+sl_vifsize(sv *v) {
+	return ((slv*)v->v)->size;
 }
 
 svif sl_vif =
 {
-	.flags     = sl_vifflags,
-	.lsn       = sl_viflsn,
-	.lsnset    = NULL,
-	.key       = sl_vifkey,
-	.keysize   = sl_vifkeysize,
-	.value     = sl_vifvalue,
-	.valuesize = sl_vifvaluesize
+	.flags   = sl_vifflags,
+	.lsn     = sl_viflsn,
+	.lsnset  = NULL,
+	.pointer = sl_vifpointer,
+	.size    = sl_vifsize
 };
 #line 1 "sophia/database/sd_id.h"
 #ifndef SD_ID_H_
@@ -16556,7 +18093,7 @@ struct sdid {
 	uint32_t parent;
 	uint32_t id;
 	uint8_t  flags;
-} srpacked;
+} sspacked;
 
 static inline void
 sd_idinit(sdid *i, uint32_t id, uint32_t parent, uint32_t flags)
@@ -16582,16 +18119,12 @@ sd_idinit(sdid *i, uint32_t id, uint32_t parent, uint32_t flags)
 typedef struct sdv sdv;
 
 struct sdv {
-	uint64_t lsn;
-	uint32_t timestamp;
+	uint32_t offset;
 	uint8_t  flags;
-	uint16_t keysize;
-	uint32_t keyoffset;
-	uint32_t valuesize;
-	uint32_t valueoffset;
-} srpacked;
+} sspacked;
 
 extern svif sd_vif;
+extern svif sd_vrawif;
 
 #endif
 #line 1 "sophia/database/sd_page.h"
@@ -16615,13 +18148,13 @@ struct sdpageheader {
 	uint32_t count;
 	uint32_t countdup;
 	uint32_t sizeorigin;
+	uint32_t sizekeys;
 	uint32_t size;
-	uint32_t tsmin;
 	uint64_t lsnmin;
 	uint64_t lsnmindup;
 	uint64_t lsnmax;
-	char     reserve[16];
-} srpacked;
+	char     reserve[8];
+} sspacked;
 
 struct sdpage {
 	sdpageheader *h;
@@ -16638,20 +18171,6 @@ sd_pagev(sdpage *p, uint32_t pos) {
 	return (sdv*)((char*)p->h + sizeof(sdpageheader) + sizeof(sdv) * pos);
 }
 
-static inline void*
-sd_pagekey(sdpage *p, sdv *v) {
-	assert((sizeof(sdv) * p->h->count) + v->keyoffset <= p->h->sizeorigin);
-	return ((char*)p->h + sizeof(sdpageheader) +
-	         sizeof(sdv) * p->h->count) + v->keyoffset;
-}
-
-static inline void*
-sd_pagevalue(sdpage *p, sdv *v) {
-	assert((sizeof(sdv) * p->h->count) + v->valueoffset <= p->h->sizeorigin);
-	return ((char*)p->h + sizeof(sdpageheader) +
-	         sizeof(sdv) * p->h->count) + v->valueoffset;
-}
-
 static inline sdv*
 sd_pagemin(sdpage *p) {
 	return sd_pagev(p, 0);
@@ -16660,6 +18179,127 @@ sd_pagemin(sdpage *p) {
 static inline sdv*
 sd_pagemax(sdpage *p) {
 	return sd_pagev(p, p->h->count - 1);
+}
+
+static inline void*
+sd_pagepointer(sdpage *p, sdv *v) {
+	assert((sizeof(sdv) * p->h->count) + v->offset <= p->h->sizeorigin);
+	return ((char*)p->h + sizeof(sdpageheader) +
+	         sizeof(sdv) * p->h->count) + v->offset;
+}
+
+static inline uint64_t
+sd_pagesizeof(sdpage *p, sdv *v)
+{
+	char *ptr = sd_pagepointer(p, v);
+	uint64_t val = 0;
+	ss_leb128read(ptr, &val);
+	return val;
+}
+
+static inline uint64_t
+sd_pagelsnof(sdpage *p, sdv *v)
+{
+	char *ptr = sd_pagepointer(p, v);
+	ptr += ss_leb128skip(ptr);
+	uint64_t val;
+	ss_leb128read(ptr, &val);
+	return val;
+}
+
+static inline char*
+sd_pagemetaof(sdpage *p, sdv *v, uint64_t *size, uint64_t *lsn)
+{
+	char *ptr = sd_pagepointer(p, v);
+	ptr += ss_leb128read(ptr, size);
+	ptr += ss_leb128read(ptr, lsn);
+	return ptr;
+}
+
+#endif
+#line 1 "sophia/database/sd_pagekv.h"
+#ifndef SD_PAGEKV_H_
+#define SD_PAGEKV_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+static inline char*
+sd_pagekv_keyread(sdpage *p, uint32_t offset, uint64_t *size)
+{
+	char *ptr = (char*)p->h + sizeof(sdpageheader) +
+		(p->h->sizeorigin - p->h->sizekeys) + offset;
+	ptr += ss_leb128read(ptr, size);
+	return ptr;
+}
+
+static inline char*
+sd_pagekv_key(sdpage *p, sdv *v, uint64_t *size, int part)
+{
+	char *ptr = sd_pagepointer(p, v);
+	ptr += ss_leb128skip(ptr);
+	ptr += ss_leb128skip(ptr);
+	uint64_t offset;
+	int current = 0;
+	do {
+		ptr += ss_leb128read(ptr, &offset);
+	} while (current++ != part);
+
+	return sd_pagekv_keyread(p, offset, size);
+}
+
+static inline char*
+sd_pagekv_value(sdpage *p, sr *r, sdv *v, uint64_t *ret)
+{
+	uint64_t size;
+	uint64_t sizekey = 0;
+	char *ptr = sd_pagepointer(p, v);
+	ptr += ss_leb128read(ptr, &size);
+	ptr += ss_leb128skip(ptr);
+	int i = 0;
+	while (i < r->scheme->count) {
+		uint64_t offset, v;
+		ptr += ss_leb128read(ptr, &offset);
+		sd_pagekv_keyread(p, offset, &v);
+		sizekey += v;
+		i++;
+	}
+	*ret = size - sizekey;
+	return ptr;
+}
+
+static inline void
+sd_pagekv_convert(sdpage *p, sr *r, sdv *v, char *dest)
+{
+	uint64_t size, lsn;
+	sd_pagemetaof(p, v, &size, &lsn);
+	size += sizeof(sfref) * r->scheme->count;
+
+	char *ptr = dest;
+	memcpy(dest, v, sizeof(sdv));
+	ptr += sizeof(sdv);
+	ptr += ss_leb128write(ptr, size);
+	ptr += ss_leb128write(ptr, lsn);
+
+	assert(r->scheme->count <= 8);
+	sfv kv[8];
+	int i = 0;
+	while (i < r->scheme->count) {
+		sfv *k = &kv[i];
+		k->key = sd_pagekv_key(p, v, &size, i);
+		k->r.size = size;
+		k->r.offset = 0;
+		i++;
+	}
+	uint64_t valuesize;
+	char *value = sd_pagekv_value(p, r, v, &valuesize);
+	sf_write(SF_KV, ptr, kv, r->scheme->count,
+	         value, valuesize);
 }
 
 #endif
@@ -16679,14 +18319,28 @@ typedef struct sdpageiter sdpageiter;
 
 struct sdpageiter {
 	sdpage *page;
+	ssbuf *xfbuf;
 	int64_t pos;
 	sdv *v;
 	sv current;
-	srorder order;
+	ssorder order;
 	void *key;
 	int keysize;
-	uint64_t vlsn;
-} srpacked;
+	sr *r;
+} sspacked;
+
+static inline void
+sd_pageiter_result(sdpageiter *i)
+{
+	if (ssunlikely(i->v == NULL))
+		return;
+	if (sslikely(i->r->fmt_storage == SF_SRAW)) {
+		sv_init(&i->current, &sd_vif, i->v, i->page->h);
+		return;
+	}
+	sd_pagekv_convert(i->page, i->r, i->v, i->xfbuf->s);
+	sv_init(&i->current, &sd_vrawif, i->xfbuf->s, NULL);
+}
 
 static inline void
 sd_pageiter_end(sdpageiter *i)
@@ -16696,19 +18350,40 @@ sd_pageiter_end(sdpageiter *i)
 }
 
 static inline int
-sd_pageiter_search(sriter *i, int search_min)
+sd_pageiter_cmp(sdpageiter *i, sr *r, sdv *v)
 {
-	sdpageiter *pi = (sdpageiter*)i->priv;
-	srcomparator *cmp = i->r->cmp;
+	uint64_t size, lsn;
+	if (sslikely(r->fmt_storage == SF_SRAW)) {
+		char *key = sd_pagemetaof(i->page, v, &size, &lsn);
+		return sr_compare(r->scheme, key, size, i->key, i->keysize);
+	}
+	/* key-value */
+	srkey *part = r->scheme->parts;
+	srkey *last = part + r->scheme->count;
+	int rc;
+	while (part < last) {
+		char *key = sd_pagekv_key(i->page, v, &size, part->pos);
+		rc = part->cmpraw(key, size,
+		                  sf_key(i->key, part->pos),
+		                  sf_keysize(i->key, part->pos),
+		                  NULL);
+		if (rc != 0)
+			return rc;
+		part++;
+	}
+	return 0;
+}
+
+static inline int
+sd_pageiter_search(sdpageiter *i)
+{
 	int min = 0;
 	int mid = 0;
-	int max = pi->page->h->count - 1;
+	int max = i->page->h->count - 1;
 	while (max >= min)
 	{
 		mid = min + (max - min) / 2;
-		sdv *v = sd_pagev(pi->page, mid);
-		char *key = sd_pagekey(pi->page, v);
-		int rc = sr_compare(cmp, key, v->keysize, pi->key, pi->keysize);
+		int rc = sd_pageiter_cmp(i, i->r, sd_pagev(i->page, mid));
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -16717,32 +18392,19 @@ sd_pageiter_search(sriter *i, int search_min)
 		default: return mid;
 		}
 	}
-	return (search_min) ? min : max;
+	return min;
 }
 
 static inline void
-sd_pageiter_lv(sdpageiter *i, int64_t pos)
+sd_pageiter_chain_head(sdpageiter *i, int64_t pos)
 {
-	/* lower-visible bound */
-
-	/* find visible max: any first key which
-	 * lsn <= vlsn (max in dup chain) */
-	int64_t maxpos = 0;
-	sdv *v;
-	sdv *max = NULL;
+	/* find first non-duplicate key */
 	while (pos >= 0) {
-		v = sd_pagev(i->page, pos);
-		if (v->lsn <= i->vlsn) {
-			maxpos = pos;
-			max = v;
-		}
-		if (! (v->flags & SVDUP)) {
-			/* head */
-			if (max) {
-				i->pos = maxpos;
-				i->v = max;
-				return;
-			}
+		sdv *v = sd_pagev(i->page, pos);
+		if (sslikely(! (v->flags & SVDUP))) {
+			i->pos = pos;
+			i->v = v;
+			return;
 		}
 		pos--;
 	}
@@ -16750,15 +18412,13 @@ sd_pageiter_lv(sdpageiter *i, int64_t pos)
 }
 
 static inline void
-sd_pageiter_gv(sdpageiter *i, int64_t pos)
+sd_pageiter_chain_next(sdpageiter *i)
 {
-	/* greater-visible bound */
-
-	/* find visible max: any first key which
-	 * lsn <= vlsn (max in dup chain) */
-	while (pos < i->page->h->count ) {
+	/* skip to next duplicate chain */
+	int64_t pos = i->pos + 1;
+	while (pos < i->page->h->count) {
 		sdv *v = sd_pagev(i->page, pos);
-		if (v->lsn <= i->vlsn) {
+		if (sslikely(! (v->flags & SVDUP))) {
 			i->pos = pos;
 			i->v = v;
 			return;
@@ -16768,348 +18428,240 @@ sd_pageiter_gv(sdpageiter *i, int64_t pos)
 	sd_pageiter_end(i);
 }
 
-static inline void
-sd_pageiter_lland(sdpageiter *i, int64_t pos)
+static inline int
+sd_pageiter_gt(sdpageiter *i, int e)
 {
-	/* reposition to a visible duplicate */
-	i->pos = pos;
-	i->v = sd_pagev(i->page, i->pos);
-	if (i->v->lsn == i->vlsn)
-		return;
-	if (i->v->lsn > i->vlsn) {
-		/* search max < i->vlsn */
-		pos++;
-		while (pos < i->page->h->count)
-		{
-			sdv *v = sd_pagev(i->page, pos);
-			if (! (v->flags & SVDUP))
+	if (i->key == NULL) {
+		i->pos = 0;
+		i->v = sd_pagev(i->page, i->pos);
+		return 0;
+	}
+	int64_t pos = sd_pageiter_search(i);
+	if (ssunlikely(pos >= i->page->h->count))
+		pos = i->page->h->count - 1;
+	sd_pageiter_chain_head(i, pos);
+	if (i->v == NULL)
+		return 0;
+	int rc = sd_pageiter_cmp(i, i->r, i->v);
+	int match = rc == 0;
+	switch (rc) {
+		case  0:
+			if (e) {
 				break;
-			if (v->lsn <= i->vlsn) {
-				i->pos = pos;
-				i->v = v;
-				return;
 			}
-			pos++;
-		}
-	}
-	sd_pageiter_lv(i, i->pos);
-}
-
-static inline void
-sd_pageiter_gland(sdpageiter *i, int64_t pos)
-{
-	/* reposition to a visible duplicate */
-	i->pos = pos;
-	i->v = sd_pagev(i->page, i->pos);
-	if (i->v->lsn == i->vlsn)
-		return;
-
-	if (i->v->lsn > i->vlsn) {
-		/* search max < i->vlsn */
-		pos++;
-		sd_pageiter_gv(i, pos);
-		return;
-	}
-
-	/* i->v->lsn < i->vlsn */
-	if (! (i->v->flags & SVDUP))
-		return;
-	int64_t maxpos = pos;
-	sdv *max = sd_pagev(i->page, i->pos);
-	pos--;
-	while (pos >= 0) {
-		sdv *v = sd_pagev(i->page, pos);
-		if (v->lsn <= i->vlsn) {
-			maxpos = pos;
-			max = v;
-		}
-		if (! (v->flags & SVDUP))
-			break;
-		pos--;
-	}
-	i->pos = maxpos;
-	i->v = max;
-}
-
-static inline void
-sd_pageiter_bkw(sdpageiter *i)
-{
-	/* skip to previous visible key */
-	int64_t pos = i->pos;
-	sdv *v = sd_pagev(i->page, pos);
-	if (v->flags & SVDUP) {
-		/* skip duplicates */
-		pos--;
-		while (pos >= 0) {
-			v = sd_pagev(i->page, pos);
-			if (! (v->flags & SVDUP))
-				break;
-			pos--;
-		}
-		if (srunlikely(pos < 0)) {
-			sd_pageiter_end(i);
-			return;
-		}
-	}
-	assert(! (v->flags & SVDUP));
-	pos--;
-
-	sd_pageiter_lv(i, pos);
-}
-
-static inline void
-sd_pageiter_fwd(sdpageiter *i)
-{
-	/* skip to next visible key */
-	int64_t pos = i->pos + 1;
-	while (pos < i->page->h->count)
-	{
-		sdv *v = sd_pagev(i->page, pos);
-		if (! (v->flags & SVDUP))
-			break;
-		pos++;
-	}
-	if (srunlikely(pos >= i->page->h->count)) {
-		sd_pageiter_end(i);
-		return;
-	}
-	sdv *match = NULL;
-	while (pos < i->page->h->count)
-	{
-		sdv *v = sd_pagev(i->page, pos);
-		if (v->lsn <= i->vlsn) {
-			match = v;
-			break;
-		}
-		pos++;
-	}
-	if (srunlikely(pos == i->page->h->count)) {
-		sd_pageiter_end(i);
-		return;
-	}
-	assert(match != NULL);
-	i->pos = pos;
-	i->v = match;
-}
-
-static inline int
-sd_pageiter_lt(sriter *i, int e)
-{
-	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (srunlikely(pi->page->h->count == 0)) {
-		sd_pageiter_end(pi);
-		return 0;
-	}
-	if (pi->key == NULL) {
-		sd_pageiter_lv(pi, pi->page->h->count - 1);
-		return 0;
-	}
-	int64_t pos = sd_pageiter_search(i, 1);
-	if (srunlikely(pos >= pi->page->h->count))
-		pos = pi->page->h->count - 1;
-	sd_pageiter_lland(pi, pos);
-	if (pi->v == NULL)
-		return 0;
-	char *key = sd_pagekey(pi->page, pi->v);
-	int rc = sr_compare(i->r->cmp, key, pi->v->keysize,
-	                    pi->key,
-	                    pi->keysize);
-	int match = rc == 0;
-	switch (rc) {
-		case  0:
-			if (! e)
-				sd_pageiter_bkw(pi);
-			break;
-		case  1:
-			sd_pageiter_bkw(pi);
-			break;
-	}
-	return match;
-}
-
-static inline int
-sd_pageiter_gt(sriter *i, int e)
-{
-	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (srunlikely(pi->page->h->count == 0)) {
-		sd_pageiter_end(pi);
-		return 0;
-	}
-	if (pi->key == NULL) {
-		sd_pageiter_gv(pi, 0);
-		return 0;
-	}
-	int64_t pos = sd_pageiter_search(i, 1);
-	if (srunlikely(pos >= pi->page->h->count))
-		pos = pi->page->h->count - 1;
-	sd_pageiter_gland(pi, pos);
-	if (pi->v == NULL)
-		return 0;
-	char *key = sd_pagekey(pi->page, pi->v);
-	int rc = sr_compare(i->r->cmp, key, pi->v->keysize,
-	                    pi->key,
-	                    pi->keysize);
-	int match = rc == 0;
-	switch (rc) {
-		case  0:
-			if (! e)
-				sd_pageiter_fwd(pi);
-			break;
 		case -1:
-			sd_pageiter_fwd(pi);
+			sd_pageiter_chain_next(i);
 			break;
 	}
 	return match;
 }
 
 static inline int
-sd_pageiter_random(sriter *i)
+sd_pageiter_lt(sdpageiter *i, int e)
 {
-	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (srunlikely(pi->page->h->count == 0)) {
-		sd_pageiter_end(pi);
+	if (i->key == NULL) {
+		sd_pageiter_chain_head(i, i->page->h->count - 1);
 		return 0;
 	}
-	assert(pi->key != NULL);
-	uint32_t rnd = *(uint32_t*)pi->key;
-	int64_t pos = rnd % pi->page->h->count;
-	if (srunlikely(pos >= pi->page->h->count))
-		pos = pi->page->h->count - 1;
-	sd_pageiter_gland(pi, pos);
-	return 0;
+	int64_t pos = sd_pageiter_search(i);
+	if (ssunlikely(pos >= i->page->h->count))
+		pos = i->page->h->count - 1;
+	sd_pageiter_chain_head(i, pos);
+	if (i->v == NULL)
+		return 0;
+	int rc = sd_pageiter_cmp(i, i->r, i->v);
+	int match = rc == 0;
+	switch (rc) {
+		case 0:
+			if (e) {
+				break;
+			}
+		case 1:
+			sd_pageiter_chain_head(i, i->pos - 1);
+			break;
+	}
+	return match;
 }
 
 static inline int
-sd_pageiter_open(sriter *i, sdpage *page, srorder o, void *key, int keysize, uint64_t vlsn)
+sd_pageiter_open(ssiter *i, sr *r, ssbuf *xfbuf, sdpage *page, ssorder o,
+                 void *key, int keysize)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
+	pi->r       = r;
 	pi->page    = page;
+	pi->xfbuf   = xfbuf;
 	pi->order   = o;
 	pi->key     = key;
 	pi->keysize = keysize;
-	pi->vlsn    = vlsn;
 	pi->v       = NULL;
 	pi->pos     = 0;
-	if (srunlikely(pi->page->h->lsnmin > pi->vlsn &&
-	               pi->order != SR_UPDATE))
+	if (ssunlikely(pi->page->h->count == 0)) {
+		sd_pageiter_end(pi);
 		return 0;
-	int match;
-	switch (pi->order) {
-	case SR_LT:     return sd_pageiter_lt(i, 0);
-	case SR_LTE:    return sd_pageiter_lt(i, 1);
-	case SR_GT:     return sd_pageiter_gt(i, 0);
-	case SR_GTE:    return sd_pageiter_gt(i, 1);
-	case SR_EQ:     return sd_pageiter_lt(i, 1);
-	case SR_RANDOM: return sd_pageiter_random(i);
-	case SR_UPDATE: {
-		uint64_t vlsn = pi->vlsn;
-		pi->vlsn = (uint64_t)-1;
-		match = sd_pageiter_lt(i, 1);
-		if (match == 0)
-			return 0;
-		return pi->v->lsn > vlsn;
 	}
+	int rc = 0;
+	switch (pi->order) {
+	case SS_GT:  rc = sd_pageiter_gt(pi, 0);
+		break;
+	case SS_GTE: rc = sd_pageiter_gt(pi, 1);
+		break;
+	case SS_LT:  rc = sd_pageiter_lt(pi, 0);
+		break;
+	case SS_LTE: rc = sd_pageiter_lt(pi, 1);
+		break;
 	default: assert(0);
 	}
-	return 0;
+	sd_pageiter_result(pi);
+	return rc;
 }
 
 static inline void
-sd_pageiter_close(sriter *i srunused)
+sd_pageiter_close(ssiter *i ssunused)
 { }
 
 static inline int
-sd_pageiter_has(sriter *i)
+sd_pageiter_has(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
 	return pi->v != NULL;
 }
 
 static inline void*
-sd_pageiter_of(sriter *i)
+sd_pageiter_of(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (srunlikely(pi->v == NULL))
+	if (ssunlikely(pi->v == NULL))
 		return NULL;
-	sv_init(&pi->current, &sd_vif, pi->v, pi->page->h);
 	return &pi->current;
 }
 
 static inline void
-sd_pageiter_next(sriter *i)
+sd_pageiter_next(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
+	if (pi->v == NULL)
+		return;
 	switch (pi->order) {
-	case SR_LT:
-	case SR_LTE: sd_pageiter_bkw(pi);
-		break;
-	case SR_RANDOM:
-	case SR_GT:
-	case SR_GTE: sd_pageiter_fwd(pi);
-		break;
-	default: assert(0);
-	}
-}
-
-typedef struct sdpageiterraw sdpageiterraw;
-
-struct sdpageiterraw {
-	sdpage *page;
-	int64_t pos;
-	sdv *v;
-	sv current;
-} srpacked;
-
-static inline int
-sd_pageiterraw_open(sriter *i, sdpage *page)
-{
-	sdpageiterraw *pi = (sdpageiterraw*)i->priv;
-	sdpage *p = page;
-	pi->page = p;
-	if (srunlikely(p->h->count == 0)) {
-		pi->pos = 1;
-		pi->v = NULL;
-		return 0;
-	}
-	pi->pos = 0;
-	pi->v = sd_pagev(p, 0);
-	return 0;
-}
-
-static inline void
-sd_pageiterraw_close(sriter *i srunused)
-{ }
-
-static inline int
-sd_pageiterraw_has(sriter *i)
-{
-	sdpageiterraw *pi = (sdpageiterraw*)i->priv;
-	return pi->v != NULL;
-}
-
-static inline void*
-sd_pageiterraw_of(sriter *i)
-{
-	sdpageiterraw *pi = (sdpageiterraw*)i->priv;
-	if (srunlikely(pi->v == NULL))
-		return NULL;
-	sv_init(&pi->current, &sd_vif, pi->v, pi->page->h);
-	return &pi->current;
-}
-
-static inline void
-sd_pageiterraw_next(sriter *i)
-{
-	sdpageiterraw *pi = (sdpageiterraw*)i->priv;
-	pi->pos++;
-	if (srlikely(pi->pos < pi->page->h->count))
+	case SS_GTE:
+	case SS_GT:
+		pi->pos++;
+		if (ssunlikely(pi->pos >= pi->page->h->count)) {
+			sd_pageiter_end(pi);
+			return;
+		}
 		pi->v = sd_pagev(pi->page, pi->pos);
-	else
-		pi->v = NULL;
+		break;
+	case SS_LT:
+	case SS_LTE: {
+		/* key (dup) (dup) key (eof) */
+		sdv *v;
+		int64_t pos = pi->pos + 1;
+		if (pos < pi->page->h->count) {
+			v = sd_pagev(pi->page, pos);
+			if (v->flags & SVDUP) {
+				pi->pos = pos;
+				pi->v   = v;
+				break;
+			}
+		}
+		/* skip current chain and position to
+		 * the previous one */
+		sd_pageiter_chain_head(pi, pi->pos);
+		sd_pageiter_chain_head(pi, pi->pos - 1);
+		break;
+	}
+	default: assert(0);
+	}
+	sd_pageiter_result(pi);
 }
 
-extern sriterif sd_pageiter;
-extern sriterif sd_pageiterraw;
+extern ssiterif sd_pageiter;
+
+#endif
+#line 1 "sophia/database/sd_build.h"
+#ifndef SD_BUILD_H_
+#define SD_BUILD_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sdbuildref sdbuildref;
+typedef struct sdbuild sdbuild;
+
+struct sdbuildref {
+	uint32_t m, msize;
+	uint32_t v, vsize;
+	uint32_t k, ksize;
+	uint32_t c, csize;
+} sspacked;
+
+struct sdbuild {
+	ssbuf list, m, v, k, c;
+	int compress_dup;
+	int compress;
+	int crc;
+	uint32_t vmax;
+	uint32_t n;
+	ssht tracker;
+};
+
+void sd_buildinit(sdbuild*);
+void sd_buildfree(sdbuild*, sr*);
+void sd_buildreset(sdbuild*);
+
+static inline sdbuildref*
+sd_buildref(sdbuild *b) {
+	return ss_bufat(&b->list, sizeof(sdbuildref), b->n);
+}
+
+static inline sdpageheader*
+sd_buildheader(sdbuild *b) {
+	return (sdpageheader*)(b->m.s + sd_buildref(b)->m);
+}
+
+static inline uint64_t
+sd_buildoffset(sdbuild *b)
+{
+	sdbuildref *r = sd_buildref(b);
+	if (b->compress)
+		return r->c;
+	return r->m + (ss_bufused(&b->v) - (ss_bufused(&b->v) - r->v)) +
+	              (ss_bufused(&b->k) - (ss_bufused(&b->k) - r->k));
+}
+
+static inline sdv*
+sd_buildmin(sdbuild *b) {
+	return (sdv*)((char*)sd_buildheader(b) + sizeof(sdpageheader));
+}
+
+static inline char*
+sd_buildminkey(sdbuild *b) {
+	sdbuildref *r = sd_buildref(b);
+	return b->v.s + r->v + sd_buildmin(b)->offset;
+}
+
+static inline sdv*
+sd_buildmax(sdbuild *b) {
+	sdpageheader *h = sd_buildheader(b);
+	return (sdv*)((char*)h + sizeof(sdpageheader) + sizeof(sdv) * (h->count - 1));
+}
+
+static inline char*
+sd_buildmaxkey(sdbuild *b) {
+	sdbuildref *r = sd_buildref(b);
+	return b->v.s + r->v + sd_buildmax(b)->offset;
+}
+
+int sd_buildbegin(sdbuild*, sr*, int, int, int);
+int sd_buildend(sdbuild*, sr*);
+int sd_buildcommit(sdbuild*, sr*);
+int sd_buildadd(sdbuild*, sr*, sv*, uint32_t);
 
 #endif
 #line 1 "sophia/database/sd_index.h"
@@ -17133,53 +18685,59 @@ struct sdindexheader {
 	srversion version;
 	sdid      id;
 	uint64_t  offset;
-	uint16_t  block;
+	uint32_t  size;
+	uint32_t  sizevmax;
 	uint32_t  count;
 	uint32_t  keys;
 	uint64_t  total;
+	uint64_t  totalorigin;
+	uint32_t  tsmin;
 	uint64_t  lsnmin;
 	uint64_t  lsnmax;
-	uint32_t  tsmin;
 	uint32_t  dupkeys;
 	uint64_t  dupmin;
 	uint32_t  extension;
 	char      reserve[32];
-} srpacked;
+} sspacked;
 
 struct sdindexpage {
 	uint64_t offset;
+	uint32_t offsetindex;
 	uint32_t size;
 	uint32_t sizeorigin;
 	uint16_t sizemin;
 	uint16_t sizemax;
 	uint64_t lsnmin;
 	uint64_t lsnmax;
-} srpacked;
+} sspacked;
 
 struct sdindex {
-	srbuf i;
+	ssbuf i, v;
 	sdindexheader *h;
 };
 
 static inline char*
-sd_indexpage_min(sdindexpage *p) {
-	return (char*)p + sizeof(sdindexpage);
+sd_indexpage_min(sdindex *i, sdindexpage *p) {
+	return (char*)i->i.s + sizeof(sdindexheader) +
+	             (i->h->count * sizeof(sdindexpage)) + p->offsetindex;
 }
 
 static inline char*
-sd_indexpage_max(sdindexpage *p) {
-	return (char*)p + sizeof(sdindexpage) + p->sizemin;
+sd_indexpage_max(sdindex *i, sdindexpage *p) {
+	return sd_indexpage_min(i, p) + p->sizemin;
 }
 
 static inline void
 sd_indexinit(sdindex *i) {
-	sr_bufinit(&i->i);
+	ss_bufinit(&i->i);
+	ss_bufinit(&i->v);
 	i->h = NULL;
 }
 
 static inline void
 sd_indexfree(sdindex *i, sr *r) {
-	sr_buffree(&i->i, r->a);
+	ss_buffree(&i->i, r->a);
+	ss_buffree(&i->v, r->a);
 }
 
 static inline sdindexheader*
@@ -17191,7 +18749,7 @@ static inline sdindexpage*
 sd_indexpage(sdindex *i, uint32_t pos)
 {
 	assert(pos < i->h->count);
-	char *p = (char*)sr_bufat(&i->i, i->h->block, pos);
+	char *p = (char*)ss_bufat(&i->i, sizeof(sdindexpage), pos);
    	p += sizeof(sdindexheader);
 	return (sdindexpage*)p;
 }
@@ -17205,18 +18763,11 @@ static inline sdindexpage*
 sd_indexmax(sdindex *i) {
 	return sd_indexpage(i, i->h->count - 1);
 }
-static inline uint16_t
-sd_indexkeysize(sdindex *i)
-{
-	if (srunlikely(i->h == NULL))
-		return 0;
-	return (sd_indexheader(i)->block - sizeof(sdindexpage)) / 2;
-}
 
 static inline uint32_t
 sd_indexkeys(sdindex *i)
 {
-	if (srunlikely(i->h == NULL))
+	if (ssunlikely(i->i.s == NULL))
 		return 0;
 	return sd_indexheader(i)->keys;
 }
@@ -17224,7 +18775,7 @@ sd_indexkeys(sdindex *i)
 static inline uint32_t
 sd_indextotal(sdindex *i)
 {
-	if (srunlikely(i->h == NULL))
+	if (ssunlikely(i->i.s == NULL))
 		return 0;
 	return sd_indexheader(i)->total;
 }
@@ -17232,30 +18783,12 @@ sd_indextotal(sdindex *i)
 static inline uint32_t
 sd_indexsize(sdindexheader *h)
 {
-	return sizeof(sdindexheader) + h->count * h->block;
+	return sizeof(sdindexheader) + h->size;
 }
 
-static inline int
-sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
-{
-	int l = sr_compare(c, sd_indexpage_min(p), p->sizemin, key, size);
-	int r = sr_compare(c, sd_indexpage_max(p), p->sizemax, key, size);
-	/* inside page range */
-	if (l <= 0 && r >= 0)
-		return 0;
-	/* key > page */
-	if (l == -1)
-		return -1;
-	/* key < page */
-	assert(r == 1);
-	return 1;
-}
-
-int sd_indexbegin(sdindex*, sr*, uint32_t, uint64_t);
+int sd_indexbegin(sdindex*, sr*, uint64_t);
 int sd_indexcommit(sdindex*, sr*, sdid*);
-int sd_indexadd(sdindex*, sr*, uint64_t, uint32_t, uint32_t,
-                uint32_t, char*, int, char*, int,
-                uint32_t, uint64_t, uint64_t, uint64_t);
+int sd_indexadd(sdindex*, sr*, sdbuild*);
 int sd_indexcopy(sdindex*, sr*, sdindexheader*);
 
 #endif
@@ -17277,25 +18810,42 @@ struct sdindexiter {
 	sdindex *index;
 	sdindexpage *v;
 	int pos;
-	srorder cmp;
+	ssorder cmp;
 	void *key;
 	int keysize;
-} srpacked;
+	sr *r;
+} sspacked;
+
+#if 0
+static inline int
+sd_indexpage_cmp(sdindex *i, sdindexpage *p, void *key, int size, srscheme *s)
+{
+	int l = sr_compare(s, sd_indexpage_min(i, p), p->sizemin, key, size);
+	int r = sr_compare(s, sd_indexpage_max(i, p), p->sizemax, key, size);
+	/* inside page range */
+	if (l <= 0 && r >= 0)
+		return 0;
+	/* key > page */
+	if (l == -1)
+		return -1;
+	/* key < page */
+	assert(r == 1);
+	return 1;
+}
 
 static inline int
-sd_indexiter_seek(sriter *i, void *key, int size, int *minp, int *midp, int *maxp)
+sd_indexiter_seek(sdindexiter *i, void *key, int size, int *minp, int *midp, int *maxp)
 {
-	sdindexiter *ii = (sdindexiter*)i->priv;
 	int match = 0;
 	int min = 0;
-	int max = ii->index->h->count - 1;
+	int max = i->index->h->count - 1;
 	int mid = 0;
 	while (max >= min)
 	{
 		mid = min + ((max - min) >> 1);
-		sdindexpage *page = sd_indexpage(ii->index, mid);
+		sdindexpage *page = sd_indexpage(i->index, mid);
 
-		int rc = sd_indexpage_cmp(page, key, size, i->r->cmp);
+		int rc = sd_indexpage_cmp(i->index, page, key, size, i->r->scheme);
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -17313,78 +18863,97 @@ done:
 }
 
 static inline int
-sd_indexiter_route(sriter *i)
+sd_indexiter_route(sdindexiter *i)
 {
-	sdindexiter *ii = (sdindexiter*)i->priv;
 	int mid, min, max;
-	int rc = sd_indexiter_seek(i, ii->key, ii->keysize, &min, &mid, &max);
-	if (srlikely(rc))
+	int rc = sd_indexiter_seek(i, i->key, i->keysize, &min, &mid, &max);
+	if (sslikely(rc))
 		return mid;
-	if (srunlikely(min >= (int)ii->index->h->count))
-		min = ii->index->h->count - 1;
+	if (ssunlikely(min >= (int)i->index->h->count))
+		min = i->index->h->count - 1;
 	return min;
+}
+#endif
+
+static inline int
+sd_indexiter_route(sdindexiter *i)
+{
+	int begin = 0;
+	int end = i->index->h->count - 1;
+	while (begin != end) {
+		int mid = begin + (end - begin) / 2;
+		sdindexpage *page = sd_indexpage(i->index, mid);
+		int rc = sr_compare(i->r->scheme,
+		                    sd_indexpage_max(i->index, page),
+		                    page->sizemax,
+		                    i->key,
+		                    i->keysize);
+		if (rc < 0) {
+			begin = mid + 1;
+		} else {
+			/* rc >= 0 */
+			end = mid;
+		}
+	}
+	if (ssunlikely(end >= (int)i->index->h->count))
+		end = i->index->h->count - 1;
+	return end;
 }
 
 static inline int
-sd_indexiter_open(sriter *i, sdindex *index, srorder o, void *key, int keysize)
+sd_indexiter_open(ssiter *i, sr *r, sdindex *index, ssorder o, void *key, int keysize)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
+	ii->r       = r;
 	ii->index   = index;
 	ii->cmp     = o;
 	ii->key     = key;
 	ii->keysize = keysize;
 	ii->v       = NULL;
 	ii->pos     = 0;
-	if (ii->index->h->count == 1) {
-		ii->pos = 0;
+	if (ssunlikely(ii->index->h->count == 1)) {
+		/* skip bootstrap node  */
 		if (ii->index->h->lsnmin == UINT64_MAX &&
-		    ii->index->h->lsnmax == 0) {
-			/* skip bootstrap node  */
+		    ii->index->h->lsnmax == 0)
 			return 0;
-		}
-		ii->v = sd_indexpage(ii->index, ii->pos);
-		return 0;
 	}
 	if (ii->key == NULL) {
 		switch (ii->cmp) {
-		case SR_LT:
-		case SR_LTE: ii->pos = ii->index->h->count - 1;
+		case SS_LT:
+		case SS_LTE: ii->pos = ii->index->h->count - 1;
 			break;
-		case SR_GT:
-		case SR_GTE: ii->pos = 0;
+		case SS_GT:
+		case SS_GTE: ii->pos = 0;
 			break;
 		default:
 			assert(0);
 		}
-	} else {
-		ii->pos = sd_indexiter_route(i);
-		sdindexpage *p = sd_indexpage(ii->index, ii->pos);
-		switch (ii->cmp) {
-		case SR_LTE: break;
-		case SR_LT: {
-			int l = sr_compare(i->r->cmp, sd_indexpage_min(p), p->sizemin,
-			                   ii->key, ii->keysize);
-			if (srunlikely(l == 0))
-				ii->pos--;
-			break;
-		}
-		case SR_GTE: break;
-		case SR_GT: {
-			int r = sr_compare(i->r->cmp, sd_indexpage_max(p), p->sizemax,
-			                   ii->key, ii->keysize);
-			if (srunlikely(r == 0))
-				ii->pos++;
-			break;
-		}
-		case SR_RANDOM:{
-			uint32_t rnd = *(uint32_t*)ii->key;
-			ii->pos = rnd % ii->index->h->count;
-			break;
-		}
-		default: assert(0);
-		}
+		ii->v = sd_indexpage(ii->index, ii->pos);
+		return 0;
 	}
-	if (srunlikely(ii->pos == -1 ||
+	if (sslikely(ii->index->h->count > 1))
+		ii->pos = sd_indexiter_route(ii);
+
+	sdindexpage *p = sd_indexpage(ii->index, ii->pos);
+	int rc;
+	switch (ii->cmp) {
+	case SS_LTE:
+	case SS_LT:
+		rc = sr_compare(ii->r->scheme, sd_indexpage_min(ii->index, p),
+		                p->sizemin, ii->key, ii->keysize);
+		if (rc ==  1 || (rc == 0 && ii->cmp == SS_LT))
+			ii->pos--;
+		break;
+	case SS_GTE:
+	case SS_GT:
+		rc = sr_compare(ii->r->scheme, sd_indexpage_max(ii->index, p),
+		                p->sizemax, ii->key, ii->keysize);
+		if (rc == -1 || (rc == 0 && ii->cmp == SS_GT))
+			ii->pos++;
+		break;
+	default: assert(0);
+	}
+	if (ssunlikely(ii->pos == -1 ||
 	               ii->pos >= (int)ii->index->h->count))
 		return 0;
 	ii->v = sd_indexpage(ii->index, ii->pos);
@@ -17392,50 +18961,48 @@ sd_indexiter_open(sriter *i, sdindex *index, srorder o, void *key, int keysize)
 }
 
 static inline void
-sd_indexiter_close(sriter *i srunused)
+sd_indexiter_close(ssiter *i ssunused)
 { }
 
 static inline int
-sd_indexiter_has(sriter *i)
+sd_indexiter_has(ssiter *i)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
 	return ii->v != NULL;
 }
 
 static inline void*
-sd_indexiter_of(sriter *i)
+sd_indexiter_of(ssiter *i)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
 	return ii->v;
 }
 
 static inline void
-sd_indexiter_next(sriter *i)
+sd_indexiter_next(ssiter *i)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
 	switch (ii->cmp) {
-	case SR_LT:
-	case SR_LTE:
-		ii->pos--;
+	case SS_LT:
+	case SS_LTE: ii->pos--;
 		break;
-	case SR_GT:
-	case SR_GTE:
-		ii->pos++;
+	case SS_GT:
+	case SS_GTE: ii->pos++;
 		break;
 	default:
 		assert(0);
 		break;
 	}
-	if (srunlikely(ii->pos < 0))
+	if (ssunlikely(ii->pos < 0))
 		ii->v = NULL;
 	else
-	if (srunlikely(ii->pos >= (int)ii->index->h->count))
+	if (ssunlikely(ii->pos >= (int)ii->index->h->count))
 		ii->v = NULL;
 	else
 		ii->v = sd_indexpage(ii->index, ii->pos);
 }
 
-extern sriterif sd_indexiter;
+extern ssiterif sd_indexiter;
 
 #endif
 #line 1 "sophia/database/sd_seal.h"
@@ -17456,137 +19023,28 @@ struct sdseal {
 	uint32_t crc;
 	uint32_t index_crc;
 	uint64_t index_offset;
-} srpacked;
+} sspacked;
 
 static inline void
 sd_seal(sdseal *s, sr *r, sdindexheader *h)
 {
 	s->index_crc = h->crc;
 	s->index_offset = h->offset;
-	s->crc = sr_crcs(r->crc, s, sizeof(sdseal), 0);
+	s->crc = ss_crcs(r->crc, s, sizeof(sdseal), 0);
 }
 
 static inline int
 sd_sealvalidate(sdseal *s, sr *r, sdindexheader *h)
 {
-	uint32_t crc = sr_crcs(r->crc, s, sizeof(sdseal), 0);
-	if (srunlikely(s->crc != crc))
+	uint32_t crc = ss_crcs(r->crc, s, sizeof(sdseal), 0);
+	if (ssunlikely(s->crc != crc))
 		return -1;
-	if (srunlikely(h->crc != s->index_crc))
+	if (ssunlikely(h->crc != s->index_crc))
 		return -1;
-	if (srunlikely(h->offset != s->index_offset))
+	if (ssunlikely(h->offset != s->index_offset))
 		return -1;
 	return 0;
 }
-
-#endif
-#line 1 "sophia/database/sd_build.h"
-#ifndef SD_BUILD_H_
-#define SD_BUILD_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct sdbuildref sdbuildref;
-typedef struct sdbuild sdbuild;
-
-struct sdbuildref {
-	uint32_t k, ksize;
-	uint32_t v, vsize;
-	uint32_t c, csize;
-} srpacked;
-
-struct sdbuild {
-	srbuf list, k, v, c;
-	int compress;
-	int crc;
-	uint32_t n;
-};
-
-static inline void
-sd_buildinit(sdbuild *b)
-{
-	sr_bufinit(&b->list);
-	sr_bufinit(&b->k);
-	sr_bufinit(&b->v);
-	sr_bufinit(&b->c);
-	b->n = 0;
-	b->compress = 0;
-	b->crc = 0;
-}
-
-static inline void
-sd_buildfree(sdbuild *b, sr *r)
-{
-	sr_buffree(&b->list, r->a);
-	sr_buffree(&b->k, r->a);
-	sr_buffree(&b->v, r->a);
-	sr_buffree(&b->c, r->a);
-}
-
-static inline void
-sd_buildreset(sdbuild *b)
-{
-	sr_bufreset(&b->list);
-	sr_bufreset(&b->k);
-	sr_bufreset(&b->v);
-	sr_bufreset(&b->c);
-	b->n = 0;
-}
-
-static inline sdbuildref*
-sd_buildref(sdbuild *b) {
-	return sr_bufat(&b->list, sizeof(sdbuildref), b->n);
-}
-
-static inline sdpageheader*
-sd_buildheader(sdbuild *b) {
-	return (sdpageheader*)(b->k.s + sd_buildref(b)->k);
-}
-
-static inline uint64_t
-sd_buildoffset(sdbuild *b)
-{
-	sdbuildref *r = sd_buildref(b);
-	if (b->compress)
-		return r->c;
-	return r->k + sr_bufused(&b->v) - (sr_bufused(&b->v) - r->v);
-}
-
-static inline sdv*
-sd_buildmin(sdbuild *b) {
-	return (sdv*)((char*)sd_buildheader(b) + sizeof(sdpageheader));
-}
-
-static inline char*
-sd_buildminkey(sdbuild *b) {
-	sdbuildref *r = sd_buildref(b);
-	return b->v.s + r->v + sd_buildmin(b)->keyoffset;
-}
-
-static inline sdv*
-sd_buildmax(sdbuild *b) {
-	sdpageheader *h = sd_buildheader(b);
-	return (sdv*)((char*)h + sizeof(sdpageheader) + sizeof(sdv) * (h->count - 1));
-}
-
-static inline char*
-sd_buildmaxkey(sdbuild *b) {
-	sdbuildref *r = sd_buildref(b);
-	return b->v.s + r->v + sd_buildmax(b)->keyoffset;
-}
-
-int sd_buildbegin(sdbuild*, sr*, int, int);
-int sd_buildend(sdbuild*, sr*);
-int sd_buildcommit(sdbuild*);
-int sd_buildadd(sdbuild*, sr*, sv*, uint32_t);
-int sd_buildwrite(sdbuild*, sr*, sdindex*, srfile*);
-int sd_buildwritepage(sdbuild*, sr*, srbuf*);
 
 #endif
 #line 1 "sophia/database/sd_c.h"
@@ -17605,15 +19063,17 @@ typedef struct sdc sdc;
 typedef struct sdcbuf sdcbuf;
 
 struct sdcbuf {
-	srbuf buf;
+	ssbuf a; /* decompression */
+	ssbuf b; /* transformation */
 	sdcbuf *next;
 };
 
 struct sdc {
 	sdbuild build;
-	srbuf a;        /* result */
-	srbuf b;        /* redistribute buffer */
-	srbuf c;        /* file buffer */
+	svupdate update;
+	ssbuf a;        /* result */
+	ssbuf b;        /* redistribute buffer */
+	ssbuf c;        /* file buffer */
 	sdcbuf *head;   /* compression buffer list */
 	int count;
 };
@@ -17621,10 +19081,11 @@ struct sdc {
 static inline void
 sd_cinit(sdc *sc)
 {
+	sv_updateinit(&sc->update);
 	sd_buildinit(&sc->build);
-	sr_bufinit(&sc->a);
-	sr_bufinit(&sc->b);
-	sr_bufinit(&sc->c);
+	ss_bufinit(&sc->a);
+	ss_bufinit(&sc->b);
+	ss_bufinit(&sc->c);
 	sc->count = 0;
 	sc->head = NULL;
 }
@@ -17633,15 +19094,17 @@ static inline void
 sd_cfree(sdc *sc, sr *r)
 {
 	sd_buildfree(&sc->build, r);
-	sr_buffree(&sc->a, r->a);
-	sr_buffree(&sc->b, r->a);
-	sr_buffree(&sc->c, r->a);
+	sv_updatefree(&sc->update, r);
+	ss_buffree(&sc->a, r->a);
+	ss_buffree(&sc->b, r->a);
+	ss_buffree(&sc->c, r->a);
 	sdcbuf *b = sc->head;
 	sdcbuf *next;
 	while (b) {
 		next = b->next;
-		sr_buffree(&b->buf, r->a);
-		sr_free(r->a, b);
+		ss_buffree(&b->a, r->a);
+		ss_buffree(&b->b, r->a);
+		ss_free(r->a, b);
 		b = next;
 	}
 }
@@ -17650,12 +19113,14 @@ static inline void
 sd_creset(sdc *sc)
 {
 	sd_buildreset(&sc->build);
-	sr_bufreset(&sc->a);
-	sr_bufreset(&sc->b);
-	sr_bufreset(&sc->c);
+	sv_updatereset(&sc->update);
+	ss_bufreset(&sc->a);
+	ss_bufreset(&sc->b);
+	ss_bufreset(&sc->c);
 	sdcbuf *b = sc->head;
 	while (b) {
-		sr_bufreset(&b->buf);
+		ss_bufreset(&b->a);
+		ss_bufreset(&b->b);
 		b = b->next;
 	}
 }
@@ -17665,10 +19130,11 @@ sd_censure(sdc *c, sr *r, int count)
 {
 	if (c->count < count) {
 		while (count-- >= 0) {
-			sdcbuf *b = sr_malloc(r->a, sizeof(sdcbuf));
-			if (srunlikely(b == NULL))
+			sdcbuf *b = ss_malloc(r->a, sizeof(sdcbuf));
+			if (ssunlikely(b == NULL))
 				return -1;
-			sr_bufinit(&b->buf);
+			ss_bufinit(&b->a);
+			ss_bufinit(&b->b);
 			b->next = c->head;
 			c->head = b;
 			c->count++;
@@ -17690,32 +19156,52 @@ sd_censure(sdc *c, sr *r, int count)
  * BSD License
 */
 
+typedef struct sdmergeconf sdmergeconf;
 typedef struct sdmerge sdmerge;
 
-struct sdmerge {
-	uint32_t parent;
-	sdindex index;
-	sriter *merge;
-	sriter i;
-	uint32_t size_key;
+struct sdmergeconf {
 	uint32_t size_stream;
-	uint32_t size_page;
 	uint64_t size_node;
+	uint32_t size_page;
 	uint32_t checksum;
 	uint32_t compression;
-	uint64_t processed;
+	uint32_t compression_key;
 	uint64_t offset;
+	uint64_t vlsn;
+	uint32_t save_delete;
+	uint32_t save_update;
+};
+
+struct sdmerge {
+	sdindex index;
+	ssiter *merge;
+	ssiter i;
+	uint64_t processed;
+	sdmergeconf *conf;
 	sr *r;
 	sdbuild *build;
 };
 
-int sd_mergeinit(sdmerge*, sr*, uint32_t, sriter*,
-                 sdbuild*, uint64_t,
-                 uint32_t, uint32_t,
-                 uint64_t, uint32_t, uint32_t, uint32_t, int, uint64_t);
+int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, svupdate*, sdmergeconf*);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);
 int sd_mergecommit(sdmerge*, sdid*);
+
+#endif
+#line 1 "sophia/database/sd_commit.h"
+#ifndef SD_COMMIT_H_
+#define SD_COMMIT_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+int sd_commit(sdbuild*, sr*, sdindex*, ssfile*);
+int sd_commitpage(sdbuild*, sr*, ssbuf*);
 
 #endif
 #line 1 "sophia/database/sd_iter.h"
@@ -17735,7 +19221,8 @@ typedef struct sditer sditer;
 struct sditer {
 	int validate;
 	int compression;
-	srbuf *compression_buf;
+	ssbuf *compression_buf;
+	ssbuf *transform_buf;
 	sdindex *index;
 	char *start, *end;
 	char *page;
@@ -17744,14 +19231,26 @@ struct sditer {
 	uint32_t pos;
 	sdv *dv;
 	sv v;
-} srpacked;
+	sr *r;
+} sspacked;
+
+static inline void
+sd_iterresult(sditer *i, int pos)
+{
+	i->dv = sd_pagev(&i->pagev, pos);
+	if (sslikely(i->r->fmt_storage == SF_SRAW)) {
+		sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
+		return;
+	}
+	sd_pagekv_convert(&i->pagev, i->r, i->dv, i->transform_buf->s);
+	sv_init(&i->v, &sd_vrawif, i->transform_buf->s, NULL);
+}
 
 static inline int
-sd_iternextpage(sriter *it)
+sd_iternextpage(sditer *i)
 {
-	sditer *i = (sditer*)it->priv;
 	char *page = NULL;
-	if (srunlikely(i->page == NULL))
+	if (ssunlikely(i->page == NULL))
 	{
 		sdindexheader *h = i->index->h;
 		page = i->start + h->offset + sd_indexsize(i->index->h);
@@ -17759,7 +19258,7 @@ sd_iternextpage(sriter *it)
 	} else {
 		page = i->pagesrc + sizeof(sdpageheader) + i->pagev.h->size;
 	}
-	if (srunlikely(page >= i->end)) {
+	if (ssunlikely(page >= i->end)) {
 		i->page = NULL;
 		return 0;
 	}
@@ -17768,37 +19267,36 @@ sd_iternextpage(sriter *it)
 
 	/* decompression */
 	if (i->compression) {
-		sr_bufreset(i->compression_buf);
+		ss_bufreset(i->compression_buf);
 
 		/* prepare decompression buffer */
 		sdpageheader *h = (sdpageheader*)i->page;
-		int rc = sr_bufensure(i->compression_buf, it->r->a, h->sizeorigin + sizeof(sdpageheader));
-		if (srunlikely(rc == -1)) {
+		int rc = ss_bufensure(i->compression_buf, i->r->a, h->sizeorigin + sizeof(sdpageheader));
+		if (ssunlikely(rc == -1)) {
 			i->page = NULL;
-			sr_malfunction(it->r->e, "%s", "memory allocation failed");
-			return -1;
+			return sr_oom_malfunction(i->r->e);
 		}
 
 		/* copy page header */
 		memcpy(i->compression_buf->s, i->page, sizeof(sdpageheader));
-		sr_bufadvance(i->compression_buf, sizeof(sdpageheader));
+		ss_bufadvance(i->compression_buf, sizeof(sdpageheader));
 
 		/* decompression */
-		srfilter f;
-		rc = sr_filterinit(&f, (srfilterif*)it->r->compression, it->r, SR_FOUTPUT);
-		if (srunlikely(rc == -1)) {
+		ssfilter f;
+		rc = ss_filterinit(&f, (ssfilterif*)i->r->compression, i->r->a, SS_FOUTPUT);
+		if (ssunlikely(rc == -1)) {
 			i->page = NULL;
-			sr_malfunction(it->r->e, "%s", "page decompression error");
+			sr_malfunction(i->r->e, "%s", "page decompression error");
 			return -1;
 		}
-		rc = sr_filternext(&f, i->compression_buf, i->page + sizeof(sdpageheader), h->size);
-		if (srunlikely(rc == -1)) {
-			sr_filterfree(&f);
+		rc = ss_filternext(&f, i->compression_buf, i->page + sizeof(sdpageheader), h->size);
+		if (ssunlikely(rc == -1)) {
+			ss_filterfree(&f);
 			i->page = NULL;
-			sr_malfunction(it->r->e, "%s", "page decompression error");
+			sr_malfunction(i->r->e, "%s", "page decompression error");
 			return -1;
 		}
-		sr_filterfree(&f);
+		ss_filterfree(&f);
 
 		/* switch to decompressed page */
 		i->page = i->compression_buf->s;
@@ -17807,31 +19305,32 @@ sd_iternextpage(sriter *it)
 	/* checksum */
 	if (i->validate) {
 		sdpageheader *h = (sdpageheader*)i->page;
-		uint32_t crc = sr_crcs(it->r->crc, h, sizeof(sdpageheader), 0);
-		if (srunlikely(crc != h->crc)) {
+		uint32_t crc = ss_crcs(i->r->crc, h, sizeof(sdpageheader), 0);
+		if (ssunlikely(crc != h->crc)) {
 			i->page = NULL;
-			sr_malfunction(it->r->e, "%s", "bad page header crc");
+			sr_malfunction(i->r->e, "%s", "bad page header crc");
 			return -1;
 		}
 	}
 	sd_pageinit(&i->pagev, (void*)i->page);
 	i->pos = 0;
-	if (srunlikely(i->pagev.h->count == 0)) {
+	if (ssunlikely(i->pagev.h->count == 0)) {
 		i->page = NULL;
 		i->dv = NULL;
 		return 0;
 	}
-	i->dv = sd_pagev(&i->pagev, 0);
-	sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
+	sd_iterresult(i, 0);
 	return 1;
 }
 
 static inline int
-sd_iter_open(sriter *i, sdindex *index, char *start, int validate,
+sd_iter_open(ssiter *i, sr *r, sdindex *index, char *start, int validate,
              int compression,
-             srbuf *compression_buf)
+             ssbuf *compression_buf,
+             ssbuf *transform_buf)
 {
 	sditer *ii = (sditer*)i->priv;
+	ii->r           = r;
 	ii->index       = index;
 	ii->start       = start;
 	ii->end         = NULL;
@@ -17842,52 +19341,51 @@ sd_iter_open(sriter *i, sdindex *index, char *start, int validate,
 	ii->validate    = validate;
 	ii->compression = compression;
 	ii->compression_buf = compression_buf;
-	return sd_iternextpage(i);
+	ii->transform_buf = transform_buf;
+	memset(&ii->v, 0, sizeof(ii->v));
+	return sd_iternextpage(ii);
 }
 
 static inline void
-sd_iter_close(sriter *i srunused)
+sd_iter_close(ssiter *i ssunused)
 {
 	sditer *ii = (sditer*)i->priv;
 	(void)ii;
 }
 
 static inline int
-sd_iter_has(sriter *i)
+sd_iter_has(ssiter *i)
 {
 	sditer *ii = (sditer*)i->priv;
 	return ii->page != NULL;
 }
 
 static inline void*
-sd_iter_of(sriter *i)
+sd_iter_of(ssiter *i)
 {
 	sditer *ii = (sditer*)i->priv;
-	if (srunlikely(ii->page == NULL))
+	if (ssunlikely(ii->page == NULL))
 		return NULL;
 	assert(ii->dv != NULL);
-	assert(ii->v.v  == ii->dv);
-	assert(ii->v.arg == ii->pagev.h);
 	return &ii->v;
 }
 
 static inline void
-sd_iter_next(sriter *i)
+sd_iter_next(ssiter *i)
 {
 	sditer *ii = (sditer*)i->priv;
-	if (srunlikely(ii->page == NULL))
+	if (ssunlikely(ii->page == NULL))
 		return;
 	ii->pos++;
-	if (srlikely(ii->pos < ii->pagev.h->count)) {
-		ii->dv = sd_pagev(&ii->pagev, ii->pos);
-		sv_init(&ii->v, &sd_vif, ii->dv, ii->pagev.h);
+	if (sslikely(ii->pos < ii->pagev.h->count)) {
+		sd_iterresult(ii, ii->pos);
 	} else {
 		ii->dv = NULL;
-		sd_iternextpage(i);
+		sd_iternextpage(ii);
 	}
 }
 
-extern sriterif sd_iter;
+extern ssiterif sd_iter;
 
 #endif
 #line 1 "sophia/database/sd_recover.h"
@@ -17902,10 +19400,150 @@ extern sriterif sd_iter;
  * BSD License
 */
 
-int sd_recover_open(sriter*, srfile*);
-int sd_recover_complete(sriter*);
+int sd_recover_open(ssiter*, sr*, ssfile*);
+int sd_recover_complete(ssiter*);
 
-extern sriterif sd_recover;
+extern ssiterif sd_recover;
+
+#endif
+#line 1 "sophia/database/sd_scheme.h"
+#ifndef SD_SCHEME_H_
+#define SD_SCHEME_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sdschemeheader sdschemeheader;
+typedef struct sdschemeopt sdschemeopt;
+typedef struct sdscheme sdscheme;
+
+struct sdschemeheader {
+	uint32_t crc;
+	uint32_t size;
+	uint32_t count;
+} sspacked;
+
+struct sdschemeopt {
+	uint8_t  type;
+	uint8_t  id;
+	uint32_t size;
+} sspacked;
+
+struct sdscheme {
+	ssbuf buf;
+};
+
+static inline void
+sd_schemeinit(sdscheme *c) {
+	ss_bufinit(&c->buf);
+}
+
+static inline void
+sd_schemefree(sdscheme *c, sr *r) {
+	ss_buffree(&c->buf, r->a);
+}
+
+static inline char*
+sd_schemesz(sdschemeopt *o) {
+	assert(o->type == SS_STRING);
+	return (char*)o + sizeof(sdschemeopt);
+}
+
+static inline uint32_t
+sd_schemeu32(sdschemeopt *o) {
+	assert(o->type == SS_U32);
+	return *(uint32_t*)((char*)o + sizeof(sdschemeopt));
+}
+
+static inline uint64_t
+sd_schemeu64(sdschemeopt *o) {
+	assert(o->type == SS_U64);
+	return *(uint64_t*)((char*)o + sizeof(sdschemeopt));
+}
+
+int sd_schemebegin(sdscheme*, sr*);
+int sd_schemeadd(sdscheme*, sr*, uint8_t, sstype, void*, uint32_t);
+int sd_schemecommit(sdscheme*, sr*);
+int sd_schemewrite(sdscheme*, sr*, char*, int);
+int sd_schemerecover(sdscheme*, sr*, char*);
+
+#endif
+#line 1 "sophia/database/sd_schemeiter.h"
+#ifndef SD_SCHEMEITER_H_
+#define SD_SCHEMEITER_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sdschemeiter sdschemeiter;
+
+struct sdschemeiter {
+	sdscheme *c;
+	char *p;
+} sspacked;
+
+static inline int
+sd_schemeiter_open(ssiter *i, sr *r, sdscheme *c, int validate)
+{
+	sdschemeiter *ci = (sdschemeiter*)i->priv;
+	ci->c = c;
+	ci->p = NULL;
+	if (validate) {
+		sdschemeheader *h = (sdschemeheader*)c->buf.s;
+		uint32_t crc = ss_crcs(r->crc, h, ss_bufused(&c->buf), 0);
+		if (h->crc != crc) {
+			sr_malfunction(r->e, "%s", "scheme file corrupted");
+			return -1;
+		}
+	}
+	ci->p = c->buf.s + sizeof(sdschemeheader);
+	return 0;
+}
+
+static inline void
+sd_schemeiter_close(ssiter *i ssunused)
+{
+	sdschemeiter *ci = (sdschemeiter*)i->priv;
+	(void)ci;
+}
+
+static inline int
+sd_schemeiter_has(ssiter *i)
+{
+	sdschemeiter *ci = (sdschemeiter*)i->priv;
+	return ci->p < ci->c->buf.p;
+}
+
+static inline void*
+sd_schemeiter_of(ssiter *i)
+{
+	sdschemeiter *ci = (sdschemeiter*)i->priv;
+	if (ssunlikely(ci->p >= ci->c->buf.p))
+		return NULL;
+	return ci->p;
+}
+
+static inline void
+sd_schemeiter_next(ssiter *i)
+{
+	sdschemeiter *ci = (sdschemeiter*)i->priv;
+	if (ssunlikely(ci->p >= ci->c->buf.p))
+		return;
+	sdschemeopt *o = (sdschemeopt*)ci->p;
+	ci->p = (char*)o + sizeof(sdschemeopt) + o->size;
+}
+
+extern ssiterif sd_schemeiter;
 
 #endif
 #line 1 "sophia/database/sd_build.c"
@@ -17922,70 +19560,255 @@ extern sriterif sd_recover;
 
 
 
-int sd_buildbegin(sdbuild *b, sr *r, int crc, int compress)
+
+
+void sd_buildinit(sdbuild *b)
+{
+	memset(&b->tracker, 0, sizeof(b->tracker));
+	ss_bufinit(&b->list);
+	ss_bufinit(&b->m);
+	ss_bufinit(&b->v);
+	ss_bufinit(&b->c);
+	ss_bufinit(&b->k);
+	b->n = 0;
+	b->compress = 0;
+	b->crc = 0;
+	b->vmax = 0;
+}
+
+static inline void
+sd_buildfree_tracker(sdbuild *b, sr *r)
+{
+	if (b->tracker.count == 0)
+		return;
+	int i = 0;
+	for (; i < b->tracker.size; i++) {
+		if (b->tracker.i[i] == NULL)
+			continue;
+		ss_free(r->a, b->tracker.i[i]);
+		b->tracker.i[i] = NULL;
+	}
+	b->tracker.count = 0;
+}
+
+void sd_buildfree(sdbuild *b, sr *r)
+{
+	sd_buildfree_tracker(b, r);
+	ss_htfree(&b->tracker, r->a);
+	ss_buffree(&b->list, r->a);
+	ss_buffree(&b->m, r->a);
+	ss_buffree(&b->v, r->a);
+	ss_buffree(&b->c, r->a);
+	ss_buffree(&b->k, r->a);
+}
+
+void sd_buildreset(sdbuild *b)
+{
+	ss_htreset(&b->tracker);
+	ss_bufreset(&b->list);
+	ss_bufreset(&b->m);
+	ss_bufreset(&b->v);
+	ss_bufreset(&b->c);
+	ss_bufreset(&b->k);
+	b->n = 0;
+	b->vmax = 0;
+}
+
+int sd_buildbegin(sdbuild *b, sr *r, int crc, int compress, int compress_dup)
 {
 	b->crc = crc;
 	b->compress = compress;
-	int rc = sr_bufensure(&b->list, r->a, sizeof(sdbuildref));
-	if (srunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+	b->compress_dup = compress_dup;
+	int rc;
+	if (compress_dup && b->tracker.size == 0) {
+		rc = ss_htinit(&b->tracker, r->a, 32768);
+		if (ssunlikely(rc == -1))
+			return sr_oom(r->e);
+	}
+	rc = ss_bufensure(&b->list, r->a, sizeof(sdbuildref));
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	sdbuildref *ref =
-		(sdbuildref*)sr_bufat(&b->list, sizeof(sdbuildref), b->n);
-	ref->k     = sr_bufused(&b->k);
-	ref->ksize = 0;
-	ref->v     = sr_bufused(&b->v);
+		(sdbuildref*)ss_bufat(&b->list, sizeof(sdbuildref), b->n);
+	ref->m     = ss_bufused(&b->m);
+	ref->msize = 0;
+	ref->v     = ss_bufused(&b->v);
 	ref->vsize = 0;
-	ref->c     = sr_bufused(&b->c);
+	ref->k     = ss_bufused(&b->k);
+	ref->ksize = 0;
+	ref->c     = ss_bufused(&b->c);
 	ref->csize = 0;
-	rc = sr_bufensure(&b->k, r->a, sizeof(sdpageheader));
-	if (srunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+	rc = ss_bufensure(&b->m, r->a, sizeof(sdpageheader));
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	sdpageheader *h = sd_buildheader(b);
 	memset(h, 0, sizeof(*h));
-	h->lsnmin     = UINT64_MAX;
-	h->lsnmindup  = UINT64_MAX;
-	h->tsmin      = 0;
+	h->lsnmin    = UINT64_MAX;
+	h->lsnmindup = UINT64_MAX;
 	memset(h->reserve, 0, sizeof(h->reserve));
-	sr_bufadvance(&b->list, sizeof(sdbuildref));
-	sr_bufadvance(&b->k, sizeof(sdpageheader));
+	ss_bufadvance(&b->list, sizeof(sdbuildref));
+	ss_bufadvance(&b->m, sizeof(sdpageheader));
+	return 0;
+}
+
+typedef struct {
+	sshtnode node;
+	uint32_t offset;
+	uint32_t offsetstart;
+	uint32_t size;
+} sdbuildkey;
+
+ss_htsearch(sd_buildsearch,
+            (sscast(t->i[pos], sdbuildkey, node)->node.hash == hash) &&
+            (sscast(t->i[pos], sdbuildkey, node)->size == size) &&
+            (memcmp(((sdbuild*)ptr)->k.s +
+                    sscast(t->i[pos], sdbuildkey, node)->offsetstart, key, size) == 0))
+
+static inline int
+sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
+{
+	/* calculate key size */
+	uint32_t keysize = 0;
+	int i = 0;
+	while (i < r->scheme->count) {
+		keysize += sv_keysize(v, r, i);
+		i++;
+	}
+	uint32_t valuesize = sv_valuesize(v, r);
+	uint32_t size = keysize + valuesize;
+
+	/* prepare buffer */
+	uint64_t lsn = sv_lsn(v);
+	uint32_t sizemeta = ss_leb128size(size) + ss_leb128size(lsn);
+	int rc = ss_bufensure(&b->v, r->a, sizemeta);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+
+	/* write meta */
+	ss_bufadvance(&b->v, ss_leb128write(b->v.p, size));
+	ss_bufadvance(&b->v, ss_leb128write(b->v.p, lsn));
+
+	/* write key-parts */
+	i = 0;
+	for (; i < r->scheme->count; i++)
+	{
+		uint32_t partsize = sv_keysize(v, r, i);
+		char *part = sv_key(v, r, i);
+
+		int offsetstart = ss_bufused(&b->k);
+		int offset = (offsetstart - sd_buildref(b)->k);
+
+		/* match a key copy */
+		int is_duplicate = 0;
+		uint32_t hash = 0;
+		int pos = 0;
+		if (b->compress_dup) {
+			hash = ss_fnv(part, partsize);
+			pos = sd_buildsearch(&b->tracker, hash, part, partsize, b);
+			if (b->tracker.i[pos]) {
+				is_duplicate = 1;
+				sdbuildkey *ref = sscast(b->tracker.i[pos], sdbuildkey, node);
+				offset = ref->offset;
+			}
+		}
+
+		/* offset */
+		rc = ss_bufensure(&b->v, r->a, ss_leb128size(offset));
+		if (ssunlikely(rc == -1))
+			return sr_oom(r->e);
+		ss_bufadvance(&b->v, ss_leb128write(b->v.p, offset));
+		if (is_duplicate)
+			continue;
+
+		/* copy key */
+		int partsize_meta = ss_leb128size(partsize);
+		rc = ss_bufensure(&b->k, r->a, partsize_meta + partsize);
+		if (ssunlikely(rc == -1))
+			return sr_oom(r->e);
+		ss_bufadvance(&b->k, ss_leb128write(b->k.p, partsize));
+		memcpy(b->k.p, part, partsize);
+		ss_bufadvance(&b->k, partsize);
+
+		/* add key reference */
+		if (b->compress_dup) {
+			if (ssunlikely(ss_htisfull(&b->tracker))) {
+				rc = ss_htresize(&b->tracker, r->a);
+				if (ssunlikely(rc == -1))
+					return sr_oom(r->e);
+			}
+			sdbuildkey *ref = ss_malloc(r->a, sizeof(sdbuildkey));
+			if (ssunlikely(rc == -1))
+				return sr_oom(r->e);
+			ref->node.hash = hash;
+			ref->offset = offset;
+			ref->offsetstart = offsetstart + partsize_meta;
+			ref->size = partsize;
+			ss_htset(&b->tracker, pos, &ref->node);
+		}
+	}
+
+	/* write value */
+	rc = ss_bufensure(&b->v, r->a, valuesize);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	memcpy(b->v.p, sv_value(v, r), valuesize);
+	ss_bufadvance(&b->v, valuesize);
+	return 0;
+}
+
+static inline int
+sd_buildadd_raw(sdbuild *b, sr *r, sv *v)
+{
+	uint64_t lsn = sv_lsn(v);
+	uint32_t size = sv_size(v);
+	uint32_t sizemeta = ss_leb128size(size) + ss_leb128size(lsn);
+	int rc = ss_bufensure(&b->v, r->a, sizemeta + size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	ss_bufadvance(&b->v, ss_leb128write(b->v.p, size));
+	ss_bufadvance(&b->v, ss_leb128write(b->v.p, lsn));
+	memcpy(b->v.p, sv_pointer(v), size);
+	ss_bufadvance(&b->v, size);
 	return 0;
 }
 
 int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 {
-	/* prepare metadata reference */
-	int rc = sr_bufensure(&b->k, r->a, sizeof(sdv));
-	if (srunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+	/* prepare object metadata */
+	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	sdpageheader *h = sd_buildheader(b);
-	sdv *sv = (sdv*)b->k.p;
-	sv->lsn         = sv_lsn(v);
-	sv->flags       = sv_flags(v) | flags;
-	sv->timestamp   = 0;
-	sv->keysize     = sv_keysize(v);
-	sv->valuesize   = sv_valuesize(v);
-	sv->keyoffset   = sr_bufused(&b->v) - sd_buildref(b)->v;
-	sv->valueoffset = sv->keyoffset + sv->keysize;
-	/* copy key-value pair */
-	rc = sr_bufensure(&b->v, r->a, sv->keysize + sv->valuesize);
-	if (srunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
-	memcpy(b->v.p, sv_key(v), sv->keysize);
-	sr_bufadvance(&b->v, sv->keysize);
-	memcpy(b->v.p, sv_value(v), sv->valuesize);
-	sr_bufadvance(&b->v, sv->valuesize);
-	sr_bufadvance(&b->k, sizeof(sdv));
+	sdv *sv = (sdv*)b->m.p;
+	sv->flags  = sv_flags(v) | flags;
+	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
+	ss_bufadvance(&b->m, sizeof(sdv));
+	/* copy object */
+	switch (r->fmt_storage) {
+	case SF_SKEYVALUE:
+		rc = sd_buildadd_keyvalue(b, r, v);
+		break;
+	case SF_SRAW:
+		rc = sd_buildadd_raw(b, r, v);
+		break;
+	}
+	if (ssunlikely(rc == -1))
+		return -1;
 	/* update page header */
 	h->count++;
-	h->size += sv->keysize + sv->valuesize + sizeof(sdv);
-	if (sv->lsn > h->lsnmax)
-		h->lsnmax = sv->lsn;
-	if (sv->lsn < h->lsnmin)
-		h->lsnmin = sv->lsn;
+	uint32_t size = sizeof(sdv) + sv_size(v) +
+		sizeof(sfref) * r->scheme->count;
+	if (size > b->vmax)
+		b->vmax = size;
+	uint64_t lsn = sv_lsn(v);
+	if (lsn > h->lsnmax)
+		h->lsnmax = lsn;
+	if (lsn < h->lsnmin)
+		h->lsnmin = lsn;
 	if (sv->flags & SVDUP) {
 		h->countdup++;
-		if (sv->lsn < h->lsnmindup)
-			h->lsnmindup = sv->lsn;
+		if (lsn < h->lsnmindup)
+			h->lsnmindup = lsn;
 	}
 	return 0;
 }
@@ -17994,33 +19817,36 @@ static inline int
 sd_buildcompress(sdbuild *b, sr *r)
 {
 	/* reserve header */
-	int rc = sr_bufensure(&b->c, r->a, sizeof(sdpageheader));
-	if (srunlikely(rc == -1))
+	int rc = ss_bufensure(&b->c, r->a, sizeof(sdpageheader));
+	if (ssunlikely(rc == -1))
 		return -1;
-	sr_bufadvance(&b->c, sizeof(sdpageheader));
+	ss_bufadvance(&b->c, sizeof(sdpageheader));
 	/* compression (including meta-data) */
 	sdbuildref *ref = sd_buildref(b);
-	srfilter f;
-	rc = sr_filterinit(&f, (srfilterif*)r->compression, r, SR_FINPUT);
-	if (srunlikely(rc == -1))
+	ssfilter f;
+	rc = ss_filterinit(&f, (ssfilterif*)r->compression, r->a, SS_FINPUT);
+	if (ssunlikely(rc == -1))
 		return -1;
-	rc = sr_filterstart(&f, &b->c);
-	if (srunlikely(rc == -1))
+	rc = ss_filterstart(&f, &b->c);
+	if (ssunlikely(rc == -1))
 		goto error;
-	rc = sr_filternext(&f, &b->c, b->k.s + ref->k + sizeof(sdpageheader),
-	                   ref->ksize - sizeof(sdpageheader));
-	if (srunlikely(rc == -1))
+	rc = ss_filternext(&f, &b->c, b->m.s + ref->m + sizeof(sdpageheader),
+	                   ref->msize - sizeof(sdpageheader));
+	if (ssunlikely(rc == -1))
 		goto error;
-	rc = sr_filternext(&f, &b->c, b->v.s + ref->v, ref->vsize);
-	if (srunlikely(rc == -1))
+	rc = ss_filternext(&f, &b->c, b->v.s + ref->v, ref->vsize);
+	if (ssunlikely(rc == -1))
 		goto error;
-	rc = sr_filtercomplete(&f, &b->c);
-	if (srunlikely(rc == -1))
+	rc = ss_filternext(&f, &b->c, b->k.s + ref->k, ref->ksize);
+	if (ssunlikely(rc == -1))
 		goto error;
-	sr_filterfree(&f);
+	rc = ss_filtercomplete(&f, &b->c);
+	if (ssunlikely(rc == -1))
+		goto error;
+	ss_filterfree(&f);
 	return 0;
 error:
-	sr_filterfree(&f);
+	ss_filterfree(&f);
 	return -1;
 }
 
@@ -18028,68 +19854,95 @@ int sd_buildend(sdbuild *b, sr *r)
 {
 	/* update sizes */
 	sdbuildref *ref = sd_buildref(b);
-	ref->ksize = sr_bufused(&b->k) - ref->k;
-	ref->vsize = sr_bufused(&b->v) - ref->v;
+	ref->msize = ss_bufused(&b->m) - ref->m;
+	ref->vsize = ss_bufused(&b->v) - ref->v;
+	ref->ksize = ss_bufused(&b->k) - ref->k;
 	ref->csize = 0;
 	/* calculate data crc (non-compressed) */
 	sdpageheader *h = sd_buildheader(b);
 	uint32_t crc = 0;
-	if (srlikely(b->crc)) {
-		crc = sr_crcp(r->crc, b->k.s + ref->k, ref->ksize, 0);
-		crc = sr_crcp(r->crc, b->v.s + ref->v, ref->vsize, crc);
+	if (sslikely(b->crc)) {
+		crc = ss_crcp(r->crc, b->m.s + ref->m, ref->msize, 0);
+		crc = ss_crcp(r->crc, b->v.s + ref->v, ref->vsize, crc);
+		crc = ss_crcp(r->crc, b->k.s + ref->k, ref->ksize, crc);
 	}
 	h->crcdata = crc;
 	/* compression */
 	if (b->compress) {
 		int rc = sd_buildcompress(b, r);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			return -1;
-		ref->csize = sr_bufused(&b->c) - ref->c;
+		ref->csize = ss_bufused(&b->c) - ref->c;
 	}
 	/* update page header */
-	h->sizeorigin = h->size;
+	int total = ref->msize + ref->vsize + ref->ksize;
+	h->sizekeys = ref->ksize;
+	h->sizeorigin = total - sizeof(sdpageheader);
+	h->size = h->sizeorigin;
 	if (b->compress)
 		h->size = ref->csize - sizeof(sdpageheader);
-	h->crc = sr_crcs(r->crc, h, sizeof(sdpageheader), 0);
+	else
+		h->size = h->sizeorigin;
+	h->crc = ss_crcs(r->crc, h, sizeof(sdpageheader), 0);
 	if (b->compress)
 		memcpy(b->c.s + ref->c, h, sizeof(sdpageheader));
 	return 0;
 }
 
-int sd_buildcommit(sdbuild *b)
+int sd_buildcommit(sdbuild *b, sr *r)
 {
-	/* if in compression, reset kv */
+	if (b->compress_dup)
+		sd_buildfree_tracker(b, r);
 	if (b->compress) {
-		sr_bufreset(&b->k);
-		sr_bufreset(&b->v);
+		ss_bufreset(&b->m);
+		ss_bufreset(&b->v);
+		ss_bufreset(&b->k);
 	}
 	b->n++;
 	return 0;
 }
+#line 1 "sophia/database/sd_commit.c"
 
-int sd_buildwritepage(sdbuild *b, sr *r, srbuf *buf)
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+int sd_commitpage(sdbuild *b, sr *r, ssbuf *buf)
 {
 	sdbuildref *ref = sd_buildref(b);
 	/* compressed */
-	uint32_t size = sr_bufused(&b->c);
+	uint32_t size = ss_bufused(&b->c);
 	int rc;
 	if (size > 0) {
-		rc = sr_bufensure(buf, r->a, ref->csize);
-		if (srunlikely(rc == -1))
+		rc = ss_bufensure(buf, r->a, ref->csize);
+		if (ssunlikely(rc == -1))
 			return -1;
 		memcpy(buf->p, b->c.s, ref->csize);
-		sr_bufadvance(buf, ref->csize);
+		ss_bufadvance(buf, ref->csize);
 		return 0;
 	}
 	/* not compressed */
-	assert(ref->ksize != 0);
-	rc = sr_bufensure(buf, r->a, ref->ksize + ref->vsize);
-	if (srunlikely(rc == -1))
+	assert(ref->msize != 0);
+	int total = ref->msize + ref->vsize + ref->ksize;
+	rc = ss_bufensure(buf, r->a, total);
+	if (ssunlikely(rc == -1))
 		return -1;
-	memcpy(buf->p, b->k.s + ref->k, ref->ksize);
-	sr_bufadvance(buf, ref->ksize);
+	memcpy(buf->p, b->m.s + ref->m, ref->msize);
+	ss_bufadvance(buf, ref->msize);
 	memcpy(buf->p, b->v.s + ref->v, ref->vsize);
-	sr_bufadvance(buf, ref->vsize);
+	ss_bufadvance(buf, ref->vsize);
+	memcpy(buf->p, b->k.s + ref->k, ref->ksize);
+	ss_bufadvance(buf, ref->ksize);
 	return 0;
 }
 
@@ -18097,10 +19950,10 @@ typedef struct {
 	sdbuild *b;
 	uint32_t i;
 	uint32_t iovmax;
-} sdbuildiov;
+} sdcommitiov;
 
 static inline void
-sd_buildiov_init(sdbuildiov *i, sdbuild *b, int iovmax)
+sd_commitiov_init(sdcommitiov *i, sdbuild *b, int iovmax)
 {
 	i->b = b;
 	i->iovmax = iovmax;
@@ -18108,64 +19961,65 @@ sd_buildiov_init(sdbuildiov *i, sdbuild *b, int iovmax)
 }
 
 static inline int
-sd_buildiov(sdbuildiov *i, sriov *iov)
+sd_commitiov(sdcommitiov *i, ssiov *iov)
 {
 	uint32_t n = 0;
-	while (i->i < i->b->n && n < (i->iovmax-2)) {
+	while (i->i < i->b->n && n < (i->iovmax - 3)) {
 		sdbuildref *ref =
-			(sdbuildref*)sr_bufat(&i->b->list, sizeof(sdbuildref), i->i);
-		sr_iovadd(iov, i->b->k.s + ref->k, ref->ksize);
-		sr_iovadd(iov, i->b->v.s + ref->v, ref->vsize);
+			(sdbuildref*)ss_bufat(&i->b->list, sizeof(sdbuildref), i->i);
+		ss_iovadd(iov, i->b->m.s + ref->m, ref->msize);
+		ss_iovadd(iov, i->b->v.s + ref->v, ref->vsize);
+		ss_iovadd(iov, i->b->k.s + ref->k, ref->ksize);
 		i->i++;
-		n += 2;
+		n += 3;
 	}
 	return i->i < i->b->n;
 }
 
-int sd_buildwrite(sdbuild *b, sr *r, sdindex *index, srfile *file)
+int sd_commit(sdbuild *b, sr *r, sdindex *index, ssfile *file)
 {
 	sdseal seal;
 	sd_seal(&seal, r, index->h);
 	struct iovec iovv[1024];
-	sriov iov;
-	sr_iovinit(&iov, iovv, 1024);
-	sr_iovadd(&iov, index->i.s, sr_bufused(&index->i));
+	ssiov iov;
+	ss_iovinit(&iov, iovv, 1024);
+	ss_iovadd(&iov, index->i.s, ss_bufused(&index->i));
 
-	SR_INJECTION(r->i, SR_INJECTION_SD_BUILD_0,
+	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_0,
 	             sr_malfunction(r->e, "%s", "error injection");
-	             assert( sr_filewritev(file, &iov) == 0 );
+	             assert( ss_filewritev(file, &iov) == 0 );
 	             return -1);
 
 	/* compression enabled */
-	uint32_t size = sr_bufused(&b->c);
+	uint32_t size = ss_bufused(&b->c);
 	int rc;
 	if (size > 0) {
-		sr_iovadd(&iov, b->c.s, size);
-		sr_iovadd(&iov, &seal, sizeof(seal));
-		rc = sr_filewritev(file, &iov);
-		if (srunlikely(rc == -1))
+		ss_iovadd(&iov, b->c.s, size);
+		ss_iovadd(&iov, &seal, sizeof(seal));
+		rc = ss_filewritev(file, &iov);
+		if (ssunlikely(rc == -1))
 			sr_malfunction(r->e, "file '%s' write error: %s",
 			               file->file, strerror(errno));
 		return rc;
 	}
 
 	/* uncompressed */
-	sdbuildiov iter;
-	sd_buildiov_init(&iter, b, 1022);
+	sdcommitiov iter;
+	sd_commitiov_init(&iter, b, 1020);
 	int more = 1;
 	while (more) {
-		more = sd_buildiov(&iter, &iov);
-		if (srlikely(! more)) {
-			SR_INJECTION(r->i, SR_INJECTION_SD_BUILD_1,
+		more = sd_commitiov(&iter, &iov);
+		if (sslikely(! more)) {
+			SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_1,
 			             seal.crc++); /* corrupt seal */
-			sr_iovadd(&iov, &seal, sizeof(seal));
+			ss_iovadd(&iov, &seal, sizeof(seal));
 		}
-		rc = sr_filewritev(file, &iov);
-		if (srunlikely(rc == -1)) {
+		rc = ss_filewritev(file, &iov);
+		if (ssunlikely(rc == -1)) {
 			return sr_malfunction(r->e, "file '%s' write error: %s",
 			                      file->file, strerror(errno));
 		}
-		sr_iovreset(&iov);
+		ss_iovreset(&iov);
 	}
 	return 0;
 }
@@ -18183,91 +20037,207 @@ int sd_buildwrite(sdbuild *b, sr *r, sdindex *index, srfile *file)
 
 
 
-int sd_indexbegin(sdindex *i, sr *r, uint32_t keysize, uint64_t offset)
+
+
+int sd_indexbegin(sdindex *i, sr *r, uint64_t offset)
 {
-	int rc = sr_bufensure(&i->i, r->a, sizeof(sdindexheader));
-	if (srunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+	int rc = ss_bufensure(&i->i, r->a, sizeof(sdindexheader));
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	sdindexheader *h = sd_indexheader(i);
 	sr_version(&h->version);
-	h->crc       = 0;
-	h->block     = sizeof(sdindexpage) + (keysize * 2);
-	h->count     = 0;
-	h->keys      = 0;
-	h->total     = 0;
-	h->extension = 0;
-	h->lsnmin    = UINT64_MAX;
-	h->lsnmax    = 0;
-	h->tsmin     = 0;
-	h->offset    = offset;
-	h->dupkeys   = 0;
-	h->dupmin    = UINT64_MAX;
+	h->crc         = 0;
+	h->size        = 0;
+	h->sizevmax    = 0;
+	h->count       = 0;
+	h->keys        = 0;
+	h->total       = 0;
+	h->totalorigin = 0;
+	h->extension   = 0;
+	h->lsnmin      = UINT64_MAX;
+	h->lsnmax      = 0;
+	h->tsmin       = 0;
+	h->offset      = offset;
+	h->dupkeys     = 0;
+	h->dupmin      = UINT64_MAX;
 	memset(h->reserve, 0, sizeof(h->reserve));
 	sd_idinit(&h->id, 0, 0, 0);
-	i->h = h;
-	sr_bufadvance(&i->i, sizeof(sdindexheader));
+	i->h = NULL;
+	ss_bufadvance(&i->i, sizeof(sdindexheader));
 	return 0;
 }
 
 int sd_indexcommit(sdindex *i, sr *r, sdid *id)
 {
+	int size = ss_bufused(&i->v);
+	int rc = ss_bufensure(&i->i, r->a, size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	memcpy(i->i.p, i->v.s, size);
+	ss_bufadvance(&i->i, size);
+	ss_buffree(&i->v, r->a);
 	i->h      = sd_indexheader(i);
 	i->h->id  = *id;
-	i->h->crc = sr_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
+	i->h->crc = ss_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
 	return 0;
 }
 
-int sd_indexadd(sdindex *i, sr *r, uint64_t offset,
-                uint32_t size,
-                uint32_t sizeorigin,
-                uint32_t count,
-                char *min, int sizemin,
-                char *max, int sizemax,
-                uint32_t dupkeys,
-                uint64_t dupmin,
-                uint64_t lsnmin,
-                uint64_t lsnmax)
+static inline int
+sd_indexadd_raw(sdindex *i, sr *r, sdindexpage *p, char *min, char *max)
 {
-	int rc = sr_bufensure(&i->i, r->a, i->h->block);
-	if (srunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
-	i->h = sd_indexheader(i);
+	/* calculate sizes */
+	p->sizemin = sf_keytotal(min, r->scheme->count);
+	p->sizemax = sf_keytotal(max, r->scheme->count);
+	/* prepare buffer */
+	int rc = ss_bufensure(&i->v, r->a, p->sizemin + p->sizemax);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	/* reformat key object to exclude value */
+	rc = sf_keycopy(i->v.p, min, r->scheme->count);
+	assert(rc == p->sizemin);
+	(void)rc;
+	ss_bufadvance(&i->v, p->sizemin);
+	rc = sf_keycopy(i->v.p, max, r->scheme->count);
+	assert(rc == p->sizemax);
+	(void)rc;
+	ss_bufadvance(&i->v, p->sizemax);
+	return 0;
+}
+
+static inline int
+sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *min, char *max)
+{
+	assert(r->scheme->count <= 8);
+
+	/* min */
+	sfv kv[8];
+	uint64_t offset;
+	int total = 0;
+	int part = 0;
+	while (part < r->scheme->count) {
+		/* read keytab offset */
+		min += ss_leb128read(min, &offset);
+		/* read key */
+		sfv *k = &kv[part];
+		char *key = build->k.s + sd_buildref(build)->k + offset;
+		uint64_t keysize;
+		key += ss_leb128read(key, &keysize);
+		k->key = key;
+		k->r.size = keysize;
+		k->r.offset = 0;
+		total += keysize;
+		part++;
+	}
+	p->sizemin = total + (r->scheme->count * sizeof(sfref));
+	int rc = ss_bufensure(&i->v, r->a, p->sizemin);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	sf_write(SF_KV, i->v.p, kv, r->scheme->count, NULL, 0);
+	ss_bufadvance(&i->v, p->sizemin);
+
+	/* max */
+	total = 0;
+	part = 0;
+	while (part < r->scheme->count) {
+		/* read keytab offset */
+		max += ss_leb128read(max, &offset);
+		/* read key */
+		sfv *k = &kv[part];
+		char *key = build->k.s + sd_buildref(build)->k + offset;
+		uint64_t keysize;
+		key += ss_leb128read(key, &keysize);
+		k->key = key;
+		k->r.size = keysize;
+		k->r.offset = 0;
+		total += keysize;
+		part++;
+	}
+	p->sizemax = total + (r->scheme->count * sizeof(sfref));
+	rc = ss_bufensure(&i->v, r->a, p->sizemax);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	sf_write(SF_KV, i->v.p, kv, r->scheme->count, NULL, 0);
+	ss_bufadvance(&i->v, p->sizemax);
+	return 0;
+}
+
+int sd_indexadd(sdindex *i, sr *r, sdbuild *build)
+{
+	int rc = ss_bufensure(&i->i, r->a, sizeof(sdindexpage));
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	sdpageheader *ph = sd_buildheader(build);
+
+	int size = ph->size + sizeof(sdpageheader);
+	int sizeorigin = ph->sizeorigin + sizeof(sdpageheader);
+
+	/* prepare page header.
+	 *
+	 * offset is relative to index:
+	 * m->offset + (index_size) + page->offset
+	*/
 	sdindexpage *p = (sdindexpage*)i->i.p;
-	p->offset     = offset;
-	p->size       = size;
-	p->sizeorigin = sizeorigin;
-	p->sizemin    = sizemin;
-	p->sizemax    = sizemax;
-	p->lsnmin     = lsnmin;
-	p->lsnmax     = lsnmax;
-	memcpy(sd_indexpage_min(p), min, sizemin);
-	memcpy(sd_indexpage_max(p), max, sizemax);
-	int padding = i->h->block - (sizeof(sdindexpage) + sizemin + sizemax);
-	if (padding > 0)
-		memset(sd_indexpage_max(p) + sizemax, 0, padding);
-	i->h->count++;
-	i->h->keys  += count;
-	i->h->total += size;
-	if (lsnmin < i->h->lsnmin)
-		i->h->lsnmin = lsnmin;
-	if (lsnmax > i->h->lsnmax)
-		i->h->lsnmax = lsnmax;
-	i->h->dupkeys += dupkeys;
-	if (dupmin < i->h->dupmin)
-		i->h->dupmin = dupmin;
-	sr_bufadvance(&i->i, i->h->block);
+	p->offset      = sd_buildoffset(build);
+	p->offsetindex = ss_bufused(&i->v);
+	p->lsnmin      = ph->lsnmin;
+	p->lsnmax      = ph->lsnmax;
+	p->size        = size;
+	p->sizeorigin  = sizeorigin;
+	p->sizemin     = 0;
+	p->sizemax     = 0;
+
+	/* copy keys */
+	if (ssunlikely(ph->count > 0))
+	{
+		char *min;
+		char *max;
+		min  = sd_buildminkey(build);
+		min += ss_leb128skip(min);
+		min += ss_leb128skip(min);
+		max  = sd_buildmaxkey(build);
+		max += ss_leb128skip(max);
+		max += ss_leb128skip(max);
+		switch (r->fmt_storage) {
+		case SF_SRAW:
+			rc = sd_indexadd_raw(i, r, p, min, max);
+			break;
+		case SF_SKEYVALUE:
+			rc = sd_indexadd_keyvalue(i, r, build, p, min, max);
+			break;
+		}
+		if (ssunlikely(rc == -1))
+			return -1;
+	}
+
+	/* update index info */
+	sdindexheader *h = sd_indexheader(i);
+	h->count++;
+	h->size  += sizeof(sdindexpage) + p->sizemin + p->sizemax;
+	h->keys  += ph->count;
+	h->total += size;
+	h->totalorigin += sizeorigin;
+	if (build->vmax > h->sizevmax)
+		h->sizevmax = build->vmax;
+	if (ph->lsnmin < h->lsnmin)
+		h->lsnmin = ph->lsnmin;
+	if (ph->lsnmax > h->lsnmax)
+		h->lsnmax = ph->lsnmax;
+	h->dupkeys += ph->countdup;
+	if (ph->lsnmindup < h->dupmin)
+		h->dupmin = ph->lsnmindup;
+	ss_bufadvance(&i->i, sizeof(sdindexpage));
 	return 0;
 }
 
 int sd_indexcopy(sdindex *i, sr *r, sdindexheader *h)
 {
 	int size = sd_indexsize(h);
-	int rc = sr_bufensure(&i->i, r->a, size);
-	if (srunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+	int rc = ss_bufensure(&i->i, r->a, size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	memcpy(i->i.s, (char*)h, size);
-	sr_bufadvance(&i->i, size);
-	i->h = (sdindexheader*)i->i.s;
+	ss_bufadvance(&i->i, size);
+	i->h = sd_indexheader(i);
 	return 0;
 }
 #line 1 "sophia/database/sd_indexiter.c"
@@ -18284,7 +20254,9 @@ int sd_indexcopy(sdindex *i, sr *r, sdindexheader *h)
 
 
 
-sriterif sd_indexiter =
+
+
+ssiterif sd_indexiter =
 {
 	.close = sd_indexiter_close,
 	.has   = sd_indexiter_has,
@@ -18305,7 +20277,9 @@ sriterif sd_indexiter =
 
 
 
-sriterif sd_iter =
+
+
+ssiterif sd_iter =
 {
 	.close   = sd_iter_close,
 	.has     = sd_iter_has,
@@ -18326,35 +20300,24 @@ sriterif sd_iter =
 
 
 
-int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
-                 sriter *i,
-                 sdbuild *build,
-                 uint64_t offset,
-                 uint32_t size_key,
-                 uint32_t size_stream,
-                 uint64_t size_node,
-                 uint32_t size_page,
-                 uint32_t checksum,
-                 uint32_t compression,
-                 int save_delete,
-                 uint64_t vlsn)
+
+
+int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build,
+                 svupdate *update,
+                 sdmergeconf *conf)
 {
-	m->r             = r;
-	m->parent        = parent;
-	m->build         = build;
-	m->offset        = offset;
-	m->size_key      = size_key;
-	m->size_stream   = size_stream;
-	m->size_node     = size_node;
-	m->size_page     = size_page;
-	m->compression   = compression;
-	m->checksum      = checksum;
+	m->conf      = conf;
+	m->build     = build;
+	m->r         = r;
+	m->merge     = i;
+	m->processed = 0;
 	sd_indexinit(&m->index);
-	m->merge         = i;
-	m->processed     = 0;
-	sr_iterinit(sv_writeiter, &m->i, r);
-	sr_iteropen(sv_writeiter, &m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn,
-	            save_delete);
+	ss_iterinit(sv_writeiter, &m->i);
+	ss_iteropen(sv_writeiter, &m->i, r, i, update,
+	            (uint64_t)conf->size_page, sizeof(sdv),
+	            conf->vlsn,
+	            conf->save_delete,
+	            conf->save_update);
 	return 0;
 }
 
@@ -18366,79 +20329,67 @@ int sd_mergefree(sdmerge *m)
 
 int sd_merge(sdmerge *m)
 {
-	if (srunlikely(! sr_iterhas(sv_writeiter, &m->i)))
+	if (ssunlikely(! ss_iterhas(sv_writeiter, &m->i)))
 		return 0;
+	sdmergeconf *conf = m->conf;
 	sd_buildreset(m->build);
 
 	sd_indexinit(&m->index);
-	int rc = sd_indexbegin(&m->index, m->r, m->size_key, m->offset);
-	if (srunlikely(rc == -1))
+	int rc = sd_indexbegin(&m->index, m->r, conf->offset);
+	if (ssunlikely(rc == -1))
 		return -1;
 
 	uint64_t processed = m->processed;
 	uint64_t current = 0;
-	uint64_t left = (m->size_stream - processed);
+	uint64_t left = (conf->size_stream - processed);
 	uint64_t limit;
-	if (left >= (m->size_node * 2)) {
-		limit = m->size_node;
+	if (left >= (conf->size_node * 2)) {
+		limit = conf->size_node;
 	} else
-	if (left > (m->size_node)) {
-		limit = m->size_node * 2;
+	if (left > (conf->size_node)) {
+		limit = conf->size_node * 2;
 	} else {
 		limit = UINT64_MAX;
 	}
 
-	while (sr_iterhas(sv_writeiter, &m->i) && (current <= limit))
+	while (ss_iterhas(sv_writeiter, &m->i) && (current <= limit))
 	{
-		rc = sd_buildbegin(m->build, m->r, m->checksum, m->compression);
-		if (srunlikely(rc == -1))
+		rc = sd_buildbegin(m->build, m->r, conf->checksum,
+		                   conf->compression,
+		                   conf->compression_key);
+		if (ssunlikely(rc == -1))
 			return -1;
-		while (sr_iterhas(sv_writeiter, &m->i)) {
-			sv *v = sr_iterof(sv_writeiter, &m->i);
-			rc = sd_buildadd(m->build, m->r, v, sv_mergeisdup(m->merge));
-			if (srunlikely(rc == -1))
+		while (ss_iterhas(sv_writeiter, &m->i))
+		{
+			sv *v = ss_iterof(sv_writeiter, &m->i);
+			uint8_t flags = 0;
+			if (sv_writeiter_is_duplicate(&m->i))
+				flags = SVDUP;
+			rc = sd_buildadd(m->build, m->r, v, flags);
+			if (ssunlikely(rc == -1))
 				return -1;
-			sr_iternext(sv_writeiter, &m->i);
+			ss_iternext(sv_writeiter, &m->i);
 		}
 		rc = sd_buildend(m->build, m->r);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			return -1;
-
-		/* page offset is relative to index:
-		 *
-		 * m->offset + (index_size) + page->offset
-		*/
-		sdpageheader *h = sd_buildheader(m->build);
-		rc = sd_indexadd(&m->index, m->r,
-		                 sd_buildoffset(m->build),
-		                 h->size + sizeof(sdpageheader),
-		                 h->sizeorigin + sizeof(sdpageheader),
-		                 h->count,
-		                 sd_buildminkey(m->build),
-		                 sd_buildmin(m->build)->keysize,
-		                 sd_buildmaxkey(m->build),
-		                 sd_buildmax(m->build)->keysize,
-		                 h->countdup,
-		                 h->lsnmindup,
-		                 h->lsnmin,
-		                 h->lsnmax);
-		if (srunlikely(rc == -1))
+		rc = sd_indexadd(&m->index, m->r, m->build);
+		if (ssunlikely(rc == -1))
 			return -1;
-		sd_buildcommit(m->build);
+		sd_buildcommit(m->build, m->r);
 
-		current = m->index.h->total;
-		if (srunlikely(! sv_writeiter_resume(&m->i)))
+		current = sd_indextotal(&m->index);
+		if (ssunlikely(! sv_writeiter_resume(&m->i)))
 			break;
 	}
 
-	m->processed += m->index.h->total;
+	m->processed += sd_indextotal(&m->index);
 	return 1;
 }
 
 int sd_mergecommit(sdmerge *m, sdid *id)
 {
-	sd_indexcommit(&m->index, m->r, id);
-	return 0;
+	return sd_indexcommit(&m->index, m->r, id);
 }
 #line 1 "sophia/database/sd_pageiter.c"
 
@@ -18454,20 +20405,14 @@ int sd_mergecommit(sdmerge *m, sdid *id)
 
 
 
-sriterif sd_pageiter =
+
+
+ssiterif sd_pageiter =
 {
 	.close   = sd_pageiter_close,
 	.has     = sd_pageiter_has,
 	.of      = sd_pageiter_of,
 	.next    = sd_pageiter_next
-};
-
-sriterif sd_pageiterraw =
-{
-	.close = sd_pageiterraw_close,
-	.has   = sd_pageiterraw_has,
-	.of    = sd_pageiterraw_of,
-	.next  = sd_pageiterraw_next,
 };
 #line 1 "sophia/database/sd_recover.c"
 
@@ -18483,128 +20428,130 @@ sriterif sd_pageiterraw =
 
 
 
+
+
 typedef struct sdrecover sdrecover;
 
 struct sdrecover {
-	srfile *file;
+	ssfile *file;
 	int corrupt;
 	sdindexheader *actual;
 	sdindexheader *v;
-	srmap map;
-} srpacked;
+	ssmmap map;
+	sr *r;
+} sspacked;
 
 static int
-sd_recovernext_of(sriter *i, sdindexheader *next)
+sd_recovernext_of(sdrecover *i, sdindexheader *next)
 {
-	sdrecover *ri = (sdrecover*)i->priv;
 	if (next == NULL)
 		return 0;
-	char *eof   = (char*)ri->map.p + ri->map.size;
+	char *eof   = (char*)i->map.p + i->map.size;
 	char *start = (char*)next;
 	/* eof */
-	if (srunlikely(start == eof)) {
-		ri->v = NULL;
+	if (ssunlikely(start == eof)) {
+		i->v = NULL;
 		return 0;
 	}
 	/* validate crc */
-	uint32_t crc = sr_crcs(i->r->crc, next, sizeof(sdindexheader), 0);
+	uint32_t crc = ss_crcs(i->r->crc, next, sizeof(sdindexheader), 0);
 	if (next->crc != crc) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad index crc",
-		               ri->file->file);
-		ri->corrupt = 1;
-		ri->v = NULL;
+		               i->file->file);
+		i->corrupt = 1;
+		i->v = NULL;
 		return -1;
 	}
 	/* check version */
 	if (! sr_versioncheck(&next->version))
 		return sr_malfunction(i->r->e, "bad db file '%s' version",
-		                      ri->file->file);
-	char *end = start + sizeof(sdindexheader) +
-	            next->count * next->block +
+		                      i->file->file);
+	char *end = start + sizeof(sdindexheader) + next->size +
 	            next->total +
 	            next->extension + sizeof(sdseal);
-	if (srunlikely((start > eof || (end > eof)))) {
+	if (ssunlikely((start > eof || (end > eof)))) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad record size",
-		               ri->file->file);
-		ri->corrupt = 1;
-		ri->v = NULL;
+		               i->file->file);
+		i->corrupt = 1;
+		i->v = NULL;
 		return -1;
 	}
 	/* check seal */
 	sdseal *s = (sdseal*)(end - sizeof(sdseal));
 	int rc = sd_sealvalidate(s, i->r, next);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad seal",
-		               ri->file->file);
-		ri->corrupt = 1;
-		ri->v = NULL;
+		               i->file->file);
+		i->corrupt = 1;
+		i->v = NULL;
 		return -1;
 	}
-	ri->actual = next;
-	ri->v = next;
+	i->actual = next;
+	i->v = next;
 	return 1;
 }
 
-int sd_recover_open(sriter *i, srfile *file)
+int sd_recover_open(ssiter *i, sr *r, ssfile *file)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
 	memset(ri, 0, sizeof(*ri));
+	ri->r = r;
 	ri->file = file;
-	if (srunlikely(ri->file->size < (sizeof(sdindexheader) + sizeof(sdseal)))) {
-		sr_malfunction(i->r->e, "corrupted db file '%s': bad size",
+	if (ssunlikely(ri->file->size < (sizeof(sdindexheader) + sizeof(sdseal)))) {
+		sr_malfunction(ri->r->e, "corrupted db file '%s': bad size",
 		               ri->file->file);
 		ri->corrupt = 1;
 		return -1;
 	}
-	int rc = sr_map(&ri->map, ri->file->fd, ri->file->size, 1);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(i->r->e, "failed to mmap db file '%s': %s",
+	int rc = ss_mmap(&ri->map, ri->file->fd, ri->file->size, 1);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(ri->r->e, "failed to mmap db file '%s': %s",
 		               ri->file->file, strerror(errno));
 		return -1;
 	}
 	sdindexheader *next = (sdindexheader*)((char*)ri->map.p);
-	rc = sd_recovernext_of(i, next);
-	if (srunlikely(rc == -1))
-		sr_mapunmap(&ri->map);
+	rc = sd_recovernext_of(ri, next);
+	if (ssunlikely(rc == -1))
+		ss_munmap(&ri->map);
 	return rc;
 }
 
 static void
-sd_recoverclose(sriter *i srunused)
+sd_recoverclose(ssiter *i ssunused)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
-	sr_mapunmap(&ri->map);
+	ss_munmap(&ri->map);
 }
 
 static int
-sd_recoverhas(sriter *i)
+sd_recoverhas(ssiter *i)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
 	return ri->v != NULL;
 }
 
 static void*
-sd_recoverof(sriter *i)
+sd_recoverof(ssiter *i)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
 	return ri->v;
 }
 
 static void
-sd_recovernext(sriter *i)
+sd_recovernext(ssiter *i)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
-	if (srunlikely(ri->v == NULL))
+	if (ssunlikely(ri->v == NULL))
 		return;
 	sdindexheader *next =
 		(sdindexheader*)((char*)ri->v +
-		    (sizeof(sdindexheader) + ri->v->count * ri->v->block) +
+		    (sizeof(sdindexheader) + ri->v->size) +
 		     ri->v->total +
 		     ri->v->extension + sizeof(sdseal));
-	sd_recovernext_of(i, next);
+	sd_recovernext_of(ri, next);
 }
 
-sriterif sd_recover =
+ssiterif sd_recover =
 {
 	.close   = sd_recoverclose,
 	.has     = sd_recoverhas,
@@ -18612,26 +20559,163 @@ sriterif sd_recover =
 	.next    = sd_recovernext
 };
 
-int sd_recover_complete(sriter *i)
+int sd_recover_complete(ssiter *i)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
-	if (srunlikely(ri->actual == NULL))
+	if (ssunlikely(ri->actual == NULL))
 		return -1;
-	if (srlikely(ri->corrupt == 0))
+	if (sslikely(ri->corrupt == 0))
 		return  0;
 	/* truncate file to the latest actual index */
 	char *eof =
 		(char*)ri->actual + sizeof(sdindexheader) +
-		       ri->actual->count * ri->actual->block +
+		       ri->actual->size +
 		       ri->actual->total +
 		       ri->actual->extension + sizeof(sdseal);
 	uint64_t file_size = eof - ri->map.p;
-	int rc = sr_fileresize(ri->file, file_size);
-	if (srunlikely(rc == -1))
+	int rc = ss_fileresize(ri->file, file_size);
+	if (ssunlikely(rc == -1))
 		return -1;
-	sr_errorreset(i->r->e);
+	sr_errorreset(ri->r->e);
 	return 0;
 }
+#line 1 "sophia/database/sd_scheme.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+int sd_schemebegin(sdscheme *c, sr *r)
+{
+	int rc = ss_bufensure(&c->buf, r->a, sizeof(sdschemeheader));
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	sdschemeheader *h = (sdschemeheader*)c->buf.s;
+	memset(h, 0, sizeof(sdschemeheader));
+	ss_bufadvance(&c->buf, sizeof(sdschemeheader));
+	return 0;
+}
+
+int sd_schemeadd(sdscheme *c, sr *r, uint8_t id, sstype type,
+                 void *value, uint32_t size)
+{
+	sdschemeopt opt = {
+		.type = type,
+		.id   = id,
+		.size = size
+	};
+	int rc = ss_bufadd(&c->buf, r->a, &opt, sizeof(opt));
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = ss_bufadd(&c->buf, r->a, value, size);
+	if (ssunlikely(rc == -1))
+		goto error;
+	sdschemeheader *h = (sdschemeheader*)c->buf.s;
+	h->count++;
+	return 0;
+error:
+	return sr_oom(r->e);
+}
+
+int sd_schemecommit(sdscheme *c, sr *r)
+{
+	if (ssunlikely(ss_bufused(&c->buf) == 0))
+		return 0;
+	sdschemeheader *h = (sdschemeheader*)c->buf.s;
+	h->size = ss_bufused(&c->buf) - sizeof(sdschemeheader);
+	h->crc  = ss_crcs(r->crc, (char*)h, ss_bufused(&c->buf), 0);
+	return 0;
+}
+
+int sd_schemewrite(sdscheme *c, sr *r, char *path, int sync)
+{
+	ssfile meta;
+	ss_fileinit(&meta, r->a);
+	int rc = ss_filenew(&meta, path);
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = ss_filewrite(&meta, c->buf.s, ss_bufused(&c->buf));
+	if (ssunlikely(rc == -1))
+		goto error;
+	if (sync) {
+		rc = ss_filesync(&meta);
+		if (ssunlikely(rc == -1))
+			goto error;
+	}
+	rc = ss_fileclose(&meta);
+	if (ssunlikely(rc == -1))
+		goto error;
+	return 0;
+error:
+	sr_error(r->e, "scheme file '%s' error: %s",
+	         path, strerror(errno));
+	ss_fileclose(&meta);
+	return -1;
+}
+
+int sd_schemerecover(sdscheme *c, sr *r, char *path)
+{
+	ssize_t size = ss_filesize(path);
+	if (ssunlikely(size == -1))
+		goto error;
+	if (ssunlikely((unsigned int)size < sizeof(sdschemeheader))) {
+		sr_error(r->e, "scheme file '%s' is corrupted", path);
+		return -1;
+	}
+	int rc = ss_bufensure(&c->buf, r->a, size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	ssfile meta;
+	ss_fileinit(&meta, r->a);
+	rc = ss_fileopen(&meta, path);
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = ss_filepread(&meta, 0, c->buf.s, size);
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = ss_fileclose(&meta);
+	if (ssunlikely(rc == -1))
+		goto error;
+	ss_bufadvance(&c->buf, size);
+	return 0;
+error:
+	sr_error(r->e, "scheme file '%s' error: %s",
+	         path, strerror(errno));
+	return -1;
+}
+#line 1 "sophia/database/sd_schemeiter.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+ssiterif sd_schemeiter =
+{
+	.close   = sd_schemeiter_close,
+	.has     = sd_schemeiter_has,
+	.of      = sd_schemeiter_of,
+	.next    = sd_schemeiter_next
+};
 #line 1 "sophia/database/sd_v.c"
 
 /*
@@ -18646,6 +20730,8 @@ int sd_recover_complete(sriter *i)
 
 
 
+
+
 static uint8_t
 sd_vifflags(sv *v) {
 	return ((sdv*)v->v)->flags;
@@ -18653,52 +20739,80 @@ sd_vifflags(sv *v) {
 
 static uint64_t
 sd_viflsn(sv *v) {
-	return ((sdv*)v->v)->lsn;
-}
-
-static char*
-sd_vifkey(sv *v)
-{
-	sdv *dv = v->v;
 	sdpage p = {
 		.h = (sdpageheader*)v->arg
 	};
-	return sd_pagekey(&p, dv);
-}
-
-static uint16_t
-sd_vifkeysize(sv *v) {
-	return ((sdv*)v->v)->keysize;
+	return sd_pagelsnof(&p, (sdv*)v->v);
 }
 
 static char*
-sd_vifvalue(sv *v)
+sd_vifpointer(sv *v)
 {
-	sdv *dv = v->v;
 	sdpage p = {
 		.h = (sdpageheader*)v->arg
 	};
-	return sd_pagevalue(&p, dv);
+	char *ptr = sd_pagepointer(&p, (sdv*)v->v);
+	ptr += ss_leb128skip(ptr);
+	ptr += ss_leb128skip(ptr);
+	return ptr;
 }
 
 static uint32_t
-sd_vifvaluesize(sv *v) {
-	return ((sdv*)v->v)->valuesize;
+sd_vifsize(sv *v) {
+	sdpage p = {
+		.h = (sdpageheader*)v->arg
+	};
+	return sd_pagesizeof(&p, (sdv*)v->v);
 }
 
 svif sd_vif =
 {
-	.flags     = sd_vifflags,
-	.lsn       = sd_viflsn,
-	.lsnset    = NULL,
-	.key       = sd_vifkey,
-	.keysize   = sd_vifkeysize,
-	.value     = sd_vifvalue,
-	.valuesize = sd_vifvaluesize
+	.flags   = sd_vifflags,
+	.lsn     = sd_viflsn,
+	.lsnset  = NULL,
+	.pointer = sd_vifpointer,
+	.size    = sd_vifsize
 };
-#line 1 "sophia/index/si_conf.h"
-#ifndef SI_CONF_H_
-#define SI_CONF_H_
+
+static uint64_t
+sd_vrawiflsn(sv *v) {
+	sdv *dv = v->v;
+	char *ptr = (char*)dv + sizeof(sdv);
+	ptr += ss_leb128skip(ptr);
+	uint64_t val;
+	ss_leb128read(ptr, &val);
+	return val;
+}
+
+static char*
+sd_vrawifpointer(sv *v)
+{
+	sdv *dv = v->v;
+	char *ptr = (char*)dv + sizeof(sdv);
+	ptr += ss_leb128skip(ptr);
+	ptr += ss_leb128skip(ptr);
+	return ptr;
+}
+
+static uint32_t
+sd_vrawifsize(sv *v) {
+	sdv *dv = v->v;
+	uint64_t val;
+	ss_leb128read((char*)dv + sizeof(sdv), &val);
+	return val;
+}
+
+svif sd_vrawif =
+{
+	.flags   = sd_vifflags,
+	.lsn     = sd_vrawiflsn,
+	.lsnset  = NULL,
+	.pointer = sd_vrawifpointer,
+	.size    = sd_vrawifsize
+};
+#line 1 "sophia/index/si_scheme.h"
+#ifndef SI_SCHEME_H_
+#define SI_SCHEME_H_
 
 /*
  * sophia database
@@ -18708,93 +20822,35 @@ svif sd_vif =
  * BSD License
 */
 
-typedef struct siconf siconf;
+typedef struct sischeme sischeme;
 
-struct siconf {
-	char     *name;
-	char     *path;
-	int       path_fail_on_exists;
-	char     *path_backup;
-	int       sync;
-	uint64_t  node_size;
-	uint32_t  node_page_size;
-	uint32_t  node_page_checksum;
-	uint32_t  compression;
+struct sischeme {
+	uint32_t    id;
+	char       *name;
+	char       *path;
+	uint32_t    path_fail_on_exists;
+	uint32_t    path_fail_on_drop;
+	char       *path_backup;
+	uint32_t    mmap;
+	uint32_t    sync;
+	uint64_t    node_size;
+	uint32_t    node_page_size;
+	uint32_t    node_page_checksum;
+	uint32_t    compression;
+	char       *compression_sz;
+	ssfilterif *compression_if;
+	uint32_t    compression_key;
+	char       *fmt_sz;
+	sf          fmt;
+	sfstorage   fmt_storage;
+	sfupdate    fmt_update;
+	srscheme    scheme;
 };
 
-#endif
-#line 1 "sophia/index/si_zone.h"
-#ifndef SI_ZONE_H_
-#define SI_ZONE_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct sizone sizone;
-typedef struct sizonemap sizonemap;
-
-struct sizone {
-	uint32_t enable;
-	char     name[4];
-	uint32_t mode;
-	uint32_t compact_wm;
-	uint32_t branch_prio;
-	uint32_t branch_wm;
-	uint32_t branch_age;
-	uint32_t branch_age_period;
-	uint32_t branch_age_wm;
-	uint32_t backup_prio;
-	uint32_t gc_db_prio;
-	uint32_t gc_prio;
-	uint32_t gc_period;
-	uint32_t gc_wm;
-};
-
-struct sizonemap {
-	sizone zones[11];
-};
-
-static inline int
-si_zonemap_init(sizonemap *m) {
-	memset(m->zones, 0, sizeof(m->zones));
-	return 0;
-}
-
-static inline void
-si_zonemap_set(sizonemap *m, uint32_t percent, sizone *z)
-{
-	if (srunlikely(percent > 100))
-		percent = 100;
-	percent = percent - percent % 10;
-	int p = percent / 10;
-	m->zones[p] = *z;
-	snprintf(m->zones[p].name, sizeof(m->zones[p].name), "%d", percent);
-}
-
-static inline sizone*
-si_zonemap(sizonemap *m, uint32_t percent)
-{
-	if (srunlikely(percent > 100))
-		percent = 100;
-	percent = percent - percent % 10;
-	int p = percent / 10;
-	sizone *z = &m->zones[p];
-	if (!z->enable) {
-		while (p >= 0) {
-			z = &m->zones[p];
-			if (z->enable)
-				return z;
-			p--;
-		}
-		return NULL;
-	}
-	return z;
-}
+void si_schemeinit(sischeme*);
+void si_schemefree(sischeme*, sr*);
+int  si_schemedeploy(sischeme*, sr*);
+int  si_schemerecover(sischeme*, sr*);
 
 #endif
 #line 1 "sophia/index/si_branch.h"
@@ -18827,9 +20883,9 @@ si_branchinit(sibranch *b) {
 static inline sibranch*
 si_branchnew(sr *r)
 {
-	sibranch *b = (sibranch*)sr_malloc(r->a, sizeof(sibranch));
-	if (srunlikely(b == NULL)) {
-		sr_malfunction(r->e, "%s", "memory allocation failed");
+	sibranch *b = (sibranch*)ss_malloc(r->a, sizeof(sibranch));
+	if (ssunlikely(b == NULL)) {
+		sr_oom_malfunction(r->e);
 		return NULL;
 	}
 	si_branchinit(b);
@@ -18847,7 +20903,7 @@ static inline void
 si_branchfree(sibranch *b, sr *r)
 {
 	sd_indexfree(&b->index, r);
-	sr_free(r->a, b);
+	ss_free(r->a, b);
 }
 
 #endif
@@ -18867,7 +20923,7 @@ typedef struct sinode sinode;
 
 #define SI_NONE       0
 #define SI_LOCK       1
-#define SI_I1         2
+#define SI_ROTATE     2
 
 #define SI_RDB        16
 #define SI_RDB_DBI    32
@@ -18885,37 +20941,23 @@ struct sinode {
 	sibranch *branch;
 	uint32_t  branch_count;
 	svindex   i0, i1;
-	srfile    file;
-	srrbnode  node;
-	srrqnode  nodecompact;
-	srrqnode  nodebranch;
-	srlist    commit;
-} srpacked;
+	ssfile    file;
+	ssmmap    map, map_swap;
+	ssrbnode  node;
+	ssrqnode  nodecompact;
+	ssrqnode  nodebranch;
+	sslist    commit;
+} sspacked;
 
 sinode *si_nodenew(sr*);
-int si_nodeopen(sinode*, sr*, srpath*);
-int si_nodecreate(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
+int si_nodeopen(sinode*, sr*, sischeme*, sspath*);
+int si_nodecreate(sinode*, sr*, sischeme*, sdid*, sdindex*, sdbuild*);
 int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);
-
+int si_nodemap(sinode*, sr*);
 int si_nodesync(sinode*, sr*);
-int si_nodecmp(sinode*, void*, int, srcomparator*);
-int si_nodeseal(sinode*, sr*, siconf*);
-int si_nodecomplete(sinode*, sr*, siconf*);
-
-static inline svindex*
-si_noderotate(sinode *node) {
-	node->flags |= SI_I1;
-	return &node->i0;
-}
-
-static inline void
-si_nodeunrotate(sinode *node) {
-	assert((node->flags & SI_I1) > 0);
-	node->flags &= ~SI_I1;
-	node->i0 = node->i1;
-	sv_indexinit(&node->i1);
-}
+int si_nodeseal(sinode*, sr*, sischeme*);
+int si_nodecomplete(sinode*, sr*, sischeme*);
 
 static inline void
 si_nodelock(sinode *node) {
@@ -18930,15 +20972,60 @@ si_nodeunlock(sinode *node) {
 }
 
 static inline svindex*
+si_noderotate(sinode *node) {
+	node->flags |= SI_ROTATE;
+	return &node->i0;
+}
+
+static inline void
+si_nodeunrotate(sinode *node) {
+	assert((node->flags & SI_ROTATE) > 0);
+	node->flags &= ~SI_ROTATE;
+	node->i0 = node->i1;
+	sv_indexinit(&node->i1);
+}
+
+static inline svindex*
 si_nodeindex(sinode *node) {
-	if (node->flags & SI_I1)
+	if (node->flags & SI_ROTATE)
 		return &node->i1;
 	return &node->i0;
 }
 
+static inline svindex*
+si_nodeindex_priority(sinode *node, svindex **second)
+{
+	if (ssunlikely(node->flags & SI_ROTATE)) {
+		*second = &node->i0;
+		return &node->i1;
+	}
+	*second = NULL;
+	return &node->i0;
+}
+
 static inline sinode*
-si_nodeof(srrbnode *node) {
-	return srcast(node, sinode, node);
+si_nodeof(ssrbnode *node) {
+	return sscast(node, sinode, node);
+}
+
+static inline int
+si_nodecmp(sinode *n, void *key, int size, srscheme *s)
+{
+	sdindexpage *min = sd_indexmin(&n->self.index);
+	sdindexpage *max = sd_indexmax(&n->self.index);
+	int l = sr_compare(s, sd_indexpage_min(&n->self.index, min),
+	                   min->sizemin, key, size);
+	int r = sr_compare(s, sd_indexpage_max(&n->self.index, max),
+	                   max->sizemax, key, size);
+	/* inside range */
+	if (l <= 0 && r >= 0)
+		return 0;
+	/* key > range */
+	if (l == -1)
+		return -1;
+	/* key < range */
+	assert(r == 1);
+	return 1;
 }
 
 #endif
@@ -18958,8 +21045,9 @@ typedef struct siplanner siplanner;
 typedef struct siplan siplan;
 
 struct siplanner {
-	srrq branch;
-	srrq compact;
+	void *i;
+	ssrq branch;
+	ssrq compact;
 };
 
 /* plan */
@@ -18969,8 +21057,9 @@ struct siplanner {
 #define SI_CHECKPOINT    8
 #define SI_GC            16
 #define SI_BACKUP        32
-#define SI_SHUTDOWN      64
-#define SI_DROP          128
+#define SI_BACKUPEND     64
+#define SI_SHUTDOWN      128
+#define SI_DROP          256
 
 /* explain */
 #define SI_ENONE         0
@@ -19014,9 +21103,9 @@ struct siplan {
 };
 
 int si_planinit(siplan*);
-int si_plannerinit(siplanner*, sra*);
-int si_plannerfree(siplanner*, sra*);
-int si_plannertrace(siplan*, srtrace*);
+int si_plannerinit(siplanner*, ssa*, void*);
+int si_plannerfree(siplanner*, ssa*);
+int si_plannertrace(siplan*, sstrace*);
 int si_plannerupdate(siplanner*, int, sinode*);
 int si_plannerremove(siplanner*, int, sinode*);
 int si_planner(siplanner*, siplan*);
@@ -19037,43 +21126,281 @@ int si_planner(siplanner*, siplan*);
 typedef struct si si;
 
 struct si {
-	srmutex lock;
-	srcond cond;
+	ssmutex lock;
 	siplanner p;
-	srrb i;
+	ssrb i;
 	int n;
 	int destroyed;
+	uint32_t backup;
 	uint64_t update_time;
 	uint64_t read_disk;
 	uint64_t read_cache;
-	srbuf readbuf;
-	srquota *quota;
-	siconf *conf;
+	ssbuf readbuf;
+	svupdate u;
+	sischeme *scheme;
+	sr *r;
 };
 
 static inline void
 si_lock(si *i) {
-	sr_mutexlock(&i->lock);
+	ss_mutexlock(&i->lock);
 }
 
 static inline void
 si_unlock(si *i) {
-	sr_mutexunlock(&i->lock);
+	ss_mutexunlock(&i->lock);
 }
 
-int si_init(si*, sr*, srquota*);
-int si_open(si*, sr*, siconf*);
-int si_close(si*, sr*);
-int si_insert(si*, sr*, sinode*);
+int si_init(si*, sr*);
+int si_open(si*, sischeme*);
+int si_close(si*);
+int si_insert(si*, sinode*);
 int si_remove(si*, sinode*);
 int si_replace(si*, sinode*, sinode*);
 int si_plan(si*, siplan*);
-int si_execute(si*, sr*, sdc*, siplan*, uint64_t);
+int si_execute(si*, sdc*, siplan*, uint64_t);
 
 #endif
-#line 1 "sophia/index/si_commit.h"
-#ifndef SI_COMMIT_H_
-#define SI_COMMIT_H_
+#line 1 "sophia/index/si_gc.h"
+#ifndef SI_GC_H_
+#define SI_GC_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+uint32_t si_gcv(ssa*, svv*);
+
+#endif
+#line 1 "sophia/index/si_read.h"
+#ifndef SI_READ_H_
+#define SI_READ_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct siread siread;
+typedef struct sireadarg sireadarg;
+
+struct sireadarg {
+	sischeme *scheme;
+	si       *index;
+	sinode   *n;
+	sibranch *b;
+	ssbuf    *buf;
+	ssbuf    *buf_xf;
+	ssbuf    *buf_read;
+	ssiter   *index_iter;
+	ssiter   *page_iter;
+	uint64_t  vlsn;
+	int       has;
+	int       mmap_copy;
+	ssorder   o;
+	sr       *r;
+};
+
+struct siread {
+	sireadarg ra;
+	sdindexpage *ref;
+	sdpage page;
+} sspacked;
+
+static inline int
+si_read_page(siread *i, sdindexpage *ref)
+{
+	sireadarg *arg = &i->ra;
+	sr *r = arg->r;
+
+	arg->index->read_disk++;
+
+	ss_bufreset(arg->buf_xf);
+	int rc = ss_bufensure(arg->buf_xf, r->a, arg->b->index.h->sizevmax);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	ss_bufreset(arg->buf);
+	rc = ss_bufensure(arg->buf, r->a, ref->sizeorigin);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+
+	uint64_t offset =
+		arg->b->index.h->offset + sd_indexsize(arg->b->index.h) +
+		ref->offset;
+
+	/* compression */
+	if (i->ra.scheme->compression)
+	{
+		char *page_pointer;
+		if (! i->ra.scheme->mmap) {
+			ss_bufreset(arg->buf_read);
+			rc = ss_bufensure(arg->buf_read, r->a, ref->size);
+			if (ssunlikely(rc == -1))
+				return sr_oom(r->e);
+			rc = ss_filepread(&arg->n->file, offset, arg->buf_read->s, ref->size);
+			if (ssunlikely(rc == -1)) {
+				sr_error(r->e, "db file '%s' read error: %s",
+				         arg->n->file.file, strerror(errno));
+				return -1;
+			}
+			ss_bufadvance(arg->buf_read, ref->size);
+			page_pointer = arg->buf_read->s;
+		} else {
+			page_pointer = arg->n->map.p + offset;
+		}
+
+		/* copy header */
+		memcpy(arg->buf->p, page_pointer, sizeof(sdpageheader));
+		ss_bufadvance(arg->buf, sizeof(sdpageheader));
+
+		/* decompression */
+		ssfilter f;
+		rc = ss_filterinit(&f, (ssfilterif*)r->compression, r->a, SS_FOUTPUT);
+		if (ssunlikely(rc == -1)) {
+			sr_error(r->e, "db file '%s' decompression error", arg->n->file.file);
+			return -1;
+		}
+		int size = ref->size - sizeof(sdpageheader);
+		rc = ss_filternext(&f, arg->buf, page_pointer + sizeof(sdpageheader), size);
+		if (ssunlikely(rc == -1)) {
+			sr_error(r->e, "db file '%s' decompression error", arg->n->file.file);
+			return -1;
+		}
+		ss_filterfree(&f);
+		sd_pageinit(&i->page, (sdpageheader*)arg->buf->s);
+		return 0;
+	}
+
+	/* mmap */
+	if (i->ra.scheme->mmap) {
+		if (i->ra.mmap_copy) {
+			memcpy(arg->buf->s, arg->n->map.p + offset, ref->sizeorigin);
+			sd_pageinit(&i->page, (sdpageheader*)(arg->buf->s));
+		} else {
+			sd_pageinit(&i->page, (sdpageheader*)(arg->n->map.p + offset));
+		}
+		return 0;
+	}
+
+	/* default */
+	rc = ss_filepread(&arg->n->file, offset, arg->buf->s, ref->sizeorigin);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' read error: %s",
+		         arg->n->file.file, strerror(errno));
+		return -1;
+	}
+	ss_bufadvance(arg->buf, ref->sizeorigin);
+	sd_pageinit(&i->page, (sdpageheader*)(arg->buf->s));
+	return 0;
+}
+
+static inline int
+si_read_openpage(siread *i, void *key, int keysize)
+{
+	sireadarg *arg = &i->ra;
+	assert(i->ref != NULL);
+	int rc = si_read_page(i, i->ref);
+	if (ssunlikely(rc == -1))
+		return -1;
+	ss_iterinit(sd_pageiter, arg->page_iter);
+	return ss_iteropen(sd_pageiter, arg->page_iter, arg->r,
+	                   arg->buf_xf,
+	                   &i->page, arg->o, key, keysize);
+}
+
+static inline void
+si_read_next(ssiter*);
+
+static inline int
+si_read_open(ssiter *iptr, sireadarg *arg, void *key, int keysize)
+{
+	siread *i = (siread*)iptr->priv;
+	i->ra = *arg;
+	ss_iterinit(sd_indexiter, arg->index_iter);
+	ss_iteropen(sd_indexiter, arg->index_iter, arg->r, &arg->b->index,
+	            arg->o, key, keysize);
+	i->ref = ss_iterof(sd_indexiter, arg->index_iter);
+	if (i->ref == NULL)
+		return 0;
+	if (ssunlikely(arg->has)) {
+		assert(arg->o == SS_GTE);
+		if (i->ref->lsnmax <= arg->vlsn) {
+			i->ref = NULL;
+			return 0;
+		}
+	}
+	int rc = si_read_openpage(i, key, keysize);
+	if (ssunlikely(rc == -1)) {
+		i->ref = NULL;
+		return -1;
+	}
+	if (ssunlikely(! ss_iterhas(sd_pageiter, i->ra.page_iter))) {
+		si_read_next(iptr);
+		rc = 0;
+	}
+	return rc;
+}
+
+static inline void
+si_read_close(ssiter *iptr)
+{
+	siread *i = (siread*)iptr->priv;
+	i->ref = NULL;
+}
+
+static inline int
+si_read_has(ssiter *iptr)
+{
+	siread *i = (siread*)iptr->priv;
+	if (ssunlikely(i->ref == NULL))
+		return 0;
+	return ss_iterhas(sd_pageiter, i->ra.page_iter);
+}
+
+static inline void*
+si_read_of(ssiter *iptr)
+{
+	siread *i = (siread*)iptr->priv;
+	if (ssunlikely(i->ref == NULL))
+		return NULL;
+	return ss_iterof(sd_pageiter, i->ra.page_iter);
+}
+
+static inline void
+si_read_next(ssiter *iptr)
+{
+	siread *i = (siread*)iptr->priv;
+	if (ssunlikely(i->ref == NULL))
+		return;
+	ss_iternext(sd_pageiter, i->ra.page_iter);
+retry:
+	if (sslikely(ss_iterhas(sd_pageiter, i->ra.page_iter)))
+		return;
+	ss_iternext(sd_indexiter, i->ra.index_iter);
+	i->ref = ss_iterof(sd_indexiter, i->ra.index_iter);
+	if (i->ref == NULL)
+		return;
+	int rc = si_read_openpage(i, NULL, 0);
+	if (ssunlikely(rc == -1)) {
+		i->ref = NULL;
+		return;
+	}
+	goto retry;
+}
+
+extern ssiterif si_read;
+
+#endif
+#line 1 "sophia/index/si_write.h"
+#ifndef SI_WRITE_H_
+#define SI_WRITE_H_
 
 /*
  * sophia database
@@ -19088,14 +21415,13 @@ typedef struct sitx sitx;
 struct sitx {
 	uint64_t time;
 	uint64_t vlsn;
-	srlist nodelist;
+	sslist nodelist;
 	svlog *l;
 	svlogindex *li;
 	si *index;
-	sr *r;
 };
 
-void si_begin(sitx*, sr*, si*, uint64_t, uint64_t,
+void si_begin(sitx*, si*, uint64_t, uint64_t,
               svlog*, svlogindex*);
 void si_commit(sitx*);
 void si_write(sitx*, int);
@@ -19115,34 +21441,48 @@ void si_write(sitx*, int);
 
 typedef struct sicachebranch sicachebranch;
 typedef struct sicache sicache;
+typedef struct sicachepool sicachepool;
 
 struct sicachebranch {
 	sibranch *branch;
 	sdindexpage *ref;
-	sriter i;
-	srbuf buf;
-	int iterate;
+	sdpage page;
+	ssiter i;
+	ssiter page_iter;
+	ssiter index_iter;
+	ssbuf buf_a;
+	ssbuf buf_b;
+	int open;
 	sicachebranch *next;
-} srpacked;
+} sspacked;
 
 struct sicache {
-	sra *ac;
 	sicachebranch *path;
 	sicachebranch *branch;
 	uint32_t count;
 	uint32_t nodeid;
 	sinode *node;
+	sicache *next;
+	sicachepool *pool;
+};
+
+struct sicachepool {
+	sicache *head;
+	int n;
+	ssa *ac;
+	ssa *acb;
 };
 
 static inline void
-si_cacheinit(sicache *c, sra *ac)
+si_cacheinit(sicache *c, sicachepool *pool)
 {
 	c->path   = NULL;
 	c->branch = NULL;
 	c->count  = 0;
 	c->node   = NULL;
 	c->nodeid = 0;
-	c->ac     = ac;
+	c->next   = NULL;
+	c->pool   = pool;
 }
 
 static inline void
@@ -19152,8 +21492,9 @@ si_cachefree(sicache *c, sr *r)
 	sicachebranch *cb = c->path;
 	while (cb) {
 		next = cb->next;
-		sr_buffree(&cb->buf, r->a);
-		sr_free(c->ac, cb);
+		ss_buffree(&cb->buf_a, r->a);
+		ss_buffree(&cb->buf_b, r->a);
+		ss_free(c->pool->acb, cb);
 		cb = next;
 	}
 }
@@ -19163,10 +21504,12 @@ si_cachereset(sicache *c)
 {
 	sicachebranch *cb = c->path;
 	while (cb) {
-		sr_bufreset(&cb->buf);
+		ss_bufreset(&cb->buf_a);
+		ss_bufreset(&cb->buf_b);
 		cb->branch = NULL;
 		cb->ref = NULL;
-		cb->iterate = 0;
+		ss_iterclose(si_read, &cb->i);
+		cb->open = 0;
 		cb = cb->next;
 	}
 	c->branch = NULL;
@@ -19178,23 +21521,26 @@ si_cachereset(sicache *c)
 static inline sicachebranch*
 si_cacheadd(sicache *c, sibranch *b)
 {
-	sicachebranch *nb = sr_malloc(c->ac, sizeof(sicachebranch));
-	if (srunlikely(nb == NULL))
+	sicachebranch *nb = ss_malloc(c->pool->acb, sizeof(sicachebranch));
+	if (ssunlikely(nb == NULL))
 		return NULL;
 	nb->branch  = b;
 	nb->ref     = NULL;
-	nb->iterate = 0;
+	memset(&nb->i, 0, sizeof(nb->i));
+	ss_iterinit(si_read, &nb->i);
+	nb->open    = 0;
 	nb->next    = NULL;
-	sr_bufinit(&nb->buf);
+	ss_bufinit(&nb->buf_a);
+	ss_bufinit(&nb->buf_b);
 	return nb;
 }
 
 static inline int
 si_cachevalidate(sicache *c, sinode *n)
 {
-	if (srlikely(c->node == n && c->nodeid == n->self.id.id))
+	if (sslikely(c->node == n && c->nodeid == n->self.id.id))
 	{
-		if (srlikely(n->branch_count == c->count)) {
+		if (sslikely(n->branch_count == c->count)) {
 			c->branch = c->path;
 			return 0;
 		}
@@ -19212,7 +21558,7 @@ si_cachevalidate(sicache *c, sinode *n)
 				break;
 			}
 			sicachebranch *nb = si_cacheadd(c, b);
-			if (srunlikely(nb == NULL))
+			if (ssunlikely(nb == NULL))
 				return -1;
 			if (! head)
 				head = nb;
@@ -19232,14 +21578,17 @@ si_cachevalidate(sicache *c, sinode *n)
 	while (cb && b) {
 		cb->branch = b;
 		cb->ref = NULL;
-		sr_bufreset(&cb->buf);
+		cb->open = 0;
+		ss_iterclose(si_read, &cb->i);
+		ss_bufreset(&cb->buf_a);
+		ss_bufreset(&cb->buf_b);
 		last = cb;
 		cb = cb->next;
 		b  = b->next;
 	}
 	while (b) {
 		cb = si_cacheadd(c, b);
-		if (srunlikely(cb == NULL))
+		if (ssunlikely(cb == NULL))
 			return -1;
 		if (last)
 			last->next = cb;
@@ -19263,6 +21612,55 @@ si_cachefollow(sicache *c)
 	return b;
 }
 
+static inline void
+si_cachepool_init(sicachepool *p, ssa *ac, ssa *acb)
+{
+	p->head = NULL;
+	p->n    = 0;
+	p->ac   = ac;
+	p->acb  = acb;
+}
+
+static inline void
+si_cachepool_free(sicachepool *p, sr *r)
+{
+	sicache *next;
+	sicache *c = p->head;
+	while (c) {
+		next = c->next;
+		si_cachefree(c, r);
+		c = next;
+	}
+}
+
+static inline sicache*
+si_cachepool_pop(sicachepool *p)
+{
+	sicache *c;
+	if (sslikely(p->n > 0)) {
+		c = p->head;
+		p->head = c->next;
+		p->n--;
+		si_cachereset(c);
+		c->pool = p;
+		return c;
+	}
+	c = ss_malloc(p->ac, sizeof(sicache));
+	if (ssunlikely(c == NULL))
+		return NULL;
+	si_cacheinit(c, p);
+	return c;
+}
+
+static inline void
+si_cachepool_push(sicache *c)
+{
+	sicachepool *p = c->pool;
+	c->next = p->head;
+	p->head = c;
+	p->n++;
+}
+
 #endif
 #line 1 "sophia/index/si_query.h"
 #ifndef SI_QUERY_H_
@@ -19279,26 +21677,31 @@ si_cachefollow(sicache *c)
 typedef struct siquery siquery;
 
 struct siquery {
-	srorder order;
+	ssorder order;
 	void *prefix;
 	void *key;
 	uint32_t keysize;
 	uint32_t prefixsize;
 	uint64_t vlsn;
 	svmerge merge;
+	int has;
+	sv *update_v;
+	int update_eq;
 	sv result;
 	sicache *cache;
 	sr *r;
 	si *index;
 };
 
-int si_queryopen(siquery*, sr*, sicache*, si*, srorder, uint64_t,
-                 void*, uint32_t,
-                 void*, uint32_t);
-int si_queryclose(siquery*);
-int si_querydup(siquery*, sv*);
-int si_query(siquery*);
-int si_querycommited(si*, sr*, sv*);
+int  si_queryopen(siquery*, sicache*, si*, ssorder,
+                  uint64_t,
+                  void*, uint32_t,
+                  void*, uint32_t);
+int  si_queryclose(siquery*);
+void si_queryhas(siquery*);
+void si_queryupdate(siquery*, sv*, int);
+int  si_query(siquery*);
+int  si_querycommited(si*, sr*, sv*);
 
 #endif
 #line 1 "sophia/index/si_iter.h"
@@ -19317,17 +21720,17 @@ typedef struct siiter siiter;
 
 struct siiter {
 	si *index;
-	srrbnode *v;
-	srorder order;
+	ssrbnode *v;
+	ssorder order;
 	void *key;
 	int keysize;
-} srpacked;
+} sspacked;
 
-sr_rbget(si_itermatch,
-         si_nodecmp(srcast(n, sinode, node), key, keysize, cmp))
+ss_rbget(si_itermatch,
+         si_nodecmp(sscast(n, sinode, node), key, keysize, scheme))
 
 static inline int
-si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
+si_iter_open(ssiter *i, sr *r, si *index, ssorder o, void *key, int keysize)
 {
 	siiter *ii = (siiter*)i->priv;
 	ii->index   = index;
@@ -19336,139 +21739,87 @@ si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
 	ii->keysize = keysize;
 	ii->v       = NULL;
 	int eq = 0;
-	if (srunlikely(ii->index->n == 1)) {
-		ii->v = sr_rbmin(&ii->index->i);
+	if (ssunlikely(ii->index->n == 1)) {
+		ii->v = ss_rbmin(&ii->index->i);
 		return 1;
 	}
+	if (ssunlikely(ii->key == NULL)) {
+		switch (ii->order) {
+		case SS_LT:
+		case SS_LTE:
+			ii->v = ss_rbmax(&ii->index->i);
+			break;
+		case SS_GT:
+		case SS_GTE:
+			ii->v = ss_rbmin(&ii->index->i);
+			break;
+		default:
+			assert(0);
+			break;
+		}
+		return 0;
+	}
+	/* route */
+	assert(ii->key != NULL);
 	int rc;
-	switch (ii->order) {
-	case SR_LT:
-	case SR_LTE:
-		if (srunlikely(ii->key == NULL)) {
-			ii->v = sr_rbmax(&ii->index->i);
-			break;
+	rc = si_itermatch(&ii->index->i, r->scheme, ii->key, ii->keysize, &ii->v);
+	if (ssunlikely(ii->v == NULL)) {
+		assert(rc != 0);
+		if (rc == 1)
+			ii->v = ss_rbmin(&ii->index->i);
+		else
+			ii->v = ss_rbmax(&ii->index->i);
+	} else {
+		eq = rc == 0 && ii->v;
+		if (rc == 1) {
+			ii->v = ss_rbprev(&ii->index->i, ii->v);
+			if (ssunlikely(ii->v == NULL))
+				ii->v = ss_rbmin(&ii->index->i);
 		}
-		rc = si_itermatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
-		if (ii->v == NULL)
-			break;
-		switch (rc) {
-		case 0:
-			if (ii->order == SR_LT) {
-				eq = 1;
-				sinode *n = si_nodeof(ii->v);
-				sdindexpage *min = sd_indexmin(&n->self.index);
-				int l = sr_compare(i->r->cmp, sd_indexpage_min(min), min->sizemin,
-				                   ii->key, ii->keysize);
-				if (srunlikely(l == 0))
-					ii->v = sr_rbprev(&ii->index->i, ii->v);
-			}
-			break;
-		case 1:
-			ii->v = sr_rbprev(&ii->index->i, ii->v);
-			break;
-		}
-		break;
-	case SR_GT:
-	case SR_GTE:
-		if (srunlikely(ii->key == NULL)) {
-			ii->v = sr_rbmin(&ii->index->i);
-			break;
-		}
-		rc = si_itermatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
-		if (ii->v == NULL)
-			break;
-		switch (rc) {
-		case  0:
-			if (ii->order == SR_GT) {
-				eq = 1;
-				sinode *n = si_nodeof(ii->v);
-				sdindexpage *max = sd_indexmax(&n->self.index);
-				int r = sr_compare(i->r->cmp, sd_indexpage_max(max), max->sizemax,
-				                   ii->key, ii->keysize);
-				if (srunlikely(r == 0))
-					ii->v = sr_rbnext(&ii->index->i, ii->v);
-			}
-			break;
-		case -1:
-			ii->v = sr_rbnext(&ii->index->i, ii->v);
-			break;
-		}
-		break;
-	case SR_ROUTE:
-		assert(ii->key != NULL);
-		rc = si_itermatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
-		if (srunlikely(ii->v == NULL)) {
-			assert(rc != 0);
-			if (rc == 1)
-				ii->v = sr_rbmin(&ii->index->i);
-			else
-				ii->v = sr_rbmax(&ii->index->i);
-		} else {
-			eq = rc == 0 && ii->v;
-			if (rc == 1) {
-				ii->v = sr_rbprev(&ii->index->i, ii->v);
-				if (srunlikely(ii->v == NULL))
-					ii->v = sr_rbmin(&ii->index->i);
-			}
-		}
-		assert(ii->v != NULL);
-		break;
-	case SR_RANDOM: {
-		assert(ii->key != NULL);
-		uint32_t rnd = *(uint32_t*)ii->key;
-		rnd %= ii->index->n;
-		ii->v = sr_rbmin(&ii->index->i);
-		uint32_t pos = 0;
-		while (pos != rnd) {
-			ii->v = sr_rbnext(&ii->index->i, ii->v);
-			pos++;
-		}
-		break;
 	}
-	default: assert(0);
-	}
+	assert(ii->v != NULL);
 	return eq;
 }
 
 static inline void
-si_iter_close(sriter *i srunused)
+si_iter_close(ssiter *i ssunused)
 { }
 
 static inline int
-si_iter_has(sriter *i)
+si_iter_has(ssiter *i)
 {
 	siiter *ii = (siiter*)i->priv;
 	return ii->v != NULL;
 }
 
 static inline void*
-si_iter_of(sriter *i)
+si_iter_of(ssiter *i)
 {
 	siiter *ii = (siiter*)i->priv;
-	if (srunlikely(ii->v == NULL))
+	if (ssunlikely(ii->v == NULL))
 		return NULL;
 	sinode *n = si_nodeof(ii->v);
 	return n;
 }
 
 static inline void
-si_iter_next(sriter *i)
+si_iter_next(ssiter *i)
 {
 	siiter *ii = (siiter*)i->priv;
 	switch (ii->order) {
-	case SR_LT:
-	case SR_LTE:
-		ii->v = sr_rbprev(&ii->index->i, ii->v);
+	case SS_LT:
+	case SS_LTE:
+		ii->v = ss_rbprev(&ii->index->i, ii->v);
 		break;
-	case SR_GT:
-	case SR_GTE:
-		ii->v = sr_rbnext(&ii->index->i, ii->v);
+	case SS_GT:
+	case SS_GTE:
+		ii->v = ss_rbnext(&ii->index->i, ii->v);
 		break;
 	default: assert(0);
 	}
 }
 
-extern sriterif si_iter;
+extern ssiterif si_iter;
 
 #endif
 #line 1 "sophia/index/si_drop.h"
@@ -19483,8 +21834,9 @@ extern sriterif si_iter;
  * BSD License
 */
 
-int si_dropmark(si*, sr*);
-int si_drop(si*, sr*);
+int si_drop(si*);
+int si_dropmark(si*);
+int si_droprepository(sischeme*, sr*, int);
 
 #endif
 #line 1 "sophia/index/si_backup.h"
@@ -19499,7 +21851,7 @@ int si_drop(si*, sr*);
  * BSD License
 */
 
-int si_backup(si*, sr*, sdc*, siplan*);
+int si_backup(si*, sdc*, siplan*);
 
 #endif
 #line 1 "sophia/index/si_balance.h"
@@ -19514,8 +21866,8 @@ int si_backup(si*, sr*, sdc*, siplan*);
  * BSD License
 */
 
-int si_branch(si*, sr*, sdc*, siplan*, uint64_t);
-int si_compact(si*, sr*, sdc*, siplan*, uint64_t);
+int si_branch(si*, sdc*, siplan*, uint64_t);
+int si_compact(si*, sdc*, siplan*, uint64_t);
 
 #endif
 #line 1 "sophia/index/si_compaction.h"
@@ -19530,8 +21882,7 @@ int si_compact(si*, sr*, sdc*, siplan*, uint64_t);
  * BSD License
 */
 
-int si_compaction(si*, sr*, sdc*, uint64_t, sinode*, sriter*,
-                  uint32_t, uint32_t);
+int si_compaction(si*, sdc*, uint64_t, sinode*, ssiter*, uint32_t);
 
 #endif
 #line 1 "sophia/index/si_track.h"
@@ -19549,7 +21900,7 @@ int si_compaction(si*, sr*, sdc*, uint64_t, sinode*, sriter*,
 typedef struct sitrack sitrack;
 
 struct sitrack {
-	srrb i;
+	ssrb i;
 	int count;
 	uint32_t nsn;
 	uint64_t lsn;
@@ -19557,14 +21908,14 @@ struct sitrack {
 
 static inline void
 si_trackinit(sitrack *t) {
-	sr_rbinit(&t->i);
+	ss_rbinit(&t->i);
 	t->count = 0;
 	t->nsn = 0;
 	t->lsn = 0;
 }
 
-sr_rbtruncate(si_tracktruncate,
-              si_nodefree(srcast(n, sinode, node), (sr*)arg, 0))
+ss_rbtruncate(si_tracktruncate,
+              si_nodefree(sscast(n, sinode, node), (sr*)arg, 0))
 
 static inline void
 si_trackfree(sitrack *t, sr *r) {
@@ -19597,41 +21948,39 @@ si_tracknsn(sitrack *t, uint32_t nsn)
 		t->nsn = nsn;
 }
 
-sr_rbget(si_trackmatch,
-         sr_cmpu32((char*)&(srcast(n, sinode, node))->self.id.id, sizeof(uint32_t),
-                   (char*)key, sizeof(uint32_t), NULL))
+ss_rbget(si_trackmatch, ss_cmp((sscast(n, sinode, node))->self.id.id, *(uint32_t*)key))
 
 static inline void
 si_trackset(sitrack *t, sinode *n)
 {
-	srrbnode *p = NULL;
+	ssrbnode *p = NULL;
 	int rc = si_trackmatch(&t->i, NULL, (char*)&n->self.id.id,
 	                       sizeof(n->self.id.id), &p);
 	assert(! (rc == 0 && p));
-	sr_rbset(&t->i, p, rc, &n->node);
+	ss_rbset(&t->i, p, rc, &n->node);
 	t->count++;
 }
 
 static inline sinode*
 si_trackget(sitrack *t, uint32_t id)
 {
-	srrbnode *p = NULL;
+	ssrbnode *p = NULL;
 	int rc = si_trackmatch(&t->i, NULL, (char*)&id, sizeof(id), &p);
 	if (rc == 0 && p)
-		return srcast(p, sinode, node);
+		return sscast(p, sinode, node);
 	return NULL;
 }
 
 static inline void
 si_trackreplace(sitrack *t, sinode *o, sinode *n)
 {
-	sr_rbreplace(&t->i, &o->node, &n->node);
+	ss_rbreplace(&t->i, &o->node, &n->node);
 }
 
 static inline void
 si_trackremove(sitrack *t, sinode *n)
 {
-	sr_rbremove(&t->i, &n->node);
+	ss_rbremove(&t->i, &n->node);
 	t->count--;
 }
 
@@ -19648,8 +21997,8 @@ si_trackremove(sitrack *t, sinode *n)
  * BSD License
 */
 
-sinode *si_bootstrap(si*, sr*, uint32_t);
-int si_recover(si*, sr*);
+sinode *si_bootstrap(si*, uint32_t);
+int si_recover(si*);
 
 #endif
 #line 1 "sophia/index/si_profiler.h"
@@ -19670,9 +22019,11 @@ struct siprofiler {
 	si *i;
 	uint32_t  total_node_count;
 	uint64_t  total_node_size;
+	uint64_t  total_node_origin_size;
 	uint32_t  total_branch_count;
 	uint32_t  total_branch_avg;
 	uint32_t  total_branch_max;
+	uint32_t  total_page_count;
 	uint64_t  memory_used;
 	uint64_t  count;
 	uint64_t  count_dup;
@@ -19682,7 +22033,7 @@ struct siprofiler {
 	int       histogram_branch_20plus;
 	char      histogram_branch_sz[512];
 	char     *histogram_branch_ptr;
-} srpacked;
+} sspacked;
 
 int si_profilerbegin(siprofiler*, si*);
 int si_profilerend(siprofiler*);
@@ -19704,76 +22055,82 @@ int si_profiler(siprofiler*);
 
 
 
-int si_init(si *i, sr *r, srquota *q)
+
+
+int si_init(si *i, sr *r)
 {
-	int rc = si_plannerinit(&i->p, r->a);
-	if (srunlikely(rc == -1))
+	int rc = si_plannerinit(&i->p, r->a, i);
+	if (ssunlikely(rc == -1))
 		return -1;
-	sr_bufinit(&i->readbuf);
-	sr_rbinit(&i->i);
-	sr_mutexinit(&i->lock);
-	sr_condinit(&i->cond);
-	i->quota       = q;
-	i->conf        = NULL;
+	ss_bufinit(&i->readbuf);
+	sv_updateinit(&i->u);
+	ss_rbinit(&i->i);
+	ss_mutexinit(&i->lock);
+	i->scheme      = NULL;
 	i->update_time = 0;
 	i->read_disk   = 0;
 	i->read_cache  = 0;
+	i->backup      = 0;
 	i->destroyed   = 0;
+	i->r           = r;
 	return 0;
 }
 
-int si_open(si *i, sr *r, siconf *conf)
+int si_open(si *i, sischeme *scheme)
 {
-	i->conf = conf;
-	return si_recover(i, r);
+	i->scheme = scheme;
+	return si_recover(i);
 }
 
-sr_rbtruncate(si_truncate,
-              si_nodefree(srcast(n, sinode, node), (sr*)arg, 0))
+ss_rbtruncate(si_truncate,
+              si_nodefree(sscast(n, sinode, node), (sr*)arg, 0))
 
-int si_close(si *i, sr *r)
+int si_close(si *i)
 {
 	if (i->destroyed)
 		return 0;
 	int rcret = 0;
 	if (i->i.root)
-		si_truncate(i->i.root, r);
+		si_truncate(i->i.root, i->r);
 	i->i.root = NULL;
-	sr_buffree(&i->readbuf, r->a);
-	si_plannerfree(&i->p, r->a);
-	sr_condfree(&i->cond);
-	sr_mutexfree(&i->lock);
+	sv_updatefree(&i->u, i->r);
+	ss_buffree(&i->readbuf, i->r->a);
+	si_plannerfree(&i->p, i->r->a);
+	ss_mutexfree(&i->lock);
 	i->destroyed = 1;
 	return rcret;
 }
 
-sr_rbget(si_match,
-         sr_compare(cmp,
-                    sd_indexpage_min(sd_indexmin(&(srcast(n, sinode, node))->self.index)),
-                    sd_indexmin(&(srcast(n, sinode, node))->self.index)->sizemin,
-                    key, keysize))
+ss_rbget(si_match,
+         sr_compare(scheme,
+                    sd_indexpage_min(&(sscast(n, sinode, node))->self.index,
+                                     sd_indexmin(&(sscast(n, sinode, node))->self.index)),
+                    sd_indexmin(&(sscast(n, sinode, node))->self.index)->sizemin,
+                                key, keysize))
 
-int si_insert(si *i, sr *r, sinode *n)
+int si_insert(si *i, sinode *n)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
-	srrbnode *p = NULL;
-	int rc = si_match(&i->i, r->cmp, sd_indexpage_min(min), min->sizemin, &p);
+	ssrbnode *p = NULL;
+	int rc = si_match(&i->i, i->r->scheme,
+	                  sd_indexpage_min(&n->self.index, min),
+	                  min->sizemin, &p);
 	assert(! (rc == 0 && p));
-	sr_rbset(&i->i, p, rc, &n->node);
+	ss_rbset(&i->i, p, rc, &n->node);
 	i->n++;
 	return 0;
 }
 
 int si_remove(si *i, sinode *n)
 {
-	sr_rbremove(&i->i, &n->node);
+	ss_rbremove(&i->i, &n->node);
 	i->n--;
 	return 0;
 }
 
 int si_replace(si *i, sinode *o, sinode *n)
 {
-	sr_rbreplace(&i->i, &o->node, &n->node);
+	ss_rbreplace(&i->i, &o->node, &n->node);
 	return 0;
 }
 
@@ -19785,27 +22142,28 @@ int si_plan(si *i, siplan *plan)
 	return rc;
 }
 
-int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	int rc = -1;
 	switch (plan->plan) {
 	case SI_CHECKPOINT:
 	case SI_BRANCH:
 	case SI_AGE:
-		rc = si_branch(i, r, c, plan, vlsn);
+		rc = si_branch(i, c, plan, vlsn);
 		break;
 	case SI_GC:
 	case SI_COMPACT:
-		rc = si_compact(i, r, c, plan, vlsn);
+		rc = si_compact(i, c, plan, vlsn);
 		break;
 	case SI_BACKUP:
-		rc = si_backup(i, r, c, plan);
+	case SI_BACKUPEND:
+		rc = si_backup(i, c, plan);
 		break;
 	case SI_SHUTDOWN:
-		rc = si_close(i, r);
+		rc = si_close(i);
 		break;
 	case SI_DROP:
-		rc = si_drop(i, r);
+		rc = si_drop(i);
 		break;
 	}
 	return rc;
@@ -19825,52 +22183,127 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 
 
 
-int si_backup(si *index, sr *r, sdc *c, siplan *plan)
+
+
+static inline int
+si_backupend(si *index, sdc *c, siplan *plan)
 {
-	sinode *node = plan->node;
-	sd_creset(c);
+	sr *r = index->r;
+	/* copy index scheme file */
+	char src[PATH_MAX];
+	snprintf(src, sizeof(src), "%s/scheme", index->scheme->path);
 
-	char dest[1024];
-	snprintf(dest, sizeof(dest), "%s/%" PRIu32 ".incomplete/%s",
-	         index->conf->path_backup,
+	char dst[PATH_MAX];
+	snprintf(dst, sizeof(dst), "%s/%" PRIu32 ".incomplete/%s/scheme",
+	         index->scheme->path_backup,
 	         (uint32_t)plan->a,
-	         index->conf->name);
+	         index->scheme->name);
 
-	/* read origin file */
-	int rc = sr_bufensure(&c->c, r->a, node->file.size);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
+	/* prepare buffer */
+	ssize_t size = ss_filesize(src);
+	if (ssunlikely(size == -1)) {
+		sr_error(r->e, "backup db file '%s' read error: %s",
+		         src, strerror(errno));
 		return -1;
 	}
-	rc = sr_filepread(&node->file, 0, c->c.s, node->file.size);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_bufensure(&c->c, r->a, size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+
+	/* read scheme file */
+	ssfile file;
+	ss_fileinit(&file, r->a);
+	rc = ss_fileopen(&file, src);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "backup db file '%s' open error: %s",
+		         src, strerror(errno));
+		return -1;
+	}
+	rc = ss_filepread(&file, 0, c->c.s, size);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "backup db file '%s' read error: %s",
+		         src, strerror(errno));
+		ss_fileclose(&file);
+		return -1;
+	}
+	ss_fileclose(&file);
+
+	/* write scheme file */
+	rc = ss_filenew(&file, dst);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "backup db file '%s' create error: %s",
+		         dst, strerror(errno));
+		return -1;
+	}
+	rc = ss_filewrite(&file, c->c.s, size);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "backup db file '%s' write error: %s",
+		         dst, strerror(errno));
+		ss_fileclose(&file);
+		return -1;
+	}
+	/* sync? */
+	rc = ss_fileclose(&file);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "backup db file '%s' close error: %s",
+		         dst, strerror(errno));
+		return -1;
+	}
+
+	/* finish index backup */
+	si_lock(index);
+	index->backup = plan->a;
+	si_unlock(index);
+	return 0;
+}
+
+int si_backup(si *index, sdc *c, siplan *plan)
+{
+	sr *r = index->r;
+	sd_creset(c);
+	if (ssunlikely(plan->plan == SI_BACKUPEND))
+		return si_backupend(index, c, plan);
+
+	sinode *node = plan->node;
+	char dst[PATH_MAX];
+	snprintf(dst, sizeof(dst), "%s/%" PRIu32 ".incomplete/%s",
+	         index->scheme->path_backup,
+	         (uint32_t)plan->a,
+	         index->scheme->name);
+
+	/* read origin file */
+	int rc = ss_bufensure(&c->c, r->a, node->file.size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	rc = ss_filepread(&node->file, 0, c->c.s, node->file.size);
+	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' read error: %s",
 		         node->file.file, strerror(errno));
 		return -1;
 	}
-	sr_bufadvance(&c->c, node->file.size);
+	ss_bufadvance(&c->c, node->file.size);
 
 	/* copy */
-	srpath path;
-	sr_pathA(&path, dest, node->self.id.id, ".db");
-	srfile file;
-	sr_fileinit(&file, r->a);
-	rc = sr_filenew(&file, path.path);
-	if (srunlikely(rc == -1)) {
+	sspath path;
+	ss_pathA(&path, dst, node->self.id.id, ".db");
+	ssfile file;
+	ss_fileinit(&file, r->a);
+	rc = ss_filenew(&file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' create error: %s",
 		         path.path, strerror(errno));
 		return -1;
 	}
-	rc = sr_filewrite(&file, c->c.s, node->file.size);
-	if (srunlikely(rc == -1)) {
+	rc = ss_filewrite(&file, c->c.s, node->file.size);
+	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' write error: %s",
 				 path.path, strerror(errno));
-		sr_fileclose(&file);
+		ss_fileclose(&file);
 		return -1;
 	}
 	/* sync? */
-	rc = sr_fileclose(&file);
-	if (srunlikely(rc == -1)) {
+	rc = ss_fileclose(&file);
+	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' close error: %s",
 				 path.path, strerror(errno));
 		return -1;
@@ -19897,44 +22330,50 @@ int si_backup(si *index, sr *r, sdc *c, siplan *plan)
 
 
 
+
+
 static inline sibranch*
-si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn)
+si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn)
 {
+	sr *r = index->r;
 	svmerge vmerge;
 	sv_mergeinit(&vmerge);
 	int rc = sv_mergeprepare(&vmerge, r, 1);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return NULL;
 	svmergesrc *s = sv_mergeadd(&vmerge, NULL);
-	sr_iterinit(sv_indexiterraw, &s->src, r);
-	sr_iteropen(sv_indexiterraw, &s->src, vindex);
-	sriter i;
-	sr_iterinit(sv_mergeiter, &i, r);
-	sr_iteropen(sv_mergeiter, &i, &vmerge, SR_GTE);
+	ss_iterinit(sv_indexiter, &s->src);
+	ss_iteropen(sv_indexiter, &s->src, r, vindex, SS_GTE, NULL, 0);
+	ssiter i;
+	ss_iterinit(sv_mergeiter, &i);
+	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE);
 
 	/* merge iter is not used */
+	sdmergeconf mergeconf = {
+		.size_stream     = UINT32_MAX,
+		.size_node       = UINT64_MAX,
+		.size_page       = index->scheme->node_page_size,
+		.checksum        = index->scheme->node_page_checksum,
+		.compression     = index->scheme->compression,
+		.compression_key = index->scheme->compression_key,
+		.offset          = parent->file.size,
+		.vlsn            = vlsn,
+		.save_delete     = 1,
+		.save_update     = 1
+	};
 	sdmerge merge;
-	sd_mergeinit(&merge, r, parent->self.id.id,
-	             &i,
-	             &c->build,
-	             parent->file.size,
-	             vindex->keymax,
-	             UINT32_MAX,
-	             UINT64_MAX,
-	             index->conf->node_page_size,
-	             index->conf->node_page_checksum,
-	             index->conf->compression, 1, vlsn);
+	sd_mergeinit(&merge, r, &i, &c->build, &c->update, &mergeconf);
 	rc = sd_merge(&merge);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		sv_mergefree(&vmerge, r->a);
-		sr_malfunction(r->e, "%s", "memory allocation failed");
+		sr_oom_malfunction(r->e);
 		goto error;
 	}
 	assert(rc == 1);
 	sv_mergefree(&vmerge, r->a);
 
 	sibranch *branch = si_branchnew(r);
-	if (srunlikely(branch == NULL))
+	if (ssunlikely(branch == NULL))
 		goto error;
 	sdid id = {
 		.parent = parent->self.id.id,
@@ -19942,25 +22381,35 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 		.id     = sr_seq(r->seq, SR_NSNNEXT)
 	};
 	rc = sd_mergecommit(&merge, &id);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
 
 	si_branchset(branch, &merge.index);
-	rc = sd_buildwrite(&c->build, r, &branch->index, &parent->file);
-	if (srunlikely(rc == -1)) {
+	rc = sd_commit(&c->build, r, &branch->index, &parent->file);
+	if (ssunlikely(rc == -1)) {
 		si_branchfree(branch, r);
 		return NULL;
 	}
 
-	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_0,
+	SS_INJECTION(r->i, SS_INJECTION_SI_BRANCH_0,
 	             sr_malfunction(r->e, "%s", "error injection");
 	             si_branchfree(branch, r);
 	             return NULL);
 
-	if (index->conf->sync) {
+	if (index->scheme->sync) {
 		rc = si_nodesync(parent, r);
-		if (srunlikely(rc == -1)) {
+		if (ssunlikely(rc == -1)) {
 			si_branchfree(branch, r);
+			return NULL;
+		}
+	}
+	if (index->scheme->mmap) {
+		ss_mmapinit(&parent->map_swap);
+		rc = ss_mmap(&parent->map_swap, parent->file.fd,
+		              parent->file.size, 1);
+		if (ssunlikely(rc == -1)) {
+			sr_malfunction(r->e, "db file '%s' mmap error: %s",
+			               parent->file.file, strerror(errno));
 			return NULL;
 		}
 	}
@@ -19970,13 +22419,14 @@ error:
 	return NULL;
 }
 
-int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 {
+	sr *r = index->r;
 	sinode *n = plan->node;
 	assert(n->flags & SI_LOCK);
 
 	si_lock(index);
-	if (srunlikely(n->used == 0)) {
+	if (ssunlikely(n->used == 0)) {
 		si_nodeunlock(n);
 		si_unlock(index);
 		return 0;
@@ -19986,8 +22436,8 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	si_unlock(index);
 
 	sd_creset(c);
-	sibranch *branch = si_branchcreate(index, r, c, n, i, vlsn);
-	if (srunlikely(branch == NULL))
+	sibranch *branch = si_branchcreate(index, c, n, i, vlsn);
+	if (ssunlikely(branch == NULL))
 		return -1;
 
 	/* commit */
@@ -19997,189 +22447,94 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	n->branch_count++;
 	uint32_t used = sv_indexused(i);
 	n->used -= used;
-	sr_quota(index->quota, SR_QREMOVE, used);
+	ss_quota(r->quota, SS_QREMOVE, used);
 	svindex swap = *i;
 	si_nodeunrotate(n);
 	si_nodeunlock(n);
 	si_plannerupdate(&index->p, SI_BRANCH|SI_COMPACT, n);
+	ssmmap swap_map = n->map;
+	n->map = n->map_swap;
+	memset(&n->map_swap, 0, sizeof(n->map_swap));
 	si_unlock(index);
 
 	/* gc */
+	if (index->scheme->mmap) {
+		int rc = ss_munmap(&swap_map);
+		if (ssunlikely(rc == -1)) {
+			sr_malfunction(r->e, "db file '%s' munmap error: %s",
+			               n->file.file, strerror(errno));
+			return -1;
+		}
+	}
 	si_nodegc_index(r, &swap);
 	return 1;
 }
 
-static inline int
-si_noderead(sr *r, srbuf *dest, sinode *node)
+static inline char*
+si_noderead(si *index, ssbuf *dest, sinode *node)
 {
-	int rc = sr_bufensure(dest, r->a, node->file.size);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "%s", "memory allocation failed");
-		return -1;
+	sr *r = index->r;
+	if (index->scheme->mmap) {
+		return node->map.p;
 	}
-	rc = sr_filepread(&node->file, 0, dest->s, node->file.size);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_bufensure(dest, r->a, node->file.size);
+	if (ssunlikely(rc == -1)) {
+		sr_oom_malfunction(r->e);
+		return NULL;
+	}
+	rc = ss_filepread(&node->file, 0, dest->s, node->file.size);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' read error: %s",
 		               node->file.file, strerror(errno));
-		return -1;
+		return NULL;
 	}
-	sr_bufadvance(dest, node->file.size);
-	return 0;
+	ss_bufadvance(dest, node->file.size);
+	return dest->s;
 }
 
-int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 {
+	sr *r = index->r;
 	sinode *node = plan->node;
 	assert(node->flags & SI_LOCK);
 
 	/* read node file */
 	sd_creset(c);
-	int rc = si_noderead(r, &c->c, node);
-	if (srunlikely(rc == -1))
+	char *node_file = si_noderead(index, &c->c, node);
+	if (ssunlikely(node_file == NULL))
 		return -1;
 
 	/* prepare for compaction */
+	int rc;
 	rc = sd_censure(c, r, node->branch_count);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom_malfunction(r->e);
 	svmerge merge;
 	sv_mergeinit(&merge);
 	rc = sv_mergeprepare(&merge, r, node->branch_count);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	uint32_t size_stream = 0;
-	uint32_t size_key = 0;
-	uint32_t gc = 0;
 	sdcbuf *cbuf = c->head;
 	sibranch *b = node->branch;
 	while (b) {
 		svmergesrc *s = sv_mergeadd(&merge, NULL);
-		uint16_t key = sd_indexkeysize(&b->index);
-		if (key > size_key)
-			size_key = key;
+		rc = ss_bufensure(&cbuf->b, r->a, b->index.h->sizevmax);
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
 		size_stream += sd_indextotal(&b->index);
-		sr_iterinit(sd_iter, &s->src, r);
-		sr_iteropen(sd_iter, &s->src, &b->index, c->c.s, 0, index->conf->compression, &cbuf->buf);
+		ss_iterinit(sd_iter, &s->src);
+		ss_iteropen(sd_iter, &s->src, r, &b->index, node_file, 0,
+		            index->scheme->compression, &cbuf->a, &cbuf->b);
 		cbuf = cbuf->next;
 		b = b->next;
 	}
-	sriter i;
-	sr_iterinit(sv_mergeiter, &i, r);
-	sr_iteropen(sv_mergeiter, &i, &merge, SR_GTE);
-	rc = si_compaction(index, r, c, vlsn, node, &i, size_stream, size_key);
-	if (srunlikely(rc == -1)) {
-		sv_mergefree(&merge, r->a);
-		return -1;
-	}
+	ssiter i;
+	ss_iterinit(sv_mergeiter, &i);
+	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);
+	rc = si_compaction(index, c, vlsn, node, &i, size_stream);
 	sv_mergefree(&merge, r->a);
-	if (gc) {
-		sr_quota(index->quota, SR_QREMOVE, gc);
-	}
-	return 0;
-}
-#line 1 "sophia/index/si_commit.c"
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-
-
-
-
-
-
-uint32_t
-si_vgc(sra *a, svv *gc)
-{
-	uint32_t used = 0;
-	svv *v = gc;
-	while (v) {
-		used += sv_vsize(v);
-		svv *n = v->next;
-		sl *log = (sl*)v->log;
-		if (log)
-			sr_gcsweep(&log->gc, 1);
-		sr_free(a, v);
-		v = n;
-	}
-	return used;
-}
-
-void si_begin(sitx *t, sr *r, si *index, uint64_t vlsn, uint64_t time,
-              svlog *l,
-              svlogindex *li)
-{
-	t->index = index;
-	t->time  = time;
-	t->vlsn  = vlsn;
-	t->r     = r;
-	t->l     = l;
-	t->li    = li;
-	sr_listinit(&t->nodelist);
-	si_lock(index);
-}
-
-void si_commit(sitx *t)
-{
-	/* reschedule nodes */
-	srlist *i, *n;
-	sr_listforeach_safe(&t->nodelist, i, n) {
-		sinode *node = srcast(i, sinode, commit);
-		sr_listinit(&node->commit);
-		si_plannerupdate(&t->index->p, SI_BRANCH, node);
-	}
-	si_unlock(t->index);
-}
-
-static inline void
-si_set(sitx *t, svv *v)
-{
-	si *index = t->index;
-	t->index->update_time = t->time;
-	/* match node */
-	sriter i;
-	sr_iterinit(si_iter, &i, t->r);
-	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vkey(v), v->keysize);
-	sinode *node = sr_iterof(si_iter, &i);
-	assert(node != NULL);
-	/* update node */
-	svindex *vindex = si_nodeindex(node);
-	svv *vgc = NULL;
-	sv_indexset(vindex, t->r, t->vlsn, v, &vgc);
-	node->update_time = index->update_time;
-	node->used += sv_vsize(v);
-	if (srunlikely(vgc)) {
-		uint32_t gc = si_vgc(t->r->a, vgc);
-		node->used -= gc;
-		sr_quota(index->quota, SR_QREMOVE, gc);
-	}
-	if (sr_listempty(&node->commit))
-		sr_listappend(&t->nodelist, &node->commit);
-}
-
-void si_write(sitx *t, int check)
-{
-	svlogv *cv = sv_logat(t->l, t->li->head);
-	int c = t->li->count;
-	while (c) {
-		svv *v = cv->v.v;
-		if (check && si_querycommited(t->index, t->r, &cv->v)) {
-			uint32_t gc = si_vgc(t->r->a, v);
-			sr_quota(t->index->quota, SR_QREMOVE, gc);
-			goto next;
-		}
-		si_set(t, v);
-next:
-		cv = sv_logat(t->l, cv->next);
-		c--;
-	}
+	return rc;
 }
 #line 1 "sophia/index/si_compaction.c"
 
@@ -20196,196 +22551,180 @@ next:
 
 
 
-extern uint32_t si_vgc(sra*, svv*);
+
 
 static int
-si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
-                uint64_t vlsn)
+si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result)
 {
+	(void)index;
 	svindex *vindex = si_nodeindex(node);
-	sriter i;
-	sr_iterinit(sv_indexiterraw, &i, r);
-	sr_iteropen(sv_indexiterraw, &i, vindex);
-	while (sr_iterhas(sv_indexiterraw, &i))
+	ssiter i;
+	ss_iterinit(sv_indexiter, &i);
+	ss_iteropen(sv_indexiter, &i, r, vindex, SS_GTE, NULL, 0);
+	while (ss_iterhas(sv_indexiter, &i))
 	{
-		sv *v = sr_iterof(sv_indexiterraw, &i);
-		int rc = sr_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
-		if (srunlikely(rc == -1))
-			return sr_malfunction(r->e, "%s", "memory allocation failed");
-		sr_iternext(sv_indexiterraw, &i);
+		sv *v = ss_iterof(sv_indexiter, &i);
+		int rc = ss_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
+		ss_iternext(sv_indexiter, &i);
 	}
-	if (srunlikely(sr_bufused(&c->b) == 0))
+	if (ssunlikely(ss_bufused(&c->b) == 0))
 		return 0;
-	uint32_t gc = 0;
-	sr_iterinit(sr_bufiterref, &i, NULL);
-	sr_iteropen(sr_bufiterref, &i, &c->b, sizeof(svv*));
-	sriter j;
-	sr_iterinit(sr_bufiterref, &j,  NULL);
-	sr_iteropen(sr_bufiterref, &j, result, sizeof(sinode*));
-	sinode *prev = sr_iterof(sr_bufiterref, &j);
-	sr_iternext(sr_bufiterref, &j);
+	ss_iterinit(ss_bufiterref, &i);
+	ss_iteropen(ss_bufiterref, &i, &c->b, sizeof(svv*));
+	ssiter j;
+	ss_iterinit(ss_bufiterref, &j);
+	ss_iteropen(ss_bufiterref, &j, result, sizeof(sinode*));
+	sinode *prev = ss_iterof(ss_bufiterref, &j);
+	ss_iternext(ss_bufiterref, &j);
 	while (1)
 	{
-		sinode *p = sr_iterof(sr_bufiterref, &j);
+		sinode *p = ss_iterof(ss_bufiterref, &j);
 		if (p == NULL) {
 			assert(prev != NULL);
-			while (sr_iterhas(sr_bufiterref, &i)) {
-				svv *v = sr_iterof(sr_bufiterref, &i);
+			while (ss_iterhas(ss_bufiterref, &i)) {
+				svv *v = ss_iterof(ss_bufiterref, &i);
 				v->next = NULL;
-
-				svv *vgc = NULL;
-				sv_indexset(&prev->i0, r, vlsn, v, &vgc);
-				sr_iternext(sr_bufiterref, &i);
-				if (vgc) {
-					gc += si_vgc(r->a, vgc);
-				}
+				sv_indexset(&prev->i0, r, v);
+				ss_iternext(ss_bufiterref, &i);
 			}
 			break;
 		}
-		while (sr_iterhas(sr_bufiterref, &i))
+		while (ss_iterhas(ss_bufiterref, &i))
 		{
-			svv *v = sr_iterof(sr_bufiterref, &i);
+			svv *v = ss_iterof(ss_bufiterref, &i);
 			v->next = NULL;
-
-			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->self.index);
-			int rc = sr_compare(r->cmp, sv_vkey(v), v->keysize,
-			                    sd_indexpage_min(page), page->sizemin);
-			if (srunlikely(rc >= 0))
+			int rc = sr_compare(r->scheme, sv_vpointer(v), v->size,
+			                    sd_indexpage_min(&p->self.index, page),
+			                    page->sizemin);
+			if (ssunlikely(rc >= 0))
 				break;
-			sv_indexset(&prev->i0, r, vlsn, v, &vgc);
-			sr_iternext(sr_bufiterref, &i);
-			if (vgc) {
-				gc += si_vgc(r->a, vgc);
-			}
+			sv_indexset(&prev->i0, r, v);
+			ss_iternext(ss_bufiterref, &i);
 		}
-		if (srunlikely(! sr_iterhas(sr_bufiterref, &i)))
+		if (ssunlikely(! ss_iterhas(ss_bufiterref, &i)))
 			break;
 		prev = p;
-		sr_iternext(sr_bufiterref, &j);
+		ss_iternext(ss_bufiterref, &j);
 	}
-	if (gc) {
-		sr_quota(index->quota, SR_QREMOVE, gc);
-	}
-	assert(sr_iterof(sr_bufiterref, &i) == NULL);
+	assert(ss_iterof(ss_bufiterref, &i) == NULL);
 	return 0;
 }
 
 static inline void
-si_redistribute_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
+si_redistribute_set(si *index, sr *r, uint64_t now, svv *v)
 {
 	index->update_time = now;
 	/* match node */
-	sriter i;
-	sr_iterinit(si_iter, &i, r);
-	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vkey(v), v->keysize);
-	sinode *node = sr_iterof(si_iter, &i);
+	ssiter i;
+	ss_iterinit(si_iter, &i);
+	ss_iteropen(si_iter, &i, r, index, SS_GTE, sv_vpointer(v), v->size);
+	sinode *node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* update node */
 	svindex *vindex = si_nodeindex(node);
-	svv *vgc = NULL;
-	sv_indexset(vindex, r, vlsn, v, &vgc);
+	sv_indexset(vindex, r, v);
 	node->update_time = index->update_time;
 	node->used += sv_vsize(v);
-	if (srunlikely(vgc)) {
-		uint32_t gc = si_vgc(r->a, vgc);
-		node->used -= gc;
-		sr_quota(index->quota, SR_QREMOVE, gc);
-	}
 	/* schedule node */
 	si_plannerupdate(&index->p, SI_BRANCH, node);
 }
 
 static int
-si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
+si_redistribute_index(si *index, sr *r, sdc *c, sinode *node)
 {
 	svindex *vindex = si_nodeindex(node);
-	sriter i;
-	sr_iterinit(sv_indexiterraw, &i, r);
-	sr_iteropen(sv_indexiterraw, &i, vindex);
-	while (sr_iterhas(sv_indexiterraw, &i)) {
-		sv *v = sr_iterof(sv_indexiterraw, &i);
-		int rc = sr_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
-		if (srunlikely(rc == -1))
-			return sr_malfunction(r->e, "%s", "memory allocation failed");
-		sr_iternext(sv_indexiterraw, &i);
+	ssiter i;
+	ss_iterinit(sv_indexiter, &i);
+	ss_iteropen(sv_indexiter, &i, r, vindex, SS_GTE, NULL, 0);
+	while (ss_iterhas(sv_indexiter, &i)) {
+		sv *v = ss_iterof(sv_indexiter, &i);
+		int rc = ss_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
+		ss_iternext(sv_indexiter, &i);
 	}
-	if (srunlikely(sr_bufused(&c->b) == 0))
+	if (ssunlikely(ss_bufused(&c->b) == 0))
 		return 0;
-	uint64_t now = sr_utime();
-	sr_iterinit(sr_bufiterref, &i, NULL);
-	sr_iteropen(sr_bufiterref, &i, &c->b, sizeof(svv*));
-	while (sr_iterhas(sr_bufiterref, &i)) {
-		svv *v = sr_iterof(sr_bufiterref, &i);
-		si_redistribute_set(index, r, vlsn, now, v);
-		sr_iternext(sr_bufiterref, &i);
+	uint64_t now = ss_utime();
+	ss_iterinit(ss_bufiterref, &i);
+	ss_iteropen(ss_bufiterref, &i, &c->b, sizeof(svv*));
+	while (ss_iterhas(ss_bufiterref, &i)) {
+		svv *v = ss_iterof(ss_bufiterref, &i);
+		si_redistribute_set(index, r, now, v);
+		ss_iternext(ss_bufiterref, &i);
 	}
 	return 0;
 }
 
 static int
-si_splitfree(srbuf *result, sr *r)
+si_splitfree(ssbuf *result, sr *r)
 {
-	sriter i;
-	sr_iterinit(sr_bufiterref, &i, NULL);
-	sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
-	while (sr_iterhas(sr_bufiterref, &i))
+	ssiter i;
+	ss_iterinit(ss_bufiterref, &i);
+	ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
+	while (ss_iterhas(ss_bufiterref, &i))
 	{
-		sinode *p = sr_iterof(sr_bufiterref, &i);
+		sinode *p = ss_iterof(ss_bufiterref, &i);
 		si_nodefree(p, r, 0);
-		sr_iternext(sr_bufiterref, &i);
+		ss_iternext(ss_bufiterref, &i);
 	}
 	return 0;
 }
 
 static inline int
-si_split(si *index, sr *r, sdc *c, srbuf *result,
+si_split(si *index, sdc *c, ssbuf *result,
          sinode   *parent,
-         sriter   *i,
+         ssiter   *i,
          uint64_t  size_node,
-         uint32_t  size_key,
          uint32_t  size_stream,
          uint64_t  vlsn)
 {
+	sr *r = index->r;
 	int count = 0;
 	int rc;
+	sdmergeconf mergeconf = {
+		.size_stream     = size_stream,
+		.size_node       = size_node,
+		.size_page       = index->scheme->node_page_size,
+		.checksum        = index->scheme->node_page_checksum,
+		.compression     = index->scheme->compression,
+		.compression_key = index->scheme->compression_key,
+		.offset          = 0,
+		.vlsn            = vlsn,
+		.save_delete     = 0,
+		.save_update     = 0
+	};
 	sdmerge merge;
-	sd_mergeinit(&merge, r, parent->self.id.id,
-	             i, &c->build,
-	             0, /* offset */
-	             size_key,
-	             size_stream,
-	             size_node,
-	             index->conf->node_page_size,
-	             index->conf->node_page_checksum,
-	             index->conf->compression,
-	             0, vlsn);
+	sd_mergeinit(&merge, r, i, &c->build, &c->update, &mergeconf);
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		sinode *n = si_nodenew(r);
-		if (srunlikely(n == NULL))
+		if (ssunlikely(n == NULL))
 			goto error;
 		sdid id = {
 			.parent = parent->self.id.id,
 			.flags  = 0,
-			.id     = sr_seq(r->seq, SR_NSNNEXT)
+			.id     = sr_seq(index->r->seq, SR_NSNNEXT)
 		};
 		rc = sd_mergecommit(&merge, &id);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			goto error;
-		rc = si_nodecreate(n, r, index->conf, &id, &merge.index, &c->build);
-		if (srunlikely(rc == -1))
+		rc = si_nodecreate(n, r, index->scheme, &id, &merge.index, &c->build);
+		if (ssunlikely(rc == -1))
 			goto error;
-		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
-		if (srunlikely(rc == -1)) {
-			sr_malfunction(r->e, "%s", "memory allocation failed");
+		rc = ss_bufadd(result, index->r->a, &n, sizeof(sinode*));
+		if (ssunlikely(rc == -1)) {
+			sr_oom_malfunction(index->r->e);
 			si_nodefree(n, r, 1);
 			goto error;
 		}
 		sd_buildreset(&c->build);
 		count++;
 	}
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
 	return 0;
 error:
@@ -20394,14 +22733,13 @@ error:
 	return -1;
 }
 
-int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
+int si_compaction(si *index, sdc *c, uint64_t vlsn,
                   sinode *node,
-                  sriter *stream,
-                  uint32_t size_stream,
-                  uint32_t size_key)
+                  ssiter *stream, uint32_t size_stream)
 {
-	srbuf *result = &c->a;
-	sriter i;
+	sr *r = index->r;
+	ssbuf *result = &c->a;
+	ssiter i;
 
 	/* begin compaction.
 	 *
@@ -20409,23 +22747,22 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	 * of a new nodes.
 	 */
 	int rc;
-	rc = si_split(index, r, c, result,
+	rc = si_split(index, c, result,
 	              node, stream,
-	              index->conf->node_size,
-	              size_key,
+	              index->scheme->node_size,
 	              size_stream,
 	              vlsn);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 
-	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_0,
+	SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_0,
 	             si_splitfree(result, r);
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 
 	/* mask removal of a single node as a
 	 * single node update */
-	int count = sr_bufused(result) / sizeof(sinode*);
+	int count = ss_bufused(result) / sizeof(sinode*);
 	int count_index;
 
 	si_lock(index);
@@ -20433,14 +22770,14 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	si_unlock(index);
 
 	sinode *n;
-	if (srunlikely(count == 0 && count_index == 1))
+	if (ssunlikely(count == 0 && count_index == 1))
 	{
-		n = si_bootstrap(index, r, node->self.id.id);
-		if (srunlikely(n == NULL))
+		n = si_bootstrap(index, node->self.id.id);
+		if (ssunlikely(n == NULL))
 			return -1;
-		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
-		if (srunlikely(rc == -1)) {
-			sr_malfunction(r->e, "%s", "memory allocation failed");
+		rc = ss_bufadd(result, r->a, &n, sizeof(sinode*));
+		if (ssunlikely(rc == -1)) {
+			sr_oom_malfunction(r->e);
 			si_nodefree(n, r, 1);
 			return -1;
 		}
@@ -20454,10 +22791,10 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	switch (count) {
 	case 0: /* delete */
 		si_remove(index, node);
-		si_redistribute_index(index, r, c, node, vlsn);
+		si_redistribute_index(index, r, c, node);
 		uint32_t used = sv_indexused(j);
 		if (used) {
-			sr_quota(index->quota, SR_QREMOVE, used);
+			ss_quota(r->quota, SS_QREMOVE, used);
 		}
 		break;
 	case 1: /* self update */
@@ -20469,25 +22806,25 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 		break;
 	default: /* split */
-		rc = si_redistribute(index, r, c, node, result, vlsn);
-		if (srunlikely(rc == -1)) {
+		rc = si_redistribute(index, r, c, node, result);
+		if (ssunlikely(rc == -1)) {
 			si_unlock(index);
 			si_splitfree(result, r);
 			return -1;
 		}
-		sr_iterinit(sr_bufiterref, &i, NULL);
-		sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
-		n = sr_iterof(sr_bufiterref, &i);
+		ss_iterinit(ss_bufiterref, &i);
+		ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
+		n = ss_iterof(ss_bufiterref, &i);
 		n->used = sv_indexused(&n->i0);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
-		for (sr_iternext(sr_bufiterref, &i); sr_iterhas(sr_bufiterref, &i);
-		     sr_iternext(sr_bufiterref, &i)) {
-			n = sr_iterof(sr_bufiterref, &i);
+		for (ss_iternext(ss_bufiterref, &i); ss_iterhas(ss_bufiterref, &i);
+		     ss_iternext(ss_bufiterref, &i)) {
+			n = ss_iterof(ss_bufiterref, &i);
 			n->used = sv_indexused(&n->i0);
 			si_nodelock(n);
-			si_insert(index, r, n);
+			si_insert(index, n);
 			si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 		}
 		break;
@@ -20498,64 +22835,64 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	/* compaction completion */
 
 	/* seal nodes */
-	sr_iterinit(sr_bufiterref, &i, NULL);
-	sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
-	while (sr_iterhas(sr_bufiterref, &i))
+	ss_iterinit(ss_bufiterref, &i);
+	ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
+	while (ss_iterhas(ss_bufiterref, &i))
 	{
-		n = sr_iterof(sr_bufiterref, &i);
-		if (index->conf->sync) {
+		n = ss_iterof(ss_bufiterref, &i);
+		if (index->scheme->sync) {
 			rc = si_nodesync(n, r);
-			if (srunlikely(rc == -1))
+			if (ssunlikely(rc == -1))
 				return -1;
 		}
-		rc = si_nodeseal(n, r, index->conf);
-		if (srunlikely(rc == -1))
+		rc = si_nodeseal(n, r, index->scheme);
+		if (ssunlikely(rc == -1))
 			return -1;
-		SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_3,
+		SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_3,
 		             si_nodefree(node, r, 0);
 		             sr_malfunction(r->e, "%s", "error injection");
 		             return -1);
-		sr_iternext(sr_bufiterref, &i);
+		ss_iternext(ss_bufiterref, &i);
 	}
 
-	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_1,
+	SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_1,
 	             si_nodefree(node, r, 0);
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 
 	/* gc old node */
 	rc = si_nodefree(node, r, 1);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 
-	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_2,
+	SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_2,
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 
 	/* complete new nodes */
-	sr_iterinit(sr_bufiterref, &i, NULL);
-	sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
-	while (sr_iterhas(sr_bufiterref, &i))
+	ss_iterinit(ss_bufiterref, &i);
+	ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
+	while (ss_iterhas(ss_bufiterref, &i))
 	{
-		n = sr_iterof(sr_bufiterref, &i);
-		rc = si_nodecomplete(n, r, index->conf);
-		if (srunlikely(rc == -1))
+		n = ss_iterof(ss_bufiterref, &i);
+		rc = si_nodecomplete(n, r, index->scheme);
+		if (ssunlikely(rc == -1))
 			return -1;
-		SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_4,
+		SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_4,
 		             sr_malfunction(r->e, "%s", "error injection");
 		             return -1);
-		sr_iternext(sr_bufiterref, &i);
+		ss_iternext(ss_bufiterref, &i);
 	}
 
 	/* unlock */
 	si_lock(index);
-	sr_iterinit(sr_bufiterref, &i, NULL);
-	sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
-	while (sr_iterhas(sr_bufiterref, &i))
+	ss_iterinit(ss_bufiterref, &i);
+	ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
+	while (ss_iterhas(ss_bufiterref, &i))
 	{
-		n = sr_iterof(sr_bufiterref, &i);
+		n = ss_iterof(ss_bufiterref, &i);
 		si_nodeunlock(n);
-		sr_iternext(sr_bufiterref, &i);
+		ss_iternext(ss_bufiterref, &i);
 	}
 	si_unlock(index);
 	return 0;
@@ -20575,13 +22912,14 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 
 
 
-static inline int
-si_dropof(siconf *conf, sr *r)
+
+
+int si_droprepository(sischeme *scheme, sr *r, int drop_directory)
 {
-	DIR *dir = opendir(conf->path);
+	DIR *dir = opendir(scheme->path);
 	if (dir == NULL) {
 		sr_malfunction(r->e, "directory '%s' open error: %s",
-		               conf->path, strerror(errno));
+		               scheme->path, strerror(errno));
 		return -1;
 	}
 	char path[1024];
@@ -20591,11 +22929,11 @@ si_dropof(siconf *conf, sr *r)
 		if (de->d_name[0] == '.')
 			continue;
 		/* skip drop file */
-		if (srunlikely(strcmp(de->d_name, "drop") == 0))
+		if (ssunlikely(strcmp(de->d_name, "drop") == 0))
 			continue;
-		snprintf(path, sizeof(path), "%s/%s", conf->path, de->d_name);
-		rc = sr_fileunlink(path);
-		if (srunlikely(rc == -1)) {
+		snprintf(path, sizeof(path), "%s/%s", scheme->path, de->d_name);
+		rc = ss_fileunlink(path);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' unlink error: %s",
 			               path, strerror(errno));
 			closedir(dir);
@@ -20604,50 +22942,86 @@ si_dropof(siconf *conf, sr *r)
 	}
 	closedir(dir);
 
-	snprintf(path, sizeof(path), "%s/drop", conf->path);
-	rc = sr_fileunlink(path);
-	if (srunlikely(rc == -1)) {
+	snprintf(path, sizeof(path), "%s/drop", scheme->path);
+	rc = ss_fileunlink(path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' unlink error: %s",
 		               path, strerror(errno));
 		return -1;
 	}
-	rc = rmdir(conf->path);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "directory '%s' unlink error: %s",
-		               conf->path, strerror(errno));
-		return -1;
+	if (drop_directory) {
+		rc = rmdir(scheme->path);
+		if (ssunlikely(rc == -1)) {
+			sr_malfunction(r->e, "directory '%s' unlink error: %s",
+			               scheme->path, strerror(errno));
+			return -1;
+		}
 	}
 	return 0;
 }
 
-int si_dropmark(si *i, sr *r)
+int si_dropmark(si *i)
 {
 	/* create drop file */
 	char path[1024];
-	snprintf(path, sizeof(path), "%s/drop", i->conf->path);
-	srfile drop;
-	sr_fileinit(&drop, r->a);
-	int rc = sr_filenew(&drop, path);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "drop file '%s' create error: %s",
+	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
+	ssfile drop;
+	ss_fileinit(&drop, i->r->a);
+	int rc = ss_filenew(&drop, path);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(i->r->e, "drop file '%s' create error: %s",
 		               path, strerror(errno));
 		return -1;
 	}
-	sr_fileclose(&drop);
+	ss_fileclose(&drop);
 	return 0;
 }
 
-int si_drop(si *i, sr *r)
+int si_drop(si *i)
 {
-	siconf *conf = i->conf;
+	sr *r = i->r;
+	sischeme *scheme = i->scheme;
 	/* drop file must exists at this point */
 	/* shutdown */
-	int rc = si_close(i, r);
-	if (srunlikely(rc == -1))
+	int rc = si_close(i);
+	if (ssunlikely(rc == -1))
 		return -1;
 	/* remove directory */
-	rc = si_dropof(conf, r);
+	rc = si_droprepository(scheme, r, 1);
 	return rc;
+}
+#line 1 "sophia/index/si_gc.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+uint32_t si_gcv(ssa *a, svv *gc)
+{
+	uint32_t used = 0;
+	svv *v = gc;
+	while (v) {
+		used += sv_vsize(v);
+		svv *n = v->next;
+		sl *log = (sl*)v->log;
+		if (log)
+			ss_gcsweep(&log->gc, 1);
+		ss_free(a, v);
+		v = n;
+	}
+	return used;
 }
 #line 1 "sophia/index/si_iter.c"
 
@@ -20664,7 +23038,9 @@ int si_drop(si *i, sr *r)
 
 
 
-sriterif si_iter =
+
+
+ssiterif si_iter =
 {
 	.close = si_iter_close,
 	.has   = si_iter_has,
@@ -20687,11 +23063,13 @@ sriterif si_iter =
 
 
 
+
+
 sinode *si_nodenew(sr *r)
 {
-	sinode *n = (sinode*)sr_malloc(r->a, sizeof(sinode));
-	if (srunlikely(n == NULL)) {
-		sr_malfunction(r->e, "%s", "memory allocation failed");
+	sinode *n = (sinode*)ss_malloc(r->a, sizeof(sinode));
+	if (ssunlikely(n == NULL)) {
+		sr_oom_malfunction(r->e);
 		return NULL;
 	}
 	n->recover = 0;
@@ -20702,13 +23080,15 @@ sinode *si_nodenew(sr *r)
 	si_branchinit(&n->self);
 	n->branch = NULL;
 	n->branch_count = 0;
-	sr_fileinit(&n->file, r->a);
+	ss_fileinit(&n->file, r->a);
+	ss_mmapinit(&n->map);
+	ss_mmapinit(&n->map_swap);
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
-	sr_rbinitnode(&n->node);
-	sr_rqinitnode(&n->nodecompact);
-	sr_rqinitnode(&n->nodebranch);
-	sr_listinit(&n->commit);
+	ss_rbinitnode(&n->node);
+	ss_rqinitnode(&n->nodecompact);
+	ss_rqinitnode(&n->nodebranch);
+	ss_listinit(&n->commit);
 	return n;
 }
 
@@ -20716,8 +23096,14 @@ static inline int
 si_nodeclose(sinode *n, sr *r)
 {
 	int rcret = 0;
-	int rc = sr_fileclose(&n->file);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_munmap(&n->map);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "db file '%s' munmap error: %s",
+		               n->file.file, strerror(errno));
+		rcret = -1;
+	}
+	rc = ss_fileclose(&n->file);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' close error: %s",
 		               n->file.file, strerror(errno));
 		rcret = -1;
@@ -20731,26 +23117,26 @@ static inline int
 si_noderecover(sinode *n, sr *r)
 {
 	/* recover branches */
-	sriter i;
-	sr_iterinit(sd_recover, &i, r);
-	sr_iteropen(sd_recover, &i, &n->file);
+	ssiter i;
+	ss_iterinit(sd_recover, &i);
+	ss_iteropen(sd_recover, &i, r, &n->file);
 	int first = 1;
 	int rc;
-	while (sr_iteratorhas(&i))
+	while (ss_iteratorhas(&i))
 	{
-		sdindexheader *h = sr_iteratorof(&i);
+		sdindexheader *h = ss_iteratorof(&i);
 		sibranch *b;
 		if (first) {
 			b =  &n->self;
 		} else {
 			b = si_branchnew(r);
-			if (srunlikely(b == NULL))
+			if (ssunlikely(b == NULL))
 				goto error;
 		}
 		sdindex index;
 		sd_indexinit(&index);
 		rc = sd_indexcopy(&index, r, h);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			goto error;
 		si_branchset(b, &index);
 
@@ -20759,64 +23145,85 @@ si_noderecover(sinode *n, sr *r)
 		n->branch_count++;
 
 		first = 0;
-		sr_iteratornext(&i);
+		ss_iteratornext(&i);
 	}
 	rc = sd_recover_complete(&i);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
-	sr_iteratorclose(&i);
+	ss_iteratorclose(&i);
 	return 0;
 error:
-	sr_iteratorclose(&i);
+	ss_iteratorclose(&i);
 	return -1;
 }
 
-int si_nodeopen(sinode *n, sr *r, srpath *path)
+int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path)
 {
-	int rc = sr_fileopen(&n->file, path->path);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_fileopen(&n->file, path->path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' open error: %s",
 		               n->file.file, strerror(errno));
 		return -1;
 	}
-	rc = sr_fileseek(&n->file, n->file.size);
-	if (srunlikely(rc == -1)) {
+	rc = ss_fileseek(&n->file, n->file.size);
+	if (ssunlikely(rc == -1)) {
 		si_nodeclose(n, r);
 		sr_malfunction(r->e, "db file '%s' seek error: %s",
 		               n->file.file, strerror(errno));
 		return -1;
 	}
 	rc = si_noderecover(n, r);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		si_nodeclose(n, r);
+	if (scheme->mmap) {
+		rc = si_nodemap(n, r);
+		if (ssunlikely(rc == -1))
+			si_nodeclose(n, r);
+	}
 	return rc;
 }
 
-int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
+int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id,
                   sdindex *i,
                   sdbuild *build)
 {
 	si_branchset(&n->self, i);
-	srpath path;
-	sr_pathAB(&path, conf->path, id->parent, id->id, ".db.incomplete");
-	int rc = sr_filenew(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
+	sspath path;
+	ss_pathAB(&path, scheme->path, id->parent, id->id, ".db.incomplete");
+	int rc = ss_filenew(&n->file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' create error: %s",
 		               path.path, strerror(errno));
 		return -1;
 	}
-	rc = sd_buildwrite(build, r, &n->self.index, &n->file);
-	if (srunlikely(rc == -1))
+	rc = sd_commit(build, r, &n->self.index, &n->file);
+	if (ssunlikely(rc == -1))
 		return -1;
+	if (scheme->mmap) {
+		rc = si_nodemap(n, r);
+		if (ssunlikely(rc == -1))
+			return -1;
+	}
 	n->branch = &n->self;
 	n->branch_count++;
 	return 0;
 }
 
+int si_nodemap(sinode *n, sr *r)
+{
+	int rc = ss_mmap(&n->map, n->file.fd, n->file.size, 1);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "db file '%s' mmap error: %s",
+		               n->file.file, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
 int si_nodesync(sinode *n, sr *r)
 {
-	int rc = sr_filesync(&n->file);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_filesync(&n->file);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' sync error: %s",
 		               n->file.file, strerror(errno));
 		return -1;
@@ -20842,8 +23249,8 @@ int si_nodefree(sinode *n, sr *r, int gc)
 	int rcret = 0;
 	int rc;
 	if (gc && n->file.file) {
-		rc = sr_fileunlink(n->file.file);
-		if (srunlikely(rc == -1)) {
+		rc = ss_fileunlink(n->file.file);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' unlink error: %s",
 			               n->file.file, strerror(errno));
 			rcret = -1;
@@ -20851,16 +23258,14 @@ int si_nodefree(sinode *n, sr *r, int gc)
 	}
 	si_nodefree_branches(n, r);
 	rc = si_nodeclose(n, r);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	sr_free(r->a, n);
+	ss_free(r->a, n);
 	return rcret;
 }
 
-uint32_t si_vgc(sra*, svv*);
-
-sr_rbtruncate(si_nodegc_indexgc,
-              si_vgc((sra*)arg, srcast(n, svv, node)))
+ss_rbtruncate(si_nodegc_indexgc,
+              si_gcv((ssa*)arg, sscast(n, svv, node)))
 
 int si_nodegc_index(sr *r, svindex *i)
 {
@@ -20870,42 +23275,25 @@ int si_nodegc_index(sr *r, svindex *i)
 	return 0;
 }
 
-int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
+int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 {
-	sdindexpage *min = sd_indexmin(&n->self.index);
-	sdindexpage *max = sd_indexmax(&n->self.index);
-	int l = sr_compare(c, sd_indexpage_min(min), min->sizemin, key, size);
-	int r = sr_compare(c, sd_indexpage_max(max), max->sizemin, key, size);
-	/* inside range */
-	if (l <= 0 && r >= 0)
-		return 0;
-	/* key > range */
-	if (l == -1)
-		return -1;
-	/* key < range */
-	assert(r == 1);
-	return 1;
-}
-
-int si_nodeseal(sinode *n, sr *r, siconf *conf)
-{
-	srpath path;
-	sr_pathAB(&path, conf->path, n->self.id.parent,
+	sspath path;
+	ss_pathAB(&path, scheme->path, n->self.id.parent,
 	          n->self.id.id, ".db.seal");
-	int rc = sr_filerename(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_filerename(&n->file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
 		               n->file.file, strerror(errno));
 	}
 	return rc;
 }
 
-int si_nodecomplete(sinode *n, sr *r, siconf *conf)
+int si_nodecomplete(sinode *n, sr *r, sischeme *scheme)
 {
-	srpath path;
-	sr_pathA(&path, conf->path, n->self.id.id, ".db");
-	int rc = sr_filerename(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
+	sspath path;
+	ss_pathA(&path, scheme->path, n->self.id.id, ".db");
+	int rc = ss_filerename(&n->file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
 		               n->file.file, strerror(errno));
 	}
@@ -20926,6 +23314,8 @@ int si_nodecomplete(sinode *n, sr *r, siconf *conf)
 
 
 
+
+
 int si_planinit(siplan *p)
 {
 	p->plan    = SI_NONE;
@@ -20937,27 +23327,29 @@ int si_planinit(siplan *p)
 	return 0;
 }
 
-int si_plannerinit(siplanner *p, sra *a)
+int si_plannerinit(siplanner *p, ssa *a, void *i)
 {
-	int rc = sr_rqinit(&p->compact, a, 1, 20);
-	if (srunlikely(rc == -1))
+	int rc = ss_rqinit(&p->compact, a, 1, 20);
+	if (ssunlikely(rc == -1))
 		return -1;
-	rc = sr_rqinit(&p->branch, a, 512 * 1024, 100); /* ~ 50 Mb */
-	if (srunlikely(rc == -1)) {
-		sr_rqfree(&p->compact, a);
+	/* 1Mb step up to 4Gb */
+	rc = ss_rqinit(&p->branch, a, 1024 * 1024, 4000);
+	if (ssunlikely(rc == -1)) {
+		ss_rqfree(&p->compact, a);
 		return -1;
 	}
+	p->i = i;
 	return 0;
 }
 
-int si_plannerfree(siplanner *p, sra *a)
+int si_plannerfree(siplanner *p, ssa *a)
 {
-	sr_rqfree(&p->compact, a);
-	sr_rqfree(&p->branch, a);
+	ss_rqfree(&p->compact, a);
+	ss_rqfree(&p->branch, a);
 	return 0;
 }
 
-int si_plannertrace(siplan *p, srtrace *t)
+int si_plannertrace(siplan *p, sstrace *t)
 {
 	char *plan = NULL;
 	switch (p->plan) {
@@ -20971,7 +23363,8 @@ int si_plannertrace(siplan *p, srtrace *t)
 		break;
 	case SI_GC: plan = "gc";
 		break;
-	case SI_BACKUP: plan = "backup";
+	case SI_BACKUP:
+	case SI_BACKUPEND: plan = "backup";
 		break;
 	case SI_SHUTDOWN: plan = "database shutdown";
 		break;
@@ -20997,11 +23390,11 @@ int si_plannertrace(siplan *p, srtrace *t)
 		break;
 	}
 	if (p->node) {
-		sr_trace(t, "%s <#%" PRIu32 " explain: %s>",
+		ss_trace(t, "%s <#%" PRIu32 " explain: %s>",
 		         plan,
 		         p->node->self.id.id, explain);
 	} else {
-		sr_trace(t, "%s <explain: %s>", plan, explain);
+		ss_trace(t, "%s <explain: %s>", plan, explain);
 	}
 	return 0;
 }
@@ -21009,18 +23402,18 @@ int si_plannertrace(siplan *p, srtrace *t)
 int si_plannerupdate(siplanner *p, int mask, sinode *n)
 {
 	if (mask & SI_BRANCH)
-		sr_rqupdate(&p->branch, &n->nodebranch, n->used);
+		ss_rqupdate(&p->branch, &n->nodebranch, n->used);
 	if (mask & SI_COMPACT)
-		sr_rqupdate(&p->compact, &n->nodecompact, n->branch_count);
+		ss_rqupdate(&p->compact, &n->nodecompact, n->branch_count);
 	return 0;
 }
 
 int si_plannerremove(siplanner *p, int mask, sinode *n)
 {
 	if (mask & SI_BRANCH)
-		sr_rqdelete(&p->branch, &n->nodebranch);
+		ss_rqdelete(&p->branch, &n->nodebranch);
 	if (mask & SI_COMPACT)
-		sr_rqdelete(&p->compact, &n->nodecompact);
+		ss_rqdelete(&p->compact, &n->nodecompact);
 	return 0;
 }
 
@@ -21032,9 +23425,9 @@ si_plannerpeek_backup(siplanner *p, siplan *plan)
 	*/
 	int rc_inprogress = 0;
 	sinode *n;
-	srrqnode *pn = NULL;
-	while ((pn = sr_rqprev(&p->branch, pn))) {
-		n = srcast(pn, sinode, nodebranch);
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->branch, pn))) {
+		n = sscast(pn, sinode, nodebranch);
 		if (n->backup < plan->a) {
 			if (n->flags & SI_LOCK) {
 				rc_inprogress = 2;
@@ -21043,9 +23436,17 @@ si_plannerpeek_backup(siplanner *p, siplan *plan)
 			goto match;
 		}
 	}
-	if (rc_inprogress)
+	if (rc_inprogress) {
 		plan->explain = SI_ERETRY;
-	return rc_inprogress;
+		return 2;
+	}
+	si *index = p->i;
+	if (index->backup < plan->a) {
+		plan->plan = SI_BACKUPEND;
+		plan->node = 0;
+		return 1;
+	}
+	return 0;
 match:
 	si_nodelock(n);
 	plan->explain = SI_ENONE;
@@ -21061,9 +23462,9 @@ si_plannerpeek_checkpoint(siplanner *p, siplan *plan)
 	*/
 	int rc_inprogress = 0;
 	sinode *n;
-	srrqnode *pn = NULL;
-	while ((pn = sr_rqprev(&p->branch, pn))) {
-		n = srcast(pn, sinode, nodebranch);
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->branch, pn))) {
+		n = sscast(pn, sinode, nodebranch);
 		if (n->i0.lsnmin <= plan->a) {
 			if (n->flags & SI_LOCK) {
 				rc_inprogress = 2;
@@ -21087,9 +23488,9 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest in-memory index */
 	sinode *n;
-	srrqnode *pn = NULL;
-	while ((pn = sr_rqprev(&p->branch, pn))) {
-		n = srcast(pn, sinode, nodebranch);
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->branch, pn))) {
+		n = sscast(pn, sinode, nodebranch);
 		if (n->flags & SI_LOCK)
 			continue;
 		if (n->used >= plan->a)
@@ -21111,11 +23512,11 @@ si_plannerpeek_age(siplanner *p, siplan *plan)
 	 * index size >= b */
 
 	/* full scan */
-	uint64_t now = sr_utime();
+	uint64_t now = ss_utime();
 	sinode *n = NULL;
-	srrqnode *pn = NULL;
-	while ((pn = sr_rqprev(&p->branch, pn))) {
-		n = srcast(pn, sinode, nodebranch);
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->branch, pn))) {
+		n = sscast(pn, sinode, nodebranch);
 		if (n->flags & SI_LOCK)
 			continue;
 		if (n->used >= plan->b && ((now - n->update_time) >= plan->a))
@@ -21135,9 +23536,9 @@ si_plannerpeek_compact(siplanner *p, siplan *plan)
 	/* try to peek a node with a biggest number
 	 * of branches */
 	sinode *n;
-	srrqnode *pn = NULL;
-	while ((pn = sr_rqprev(&p->compact, pn))) {
-		n = srcast(pn, sinode, nodecompact);
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->compact, pn))) {
+		n = sscast(pn, sinode, nodecompact);
 		if (n->flags & SI_LOCK)
 			continue;
 		if (n->branch_count >= plan->a)
@@ -21159,11 +23560,11 @@ si_plannerpeek_gc(siplanner *p, siplan *plan)
 	 * of branches which is ready for gc */
 	int rc_inprogress = 0;
 	sinode *n;
-	srrqnode *pn = NULL;
-	while ((pn = sr_rqprev(&p->compact, pn))) {
-		n = srcast(pn, sinode, nodecompact);
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->compact, pn))) {
+		n = sscast(pn, sinode, nodecompact);
 		sdindexheader *h = n->self.index.h;
-		if (srlikely(h->dupkeys == 0) || (h->dupmin >= plan->a))
+		if (sslikely(h->dupkeys == 0) || (h->dupmin >= plan->a))
 			continue;
 		uint32_t used = (h->dupkeys * 100) / h->keys;
 		if (used >= plan->b) {
@@ -21217,6 +23618,8 @@ int si_planner(siplanner *p, siplan *plan)
 
 
 
+
+
 int si_profilerbegin(siprofiler *p, si *i)
 {
 	memset(p, 0, sizeof(*p));
@@ -21264,12 +23667,11 @@ si_profiler_histogram_branch(siprofiler *p)
 int si_profiler(siprofiler *p)
 {
 	uint64_t memory_used = 0;
-	srrbnode *pn;
+	ssrbnode *pn;
 	sinode *n;
-	pn = sr_rbmin(&p->i->i);
+	pn = ss_rbmin(&p->i->i);
 	while (pn) {
-		n = srcast(pn, sinode, node);
-		p->total_node_size += n->file.size;
+		n = sscast(pn, sinode, node);
 		p->total_node_count++;
 		p->count += n->i0.count;
 		p->count += n->i1.count;
@@ -21286,9 +23688,13 @@ int si_profiler(siprofiler *p)
 		while (b) {
 			p->count += b->index.h->keys;
 			p->count_dup += b->index.h->dupkeys;
+			int indexsize = sd_indexsize(b->index.h);
+			p->total_node_size += indexsize + b->index.h->total;
+			p->total_node_origin_size += indexsize + b->index.h->totalorigin;
+			p->total_page_count += b->index.h->count;
 			b = b->next;
 		}
-		pn = sr_rbnext(&p->i->i, pn);
+		pn = ss_rbnext(&p->i->i, pn);
 	}
 	if (p->total_node_count > 0)
 		p->total_branch_avg =
@@ -21314,24 +23720,40 @@ int si_profiler(siprofiler *p)
 
 
 
-int si_queryopen(siquery *q, sr *r, sicache *c, si *i, srorder o,
+
+
+int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
                  uint64_t vlsn,
                  void *prefix, uint32_t prefixsize,
                  void *key, uint32_t keysize)
 {
-	q->order   = o;
-	q->key     = key;
-	q->keysize = keysize;
-	q->vlsn    = vlsn;
-	q->index   = i;
-	q->r       = r;
-	q->cache   = c;
-	q->prefix  = prefix;
+	q->order      = o;
+	q->key        = key;
+	q->keysize    = keysize;
+	q->vlsn       = vlsn;
+	q->index      = i;
+	q->r          = i->r;
+	q->cache      = c;
+	q->prefix     = prefix;
 	q->prefixsize = prefixsize;
+	q->has        = 0;
+	q->update_v   = NULL;
+	q->update_eq  = 0;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
 	return 0;
+}
+
+void si_queryhas(siquery *q)
+{
+	q->has = 1;
+}
+
+void si_queryupdate(siquery *q, sv *v, int eq)
+{
+	q->update_v  = v;
+	q->update_eq = eq;
 }
 
 int si_queryclose(siquery *q)
@@ -21342,296 +23764,308 @@ int si_queryclose(siquery *q)
 }
 
 static inline int
-si_qresult(siquery *q, sriter *i)
+si_querydup(siquery *q, sv *result)
 {
-	sv *v = sr_iteratorof(i);
-	if (srunlikely(v == NULL))
-		return 0;
-	if (srunlikely(sv_flags(v) & SVDELETE))
-		return 2;
-	int rc = 1;
+	svv *v = sv_vdup(q->r->a, result);
+	if (ssunlikely(v == NULL))
+		return sr_oom(q->r->e);
+	sv_init(&q->result, &sv_vif, v, NULL);
+	return 1;
+}
+
+static inline int
+si_qgetresult(siquery *q, sv *v, int compare)
+{
+	int rc;
+	if (compare) {
+		rc = sr_compare(q->r->scheme, sv_pointer(v), sv_size(v),
+		                q->key, q->keysize);
+		if (ssunlikely(rc != 0))
+			return 0;
+	}
 	if (q->prefix) {
-		rc = sr_compareprefix(q->r->cmp, q->prefix, q->prefixsize,
-		                      sv_key(v),
-		                      sv_keysize(v));
+		rc = sr_compareprefix(q->r->scheme,
+		                      q->prefix,
+		                      q->prefixsize,
+		                      sv_pointer(v), sv_size(v));
+		if (ssunlikely(! rc))
+			return 0;
 	}
-	q->result = *v;
-	return rc;
+	if (ssunlikely(q->has)) {
+		return sv_lsn(v) > q->vlsn;
+	}
+	if (ssunlikely(sv_is(v, SVDELETE)))
+		return 2;
+	rc = si_querydup(q, v);
+	if (ssunlikely(rc == -1))
+		return -1;
+	return 1;
 }
 
 static inline int
-si_qmatchindex(siquery *q, sinode *node)
+si_qgetindex(siquery *q, sinode *node)
 {
-	sriter i;
-	sr_iterinit(sv_indexiter, &i, q->r);
-	int rc = sr_iteropen(sv_indexiter, &i, &node->i0, q->order,
-	                     q->key, q->keysize, q->vlsn);
-	if (rc)
-		return si_qresult(q, &i);
-	if (! (node->flags & SI_I1))
+	svindex *second;
+	svindex *first = si_nodeindex_priority(node, &second);
+	ssiter i;
+	ss_iterinit(sv_indexiter, &i);
+	int rc;
+	if (first->count > 0) {
+		rc = ss_iteropen(sv_indexiter, &i, q->r, first,
+		                 SS_GTE, q->key, q->keysize);
+		if (rc) {
+			goto result;
+		}
+	}
+	if (sslikely(second == NULL || !second->count))
 		return 0;
-	sr_iterinit(sv_indexiter, &i, q->r);
-	rc = sr_iteropen(sv_indexiter, &i, &node->i1, q->order,
-	                 q->key, q->keysize, q->vlsn);
-	if (rc)
-		return si_qresult(q, &i);
-	return 0;
-}
-
-static inline sdpage*
-si_qread(srbuf *buf, sr *r, si *i, sinode *n, sibranch *b,
-         sdindexpage *ref)
-{
-	uint64_t offset =
-		b->index.h->offset + sd_indexsize(b->index.h) +
-		ref->offset;
-	sr_bufreset(buf);
-	int rc = sr_bufensure(buf, r->a, sizeof(sdpage) + ref->sizeorigin);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return NULL;
+	rc = ss_iteropen(sv_indexiter, &i, q->r, second,
+	                 SS_GTE, q->key, q->keysize);
+	if (! rc) {
+		return 0;
 	}
-	sr_bufadvance(buf, sizeof(sdpage));
-
-	if (i->conf->compression)
-	{
-		/* read compressed page */
-		sr_bufreset(&i->readbuf);
-		rc = sr_bufensure(&i->readbuf, r->a, ref->size);
-		if (srunlikely(rc == -1)) {
-			sr_error(r->e, "%s", "memory allocation failed");
-			return NULL;
-		}
-		rc = sr_filepread(&n->file, offset, i->readbuf.s, ref->size);
-		if (srunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' read error: %s",
-			         n->file.file, strerror(errno));
-			return NULL;
-		}
-		sr_bufadvance(&i->readbuf, ref->size);
-
-		/* copy header */
-		memcpy(buf->p, i->readbuf.s, sizeof(sdpageheader));
-		sr_bufadvance(buf, sizeof(sdpageheader));
-
-		/* decompression */
-		srfilter f;
-		rc = sr_filterinit(&f, (srfilterif*)r->compression, r, SR_FOUTPUT);
-		if (srunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' decompression error", n->file.file);
-			return NULL;
-		}
-		int size = ref->size - sizeof(sdpageheader);
-		rc = sr_filternext(&f, buf, i->readbuf.s + sizeof(sdpageheader), size);
-		if (srunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' decompression error", n->file.file);
-			return NULL;
-		}
-		sr_filterfree(&f);
-	} else {
-		rc = sr_filepread(&n->file, offset, buf->s + sizeof(sdpage), ref->sizeorigin);
-		if (srunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' read error: %s",
-			         n->file.file, strerror(errno));
-			return NULL;
-		}
-		sr_bufadvance(buf, ref->sizeorigin);
+result:;
+	sv *v = ss_iterof(sv_indexiter, &i);
+	assert(v != NULL);
+	svv *visible = v->v;
+	if (sslikely(! q->has)) {
+		visible = sv_visible((svv*)v->v, q->vlsn);
+		if (visible == NULL)
+			return 0;
 	}
-
-	i->read_disk++;
-	sdpageheader *h = (sdpageheader*)(buf->s + sizeof(sdpage));
-	sdpage *page = (sdpage*)(buf->s);
-	sd_pageinit(page, h);
-	return page;
+	sv vret;
+	sv_init(&vret, &sv_vif, visible, NULL);
+	return si_qgetresult(q, &vret, 0);
 }
 
 static inline int
-si_qmatchbranch(siquery *q, sinode *n, sibranch *b)
+si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 {
 	sicachebranch *cb = si_cachefollow(q->cache);
 	assert(cb->branch == b);
-	sriter i;
-	sr_iterinit(sd_indexiter, &i, q->r);
-	sr_iteropen(sd_indexiter, &i, &b->index, SR_LTE, q->key, q->keysize);
-	cb->ref = sr_iterof(sd_indexiter, &i);
-	if (cb->ref == NULL)
-		return 0;
-	sdpage *page = si_qread(&cb->buf, q->r, q->index, n, b, cb->ref);
-	if (srunlikely(page == NULL)) {
-		cb->ref = NULL;
-		return -1;
+	sireadarg arg = {
+		.scheme     = q->index->scheme,
+		.index      = q->index,
+		.n          = n,
+		.b          = b,
+		.buf        = &cb->buf_a,
+		.buf_xf     = &cb->buf_b,
+		.buf_read   = &q->index->readbuf,
+		.index_iter = &cb->index_iter,
+		.page_iter  = &cb->page_iter,
+		.vlsn       = q->vlsn,
+		.has        = q->has,
+		.mmap_copy  = 0,
+		.o          = SS_GTE,
+		.r          = q->r
+	};
+	ss_iterinit(si_read, &cb->i);
+	int rc = ss_iteropen(si_read, &cb->i, &arg, q->key, q->keysize);
+	if (ssunlikely(rc <= 0))
+		return rc;
+	uint64_t vlsn = q->vlsn;
+	if (q->has) {
+		vlsn = UINT64_MAX;
 	}
-	sr_iterinit(sd_pageiter, &cb->i, q->r);
-	int rc;
-	rc = sr_iteropen(sd_pageiter, &cb->i, page, q->order, q->key, q->keysize, q->vlsn);
-	if (rc == 0) {
-		cb->ref = NULL;
+	/* prepare sources */
+	sv_mergereset(&q->merge);
+	sv_mergeadd(&q->merge, &cb->i);
+	ssiter i;
+	ss_iterinit(sv_mergeiter, &i);
+	ss_iteropen(sv_mergeiter, &i, q->r, &q->merge, SS_GTE);
+	ssiter j;
+	ss_iterinit(sv_readiter, &j);
+	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->u, vlsn, 1);
+	sv *v = ss_iterof(sv_readiter, &j);
+	if (ssunlikely(v == NULL))
 		return 0;
-	}
-	return si_qresult(q, &cb->i);
+	return si_qgetresult(q, v, 1);
 }
 
 static inline int
-si_qmatch(siquery *q)
+si_qget(siquery *q)
 {
-	sriter i;
-	sr_iterinit(si_iter, &i, q->r);
-	sr_iteropen(si_iter, &i, q->index, SR_ROUTE, q->key, q->keysize);
+	ssiter i;
+	ss_iterinit(si_iter, &i);
+	ss_iteropen(si_iter, &i, q->r, q->index, SS_GTE, q->key, q->keysize);
 	sinode *node;
-	node = sr_iterof(si_iter, &i);
+	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* search in memory */
 	int rc;
-	rc = si_qmatchindex(q, node);
-	switch (rc) {
-	case  2: rc = 0; /* delete */
-	case -1: /* error */
-	case  1: return rc;
-	}
+	rc = si_qgetindex(q, node);
+	if (rc != 0)
+		return rc;
 	/* */
 	rc = si_cachevalidate(q->cache, node);
-	if (srunlikely(rc == -1)) {
-		sr_error(q->r->e, "%s", "memory allocation failed");
+	if (ssunlikely(rc == -1)) {
+		sr_oom(q->r->e);
 		return -1;
 	}
+	svmerge *m = &q->merge;
+	rc = sv_mergeprepare(m, q->r, 1);
+	assert(rc == 0);
 	/* search on disk */
 	sibranch *b = node->branch;
 	while (b) {
-		rc = si_qmatchbranch(q, node, b);
-		switch (rc) {
-		case  2: rc = 0;
-		case -1: 
-		case  1: return rc;
-		}
+		rc = si_qgetbranch(q, node, b);
+		if (rc != 0)
+			return rc;
 		b = b->next;
 	}
 	return 0;
 }
 
-int si_querydup(siquery *q, sv *result)
-{
-	svv *v = sv_valloc(q->r->a, &q->result);
-	if (srunlikely(v == NULL)) {
-		sr_error(q->r->e, "%s", "memory allocation failed");
-		return -1;
-	}
-	sv_init(result, &sv_vif, v, NULL);
-	return 1;
-}
-
 static inline void
-si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
+si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 {
 	sicachebranch *cb = si_cachefollow(q->cache);
 	assert(cb->branch == b);
-	/* cache iteration */
-	if (srlikely(cb->ref)) {
-		if (sr_iterhas(sd_pageiter, &cb->i)) {
-			svmergesrc *s = sv_mergeadd(m, &cb->i);
-			s->ptr = cb;
-			q->index->read_cache++;
-			return;
-		}
-	}
-	/* read page to cache buffer */
-	sriter i;
-	sr_iterinit(sd_indexiter, &i, q->r);
-	sr_iteropen(sd_indexiter, &i, &b->index, q->order, q->key, q->keysize);
-	sdindexpage *prev = cb->ref;
-	cb->ref = sr_iterof(sd_indexiter, &i);
-	if (cb->ref == NULL || cb->ref == prev)
-		return;
-	sdpage *page = si_qread(&cb->buf, q->r, q->index, n, b, cb->ref);
-	if (srunlikely(page == NULL)) {
-		cb->ref = NULL;
+	/* iterate cache */
+	if (ss_iterhas(si_read, &cb->i)) {
+		svmergesrc *s = sv_mergeadd(m, &cb->i);
+		q->index->read_cache++;
+		s->ptr = cb;
 		return;
 	}
+	if (cb->open) {
+		return;
+	}
+	cb->open = 1;
+	sireadarg arg = {
+		.scheme     = q->index->scheme,
+		.index      = q->index,
+		.n          = n,
+		.b          = b,
+		.buf        = &cb->buf_a,
+		.buf_xf     = &cb->buf_b,
+		.buf_read   = &q->index->readbuf,
+		.index_iter = &cb->index_iter,
+		.page_iter  = &cb->page_iter,
+		.vlsn       = q->vlsn,
+		.has        = 0,
+		.mmap_copy  = 1,
+		.o          = q->order,
+		.r          = q->r
+	};
+	ss_iterinit(si_read, &cb->i);
+	int rc = ss_iteropen(si_read, &cb->i, &arg, q->key, q->keysize);
+	if (ssunlikely(rc == -1))
+		return;
+	if (ssunlikely(! ss_iterhas(si_read, &cb->i)))
+		return;
 	svmergesrc *s = sv_mergeadd(m, &cb->i);
 	s->ptr = cb;
-	sr_iterinit(sd_pageiter, &cb->i, q->r);
-	sr_iteropen(sd_pageiter, &cb->i, page, q->order, q->key, q->keysize, q->vlsn);
 }
 
 static inline int
-si_qfetch(siquery *q)
+si_qrange(siquery *q)
 {
-	sriter i;
-	sr_iterinit(si_iter, &i, q->r);
-	sr_iteropen(si_iter, &i, q->index, q->order, q->key, q->keysize);
+	ssiter i;
+	ss_iterinit(si_iter, &i);
+	ss_iteropen(si_iter, &i, q->r, q->index, q->order, q->key, q->keysize);
 	sinode *node;
 next_node:
-	node = sr_iterof(si_iter, &i);
-	if (srunlikely(node == NULL))
+	node = ss_iterof(si_iter, &i);
+	if (ssunlikely(node == NULL))
 		return 0;
 
 	/* prepare sources */
 	svmerge *m = &q->merge;
-	int count = node->branch_count + 2;
+	int count = node->branch_count + 2 + 1;
 	int rc = sv_mergeprepare(m, q->r, count);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		sr_errorreset(q->r->e);
 		return -1;
 	}
-	svmergesrc *s;
-	s = sv_mergeadd(m, NULL);
-	sr_iterinit(sv_indexiter, &s->src,q->r);
-	sr_iteropen(sv_indexiter, &s->src, &node->i1, q->order, q->key, q->keysize, q->vlsn);
-	s = sv_mergeadd(m, NULL);
-	sr_iterinit(sv_indexiter, &s->src, q->r);
-	sr_iteropen(sv_indexiter, &s->src, &node->i0, q->order, q->key, q->keysize, q->vlsn);
 
-	/* */
+	/* external source (update) */
+	svmergesrc *s;
+	sv upbuf_reserve;
+	ssbuf upbuf;
+	if (ssunlikely(q->update_v && q->update_v->v)) {
+		ss_bufinit_reserve(&upbuf, &upbuf_reserve, sizeof(upbuf_reserve));
+		ss_bufadd(&upbuf, NULL, (void*)&q->update_v, sizeof(sv*));
+		s = sv_mergeadd(m, NULL);
+		ss_iterinit(ss_bufiterref, &s->src);
+		ss_iteropen(ss_bufiterref, &s->src, &upbuf, sizeof(sv*));
+	}
+
+	/* in-memory indexes */
+	svindex *second;
+	svindex *first = si_nodeindex_priority(node, &second);
+	if (first->count) {
+		s = sv_mergeadd(m, NULL);
+		ss_iterinit(sv_indexiter, &s->src);
+		ss_iteropen(sv_indexiter, &s->src, q->r, first, q->order,
+		            q->key, q->keysize);
+	}
+	if (ssunlikely(second && second->count)) {
+		s = sv_mergeadd(m, NULL);
+		ss_iterinit(sv_indexiter, &s->src);
+		ss_iteropen(sv_indexiter, &s->src, q->r, second, q->order,
+		            q->key, q->keysize);
+	}
+
+	/* cache and branches */
 	rc = si_cachevalidate(q->cache, node);
-	if (srunlikely(rc == -1)) {
-		sr_error(q->r->e, "%s", "memory allocation failed");
+	if (ssunlikely(rc == -1)) {
+		sr_oom(q->r->e);
 		return -1;
 	}
 	sibranch *b = node->branch;
 	while (b) {
-		si_qfetchbranch(q, node, b, m);
+		si_qrangebranch(q, node, b, m);
 		b = b->next;
 	}
 
 	/* merge and filter data stream */
-	sriter j;
-	sr_iterinit(sv_mergeiter, &j, q->r);
-	sr_iteropen(sv_mergeiter, &j, m, q->order);
-	sriter k;
-	sr_iterinit(sv_readiter, &k, q->r);
-	sr_iteropen(sv_readiter, &k, &j, q->vlsn);
-	sv *v = sr_iterof(sv_readiter, &k);
-	if (srunlikely(v == NULL)) {
+	ssiter j;
+	ss_iterinit(sv_mergeiter, &j);
+	ss_iteropen(sv_mergeiter, &j, q->r, m, q->order);
+	ssiter k;
+	ss_iterinit(sv_readiter, &k);
+	ss_iteropen(sv_readiter, &k, q->r, &j, &q->index->u, q->vlsn, 0);
+	sv *v = ss_iterof(sv_readiter, &k);
+	if (ssunlikely(v == NULL)) {
 		sv_mergereset(&q->merge);
-		sr_iternext(si_iter, &i);
+		ss_iternext(si_iter, &i);
 		goto next_node;
 	}
 
-	/* do prefix search */
 	rc = 1;
-	if (q->prefix) {
-		rc = sr_compareprefix(q->r->cmp, q->prefix, q->prefixsize,
-		                      sv_key(v),
-		                      sv_keysize(v));
+	/* convert update search to SS_EQ */
+	if (q->update_eq) {
+		rc = sr_compare(q->r->scheme, sv_pointer(v), sv_size(v),
+		                q->key, q->keysize);
+		rc = rc == 0;
 	}
-	q->result = *v;
+	/* do prefix search */
+	if (q->prefix && rc) {
+		rc = sr_compareprefix(q->r->scheme, q->prefix, q->prefixsize,
+		                      sv_pointer(v),
+		                      sv_size(v));
+	}
+	if (sslikely(rc == 1)) {
+		if (ssunlikely(si_querydup(q, v) == -1))
+			return -1;
+	}
 
 	/* skip a possible duplicates from data sources */
-	sr_iternext(sv_readiter, &k);
+	ss_iternext(sv_readiter, &k);
 	return rc;
 }
 
 int si_query(siquery *q)
 {
 	switch (q->order) {
-	case SR_EQ:
-	case SR_UPDATE:
-		return si_qmatch(q);
-	case SR_RANDOM:
-	case SR_LT:
-	case SR_LTE:
-	case SR_GT:
-	case SR_GTE:
-		return si_qfetch(q);
+	case SS_EQ:
+		return si_qget(q);
+	case SS_LT:
+	case SS_LTE:
+	case SS_GT:
+	case SS_GTE:
+		return si_qrange(q);
 	default:
 		break;
 	}
@@ -21641,10 +24075,11 @@ int si_query(siquery *q)
 static int
 si_querycommited_branch(sr *r, sibranch *b, sv *v)
 {
-	sriter i;
-	sr_iterinit(sd_indexiter, &i, r);
-	sr_iteropen(sd_indexiter, &i, &b->index, SR_LTE, sv_key(v), sv_keysize(v));
-	sdindexpage *page = sr_iterof(sd_indexiter, &i);
+	ssiter i;
+	ss_iterinit(sd_indexiter, &i);
+	ss_iteropen(sd_indexiter, &i, r, &b->index, SS_GTE,
+	            sv_pointer(v), sv_size(v));
+	sdindexpage *page = ss_iterof(sd_indexiter, &i);
 	if (page == NULL)
 		return 0;
 	return page->lsnmax >= sv_lsn(v);
@@ -21652,11 +24087,12 @@ si_querycommited_branch(sr *r, sibranch *b, sv *v)
 
 int si_querycommited(si *index, sr *r, sv *v)
 {
-	sriter i;
-	sr_iterinit(si_iter, &i, r);
-	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_key(v), sv_keysize(v));
+	ssiter i;
+	ss_iterinit(si_iter, &i);
+	ss_iteropen(si_iter, &i, r, index, SS_GTE,
+	            sv_pointer(v), sv_size(v));
 	sinode *node;
-	node = sr_iterof(si_iter, &i);
+	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 	sibranch *b = node->branch;
 	int rc;
@@ -21669,6 +24105,30 @@ int si_querycommited(si *index, sr *r, sv *v)
 	rc = si_querycommited_branch(r, &node->self, v);
 	return rc;
 }
+#line 1 "sophia/index/si_read.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+ssiterif si_read =
+{
+	.close = si_read_close,
+	.has   = si_read_has,
+	.of    = si_read_of,
+	.next  = si_read_next
+};
 #line 1 "sophia/index/si_recover.c"
 
 /*
@@ -21709,10 +24169,13 @@ int si_querycommited(si *index, sr *r, sv *v)
 
 
 
-sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
+
+
+sinode *si_bootstrap(si *i, uint32_t parent)
 {
+	sr *r = i->r;
 	sinode *n = si_nodenew(r);
-	if (srunlikely(n == NULL))
+	if (ssunlikely(n == NULL))
 		return NULL;
 	sdid id = {
 		.parent = parent,
@@ -21721,45 +24184,35 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	};
 	sdindex index;
 	sd_indexinit(&index);
-	int rc = sd_indexbegin(&index, r, 0, 0);
-	if (srunlikely(rc == -1)) {
+	int rc = sd_indexbegin(&index, r, 0);
+	if (ssunlikely(rc == -1)) {
 		si_nodefree(n, r, 0);
 		return NULL;
 	}
 	sdbuild build;
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
-	                   i->conf->node_page_checksum,
-	                   i->conf->compression);
-	if (srunlikely(rc == -1)) {
+	                   i->scheme->node_page_checksum,
+	                   i->scheme->compression,
+	                   i->scheme->compression_key);
+	if (ssunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
 		sd_buildfree(&build, r);
 		si_nodefree(n, r, 0);
 		return NULL;
 	}
 	sd_buildend(&build, r);
-	sdpageheader *h = sd_buildheader(&build);
-	rc = sd_indexadd(&index, r,
-	                 sd_buildoffset(&build),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 NULL,
-	                 0,
-	                 NULL,
-                     0,
-                     0, UINT64_MAX,
-                     UINT64_MAX, 0);
-	if (srunlikely(rc == -1)) {
+	rc = sd_indexadd(&index, r, &build);
+	if (ssunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
 		si_nodefree(n, r, 0);
 		return NULL;
 	}
-	sd_buildcommit(&build);
+	sd_buildcommit(&build, r);
 	sd_indexcommit(&index, r, &id);
-	rc = si_nodecreate(n, r, i->conf, &id, &index, &build);
+	rc = si_nodecreate(n, r, i->scheme, &id, &index, &build);
 	sd_buildfree(&build, r);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
 		return NULL;
 	}
@@ -21767,27 +24220,35 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 }
 
 static inline int
-si_deploy(si *i, sr *r)
+si_deploy(si *i, sr *r, int create_directory)
 {
-	int rc = sr_filemkdir(i->conf->path);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "directory '%s' create error: %s",
-		               i->conf->path, strerror(errno));
+	int rc;
+	if (sslikely(create_directory)) {
+		rc = ss_filemkdir(i->scheme->path);
+		if (ssunlikely(rc == -1)) {
+			sr_malfunction(r->e, "directory '%s' create error: %s",
+			               i->scheme->path, strerror(errno));
+			return -1;
+		}
+	}
+	rc = si_schemedeploy(i->scheme, r);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction_set(r->e);
 		return -1;
 	}
-	sinode *n = si_bootstrap(i, r, 0);
-	if (srunlikely(n == NULL))
+	sinode *n = si_bootstrap(i, 0);
+	if (ssunlikely(n == NULL))
 		return -1;
-	SR_INJECTION(r->i, SR_INJECTION_SI_RECOVER_0,
+	SS_INJECTION(r->i, SS_INJECTION_SI_RECOVER_0,
 	             si_nodefree(n, r, 0);
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
-	rc = si_nodecomplete(n, r, i->conf);
-	if (srunlikely(rc == -1)) {
+	rc = si_nodecomplete(n, r, i->scheme);
+	if (ssunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
 		return -1;
 	}
-	si_insert(i, r, n);
+	si_insert(i, n);
 	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH, n);
 	return 1;
 }
@@ -21797,7 +24258,7 @@ si_processid(char **str) {
 	char *s = *str;
 	size_t v = 0;
 	while (*s && *s != '.') {
-		if (srunlikely(!isdigit(*s)))
+		if (ssunlikely(!isdigit(*s)))
 			return -1;
 		v = (v * 10) + *s - '0';
 		s++;
@@ -21814,17 +24275,17 @@ si_process(char *name, uint32_t *nsn, uint32_t *parent)
 	/* id.id.db.seal */
 	char *token = name;
 	ssize_t id = si_processid(&token);
-	if (srunlikely(id == -1))
+	if (ssunlikely(id == -1))
 		return -1;
 	*parent = id;
 	*nsn = id;
 	if (strcmp(token, ".db") == 0)
 		return SI_RDB;
-	if (srunlikely(*token != '.'))
+	if (ssunlikely(*token != '.'))
 		return -1;
 	token++;
 	id = si_processid(&token);
-	if (srunlikely(id == -1))
+	if (ssunlikely(id == -1))
 		return -1;
 	*nsn = id;
 	if (strcmp(token, ".db.incomplete") == 0)
@@ -21838,35 +24299,35 @@ si_process(char *name, uint32_t *nsn, uint32_t *parent)
 static inline int
 si_trackdir(sitrack *track, sr *r, si *i)
 {
-	DIR *dir = opendir(i->conf->path);
-	if (srunlikely(dir == NULL)) {
+	DIR *dir = opendir(i->scheme->path);
+	if (ssunlikely(dir == NULL)) {
 		sr_malfunction(r->e, "directory '%s' open error: %s",
-		               i->conf->path, strerror(errno));
+		               i->scheme->path, strerror(errno));
 		return -1;
 	}
 	struct dirent *de;
 	while ((de = readdir(dir))) {
-		if (srunlikely(de->d_name[0] == '.'))
+		if (ssunlikely(de->d_name[0] == '.'))
 			continue;
 		uint32_t id_parent = 0;
 		uint32_t id = 0;
 		int rc = si_process(de->d_name, &id, &id_parent);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			continue; /* skip unknown file */
 		si_tracknsn(track, id_parent);
 		si_tracknsn(track, id);
 
 		sinode *head, *node;
-		srpath path;
+		sspath path;
 		switch (rc) {
 		case SI_RDB_DBI:
 		case SI_RDB_DBSEAL: {
 			/* find parent node and mark it as having
 			 * incomplete compaction process */
 			head = si_trackget(track, id_parent);
-			if (srlikely(head == NULL)) {
+			if (sslikely(head == NULL)) {
 				head = si_nodenew(r);
-				if (srunlikely(head == NULL))
+				if (ssunlikely(head == NULL))
 					goto error;
 				head->self.id.id = id_parent;
 				head->recover = SI_RDB_UNDEF;
@@ -21875,9 +24336,9 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			head->recover |= rc;
 			/* remove any incomplete file made during compaction */
 			if (rc == SI_RDB_DBI) {
-				sr_pathAB(&path, i->conf->path, id_parent, id, ".db.incomplete");
-				rc = sr_fileunlink(path.path);
-				if (srunlikely(rc == -1)) {
+				ss_pathAB(&path, i->scheme->path, id_parent, id, ".db.incomplete");
+				rc = ss_fileunlink(path.path);
+				if (ssunlikely(rc == -1)) {
 					sr_malfunction(r->e, "db file '%s' unlink error: %s",
 					               path.path, strerror(errno));
 					goto error;
@@ -21887,12 +24348,12 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			assert(rc == SI_RDB_DBSEAL);
 			/* recover 'sealed' node */
 			node = si_nodenew(r);
-			if (srunlikely(node == NULL))
+			if (ssunlikely(node == NULL))
 				goto error;
 			node->recover = SI_RDB_DBSEAL;
-			sr_pathAB(&path, i->conf->path, id_parent, id, ".db.seal");
-			rc = si_nodeopen(node, r, &path);
-			if (srunlikely(rc == -1)) {
+			ss_pathAB(&path, i->scheme->path, id_parent, id, ".db.seal");
+			rc = si_nodeopen(node, r, i->scheme, &path);
+			if (ssunlikely(rc == -1)) {
 				si_nodefree(node, r, 0);
 				goto error;
 			}
@@ -21905,12 +24366,12 @@ si_trackdir(sitrack *track, sr *r, si *i)
 
 		/* recover node */
 		node = si_nodenew(r);
-		if (srunlikely(node == NULL))
+		if (ssunlikely(node == NULL))
 			goto error;
 		node->recover = SI_RDB;
-		sr_pathA(&path, i->conf->path, id, ".db");
-		rc = si_nodeopen(node, r, &path);
-		if (srunlikely(rc == -1)) {
+		ss_pathA(&path, i->scheme->path, id, ".db");
+		rc = si_nodeopen(node, r, i->scheme, &path);
+		if (ssunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);
 			goto error;
 		}
@@ -21918,14 +24379,14 @@ si_trackdir(sitrack *track, sr *r, si *i)
 
 		/* track node */
 		head = si_trackget(track, id);
-		if (srlikely(head == NULL)) {
+		if (sslikely(head == NULL)) {
 			si_trackset(track, node);
 		} else {
 			/* replace a node previously created by a
 			 * incomplete compaction. */
 			if (! (head->recover & SI_RDB_UNDEF)) {
 				sr_malfunction(r->e, "corrupted database repository: %s",
-				               i->conf->path);
+				               i->scheme->path);
 				goto error;
 			}
 			si_trackreplace(track, head, node);
@@ -21942,12 +24403,12 @@ error:
 }
 
 static inline int
-si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
+si_trackvalidate(sitrack *track, ssbuf *buf, sr *r, si *i)
 {
-	sr_bufreset(buf);
-	srrbnode *p = sr_rbmax(&track->i);
+	ss_bufreset(buf);
+	ssrbnode *p = ss_rbmax(&track->i);
 	while (p) {
-		sinode *n = srcast(p, sinode, node);
+		sinode *n = sscast(p, sinode, node);
 		switch (n->recover) {
 		case SI_RDB|SI_RDB_DBI|SI_RDB_DBSEAL|SI_RDB_REMOVE:
 		case SI_RDB|SI_RDB_DBSEAL|SI_RDB_REMOVE:
@@ -21976,8 +24437,8 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 			}
 			if (! (n->recover & SI_RDB_REMOVE)) {
 				/* complete node */
-				int rc = si_nodecomplete(n, r, i->conf);
-				if (srunlikely(rc == -1))
+				int rc = si_nodecomplete(n, r, i->scheme);
+				if (ssunlikely(rc == -1))
 					return -1;
 				n->recover = SI_RDB;
 			}
@@ -21986,56 +24447,43 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 		default:
 			/* corrupted states */
 			return sr_malfunction(r->e, "corrupted database repository: %s",
-			                      i->conf->path);
+			                      i->scheme->path);
 		}
-		p = sr_rbprev(&track->i, p);
+		p = ss_rbprev(&track->i, p);
 	}
 	return 0;
 }
 
 static inline int
-si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
+si_recovercomplete(sitrack *track, sr *r, si *index, ssbuf *buf)
 {
 	/* prepare and build primary index */
-	sr_bufreset(buf);
-	srrbnode *p = sr_rbmin(&track->i);
+	ss_bufreset(buf);
+	ssrbnode *p = ss_rbmin(&track->i);
 	while (p) {
-		sinode *n = srcast(p, sinode, node);
-		int rc = sr_bufadd(buf, r->a, &n, sizeof(sinode**));
-		if (srunlikely(rc == -1))
-			return sr_malfunction(r->e, "%s", "memory allocation failed");
-		p = sr_rbnext(&track->i, p);
+		sinode *n = sscast(p, sinode, node);
+		int rc = ss_bufadd(buf, r->a, &n, sizeof(sinode*));
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
+		p = ss_rbnext(&track->i, p);
 	}
-	sriter i;
-	sr_iterinit(sr_bufiterref, &i, r);
-	sr_iteropen(sr_bufiterref, &i, buf, sizeof(sinode*));
-	while (sr_iterhas(sr_bufiterref, &i))
+	ssiter i;
+	ss_iterinit(ss_bufiterref, &i);
+	ss_iteropen(ss_bufiterref, &i, buf, sizeof(sinode*));
+	while (ss_iterhas(ss_bufiterref, &i))
 	{
-		sinode *n = sr_iterof(sr_bufiterref, &i);
+		sinode *n = ss_iterof(ss_bufiterref, &i);
 		if (n->recover & SI_RDB_REMOVE) {
 			int rc = si_nodefree(n, r, 1);
-			if (srunlikely(rc == -1))
+			if (ssunlikely(rc == -1))
 				return -1;
-			sr_iternext(sr_bufiterref, &i);
+			ss_iternext(ss_bufiterref, &i);
 			continue;
 		}
 		n->recover = SI_RDB;
-		si_insert(index, r, n);
+		si_insert(index, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
-		sr_iternext(sr_bufiterref, &i);
-	}
-	return 0;
-}
-
-static inline int
-si_recoverdrop(si *i, sr *r)
-{
-	char path[1024];
-	snprintf(path, sizeof(path), "%s/drop", i->conf->path);
-	if (sr_fileexists(path)) {
-		sr_malfunction(r->e, "attempt to recover a dropped database: %s:",
-		               i->conf->path);
-		return -1;
+		ss_iternext(ss_bufiterref, &i);
 	}
 	return 0;
 }
@@ -22045,52 +24493,81 @@ si_recoverindex(si *i, sr *r)
 {
 	sitrack track;
 	si_trackinit(&track);
-	srbuf buf;
-	sr_bufinit(&buf);
-	int rc = si_recoverdrop(i, r);
-	if (srunlikely(rc == -1))
-		return -1;
+	ssbuf buf;
+	ss_bufinit(&buf);
+	int rc;
 	rc = si_trackdir(&track, r, i);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
-	if (srunlikely(track.count == 0)) {
-		sr_malfunction(r->e, "corrupted database repository: %s",
-		               i->conf->path);
-		goto error;
-	}
+	if (ssunlikely(track.count == 0))
+		return 1;
 	rc = si_trackvalidate(&track, &buf, r, i);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
 	rc = si_recovercomplete(&track, r, i, &buf);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
 	/* set actual metrics */
 	if (track.nsn > r->seq->nsn)
 		r->seq->nsn = track.nsn;
 	if (track.lsn > r->seq->lsn)
 		r->seq->lsn = track.lsn;
-	sr_buffree(&buf, r->a);
+	ss_buffree(&buf, r->a);
 	return 0;
 error:
-	sr_buffree(&buf, r->a);
+	ss_buffree(&buf, r->a);
 	si_trackfree(&track, r);
 	return -1;
 }
 
-int si_recover(si *i, sr *r)
+static inline int
+si_recoverdrop(si *i, sr *r)
 {
-	int exist = sr_fileexists(i->conf->path);
-	if (exist == 0)
-		return si_deploy(i, r);
-	if (i->conf->path_fail_on_exists) {
-		sr_error(r->e, "directory '%s' is exists.", i->conf->path);
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
+	int rc = ss_fileexists(path);
+	if (sslikely(! rc))
+		return 0;
+	if (i->scheme->path_fail_on_drop) {
+		sr_malfunction(r->e, "attempt to recover a dropped database: %s:",
+		               i->scheme->path);
 		return -1;
 	}
-	return si_recoverindex(i, r);
+	rc = si_droprepository(i->scheme, r, 0);
+	if (ssunlikely(rc == -1))
+		return -1;
+	return 1;
 }
-#line 1 "sophia/repository/se_conf.h"
-#ifndef SE_CONF_H_
-#define SE_CONF_H_
+
+int si_recover(si *i)
+{
+	sr *r = i->r;
+	int exist = ss_fileexists(i->scheme->path);
+	if (exist == 0)
+		goto deploy;
+	if (i->scheme->path_fail_on_exists) {
+		sr_error(r->e, "directory '%s' already exists", i->scheme->path);
+		return -1;
+	}
+	int rc = si_recoverdrop(i, r);
+	switch (rc) {
+	case -1: return -1;
+	case  1: goto deploy;
+	}
+	rc = si_schemerecover(i->scheme, r);
+	if (ssunlikely(rc == -1))
+		return -1;
+	r->scheme = &i->scheme->scheme;
+	r->compression = i->scheme->compression_if;
+	r->fmt = i->scheme->fmt;
+	r->fmt_storage = i->scheme->fmt_storage;
+	rc = si_recoverindex(i, r);
+	if (sslikely(rc <= 0))
+		return rc;
+deploy:
+	return si_deploy(i, r, !exist);
+}
+#line 1 "sophia/index/si_scheme.c"
 
 /*
  * sophia database
@@ -22100,9 +24577,319 @@ int si_recover(si *i, sr *r)
  * BSD License
 */
 
-typedef struct seconf seconf;
 
-struct seconf {
+
+
+
+
+
+
+enum {
+	SI_SCHEME_NONE,
+	SI_SCHEME_NAME,
+	SI_SCHEME_FORMAT,
+	SI_SCHEME_FORMAT_STORAGE,
+	SI_SCHEME_SCHEME,
+	SI_SCHEME_NODE_SIZE,
+	SI_SCHEME_NODE_PAGE_SIZE,
+	SI_SCHEME_NODE_PAGE_CHECKSUM,
+	SI_SCHEME_SYNC,
+	SI_SCHEME_COMPRESSION,
+	SI_SCHEME_COMPRESSION_KEY
+};
+
+void si_schemeinit(sischeme *s)
+{
+	memset(s, 0, sizeof(*s));
+}
+
+void si_schemefree(sischeme *s, sr *r)
+{
+	if (s->name) {
+		ss_free(r->a, s->name);
+		s->name = NULL;
+	}
+	if (s->path) {
+		ss_free(r->a, s->path);
+		s->path = NULL;
+	}
+	if (s->path_backup) {
+		ss_free(r->a, s->path_backup);
+		s->path_backup = NULL;
+	}
+	if (s->compression_sz) {
+		ss_free(r->a, s->compression_sz);
+		s->compression_sz = NULL;
+	}
+	if (s->fmt_sz) {
+		ss_free(r->a, s->fmt_sz);
+		s->fmt_sz = NULL;
+	}
+	sr_schemefree(&s->scheme, r->a);
+}
+
+int si_schemedeploy(sischeme *s, sr *r)
+{
+	sdscheme c;
+	sd_schemeinit(&c);
+	int rc;
+	rc = sd_schemebegin(&c, r);
+	if (ssunlikely(rc == -1))
+		return -1;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_NAME, SS_STRING, s->name,
+	                  strlen(s->name) + 1);
+	if (ssunlikely(rc == -1))
+		goto error;
+	ssbuf buf;
+	ss_bufinit(&buf);
+	rc = sr_schemesave(&s->scheme, r->a, &buf);
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_SCHEME, SS_STRING, buf.s,
+	                  ss_bufused(&buf));
+	if (ssunlikely(rc == -1))
+		goto error;
+	ss_buffree(&buf, r->a);
+	uint32_t v = s->fmt;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_FORMAT, SS_U32, &v, sizeof(v));
+	if (ssunlikely(rc == -1))
+		goto error;
+	v = s->fmt_storage;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_FORMAT_STORAGE, SS_U32, &v, sizeof(v));
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_NODE_SIZE, SS_U64,
+	                  &s->node_size,
+	                  sizeof(s->node_size));
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_NODE_PAGE_SIZE, SS_U32,
+	                  &s->node_page_size,
+	                  sizeof(s->node_page_size));
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_NODE_PAGE_CHECKSUM, SS_U32,
+	                  &s->node_page_checksum,
+	                  sizeof(s->node_page_checksum));
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_SYNC, SS_U32,
+	                  &s->sync,
+	                  sizeof(s->sync));
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION, SS_STRING,
+	                  s->compression_if->name,
+	                  strlen(s->compression_if->name) + 1);
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION_KEY, SS_U32,
+	                  &s->compression_key,
+	                  sizeof(s->compression_key));
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemecommit(&c, r);
+	if (ssunlikely(rc == -1))
+		return -1;
+	char path[PATH_MAX];
+	snprintf(path, sizeof(path), "%s/scheme", s->path);
+	rc = sd_schemewrite(&c, r, path, s->sync);
+	sd_schemefree(&c, r);
+	return rc;
+error:
+	ss_buffree(&buf, r->a);
+	sd_schemefree(&c, r);
+	return -1;
+}
+
+int si_schemerecover(sischeme *s, sr *r)
+{
+	sdscheme c;
+	sd_schemeinit(&c);
+	char path[PATH_MAX];
+	snprintf(path, sizeof(path), "%s/scheme", s->path);
+	int rc;
+	rc = sd_schemerecover(&c, r, path);
+	if (ssunlikely(rc == -1))
+		return -1;
+	ssiter i;
+	ss_iterinit(sd_schemeiter, &i);
+	rc = ss_iteropen(sd_schemeiter, &i, r, &c, 1);
+	if (ssunlikely(rc == -1))
+		return -1;
+	while (ss_iterhas(sd_schemeiter, &i))
+	{
+		sdschemeopt *opt = ss_iterof(sd_schemeiter, &i);
+		switch (opt->id) {
+		case SI_SCHEME_FORMAT:
+			s->fmt = sd_schemeu32(opt);
+			char *name;
+			if (s->fmt == SF_KV)
+				name = "kv";
+			else
+			if (s->fmt == SF_DOCUMENT)
+				name = "document";
+			else
+				goto error;
+			ss_free(r->a, s->fmt_sz);
+			s->fmt_sz = ss_strdup(r->a, name);
+			if (ssunlikely(s->fmt_sz == NULL))
+				goto error;
+			break;
+		case SI_SCHEME_FORMAT_STORAGE:
+			s->fmt_storage = sd_schemeu32(opt);
+			break;
+		case SI_SCHEME_SCHEME: {
+			sr_schemefree(&s->scheme, r->a);
+			sr_schemeinit(&s->scheme);
+			ssbuf buf;
+			ss_bufinit(&buf);
+			rc = sr_schemeload(&s->scheme, r->a, sd_schemesz(opt), opt->size);
+			if (ssunlikely(rc == -1))
+				goto error;
+			ss_buffree(&buf, r->a);
+			break;
+		}
+		case SI_SCHEME_NODE_SIZE:
+			s->node_size = sd_schemeu64(opt);
+			break;
+		case SI_SCHEME_NODE_PAGE_SIZE:
+			s->node_page_size = sd_schemeu32(opt);
+			break;
+		case SI_SCHEME_COMPRESSION_KEY:
+			s->compression_key = sd_schemeu32(opt);
+			break;
+		case SI_SCHEME_COMPRESSION: {
+			char *name = sd_schemesz(opt);
+			ssfilterif *cif = NULL;
+			if (strcmp(name, "none") == 0)
+				cif = &ss_nonefilter;
+			else
+			if (strcmp(name, "lz4") == 0)
+				cif = &ss_lz4filter;
+			else
+			if (strcmp(name, "zstd") == 0)
+				cif = &ss_zstdfilter;
+			else
+				goto error;
+			s->compression_if = cif;
+			s->compression = s->compression_if != &ss_nonefilter;
+			ss_free(r->a, s->compression_sz);
+			s->compression_sz = ss_strdup(r->a, cif->name);
+			if (ssunlikely(s->compression_sz == NULL))
+				goto error;
+			break;
+		}
+		}
+		ss_iternext(sd_schemeiter, &i);
+	}
+	sd_schemefree(&c, r);
+	return 0;
+error:
+	sd_schemefree(&c, r);
+	return -1;
+}
+#line 1 "sophia/index/si_write.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+void si_begin(sitx *t, si *index, uint64_t vlsn, uint64_t time,
+              svlog *l,
+              svlogindex *li)
+{
+	t->index = index;
+	t->time  = time;
+	t->vlsn  = vlsn;
+	t->l     = l;
+	t->li    = li;
+	ss_listinit(&t->nodelist);
+	si_lock(index);
+}
+
+void si_commit(sitx *t)
+{
+	/* reschedule nodes */
+	sslist *i, *n;
+	ss_listforeach_safe(&t->nodelist, i, n) {
+		sinode *node = sscast(i, sinode, commit);
+		ss_listinit(&node->commit);
+		si_plannerupdate(&t->index->p, SI_BRANCH, node);
+	}
+	si_unlock(t->index);
+}
+
+static inline int
+si_set(sitx *t, svv *v)
+{
+	si *index = t->index;
+	t->index->update_time = t->time;
+	/* match node */
+	ssiter i;
+	ss_iterinit(si_iter, &i);
+	ss_iteropen(si_iter, &i, t->index->r, index, SS_GTE,
+	            sv_vpointer(v), v->size);
+	sinode *node = ss_iterof(si_iter, &i);
+	assert(node != NULL);
+	/* insert into node index */
+	svindex *vindex = si_nodeindex(node);
+	svindexpos pos;
+	sv_indexget(vindex, t->index->r, &pos, v);
+	sv_indexupdate(vindex, &pos, v);
+	/* update node */
+	node->update_time = index->update_time;
+	node->used += sv_vsize(v);
+	if (ss_listempty(&node->commit))
+		ss_listappend(&t->nodelist, &node->commit);
+	return 0;
+}
+
+void si_write(sitx *t, int check)
+{
+	svlogv *cv = sv_logat(t->l, t->li->head);
+	int c = t->li->count;
+	while (c) {
+		svv *v = cv->v.v;
+		if (check && si_querycommited(t->index, t->index->r, &cv->v)) {
+			uint32_t gc = si_gcv(t->index->r->a, v);
+			ss_quota(t->index->r->quota, SS_QREMOVE, gc);
+			goto next;
+		}
+		si_set(t, v);
+next:
+		cv = sv_logat(t->l, cv->next);
+		c--;
+	}
+	return;
+}
+#line 1 "sophia/repository/sy_conf.h"
+#ifndef SY_CONF_H_
+#define SY_CONF_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct syconf syconf;
+
+struct syconf {
 	char *path;
 	int   path_create;
 	char *path_backup;
@@ -22110,9 +24897,9 @@ struct seconf {
 };
 
 #endif
-#line 1 "sophia/repository/se.h"
-#ifndef SE_H_
-#define SE_H_
+#line 1 "sophia/repository/sy.h"
+#ifndef SY_H_
+#define SY_H_
 
 /*
  * sophia database
@@ -22122,18 +24909,18 @@ struct seconf {
  * BSD License
 */
 
-typedef struct se se;
+typedef struct sy sy;
 
-struct se {
-	seconf *conf;
+struct sy {
+	syconf *conf;
 };
 
-int se_init(se*);
-int se_open(se*, sr*, seconf*);
-int se_close(se*, sr*);
+int sy_init(sy*);
+int sy_open(sy*, sr*, syconf*);
+int sy_close(sy*, sr*);
 
 #endif
-#line 1 "sophia/repository/se.c"
+#line 1 "sophia/repository/sy.c"
 
 /*
  * sophia database
@@ -22148,18 +24935,20 @@ int se_close(se*, sr*);
 
 
 
-int se_init(se *e)
+
+
+int sy_init(sy *e)
 {
 	e->conf = NULL;
 	return 0;
 }
 
 static int
-se_deploy(se *e, sr *r)
+sy_deploy(sy *e, sr *r)
 {
 	int rc;
-	rc = sr_filemkdir(e->conf->path);
-	if (srunlikely(rc == -1)) {
+	rc = ss_filemkdir(e->conf->path);
+	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "directory '%s' create error: %s",
 		         e->conf->path, strerror(errno));
 		return -1;
@@ -22167,20 +24956,12 @@ se_deploy(se *e, sr *r)
 	return 0;
 }
 
-static inline int
-se_recover(se *e, sr *r)
-{
-	(void)e;
-	(void)r;
-	return 0;
-}
-
 static inline ssize_t
-se_processid(char **str) {
+sy_processid(char **str) {
 	char *s = *str;
 	size_t v = 0;
 	while (*s && *s != '.') {
-		if (srunlikely(!isdigit(*s)))
+		if (ssunlikely(!isdigit(*s)))
 			return -1;
 		v = (v * 10) + *s - '0';
 		s++;
@@ -22190,13 +24971,13 @@ se_processid(char **str) {
 }
 
 static inline int
-se_process(char *name, uint32_t *bsn)
+sy_process(char *name, uint32_t *bsn)
 {
 	/* id */
 	/* id.incomplete */
 	char *token = name;
-	ssize_t id = se_processid(&token);
-	if (srunlikely(id == -1))
+	ssize_t id = sy_processid(&token);
+	if (ssunlikely(id == -1))
 		return -1;
 	*bsn = id;
 	if (strcmp(token, ".incomplete") == 0)
@@ -22205,15 +24986,15 @@ se_process(char *name, uint32_t *bsn)
 }
 
 static inline int
-se_recoverbackup(se *i, sr *r)
+sy_recoverbackup(sy *i, sr *r)
 {
 	if (i->conf->path_backup == NULL)
 		return 0;
 	int rc;
-	int exists = sr_fileexists(i->conf->path_backup);
+	int exists = ss_fileexists(i->conf->path_backup);
 	if (! exists) {
-		rc = sr_filemkdir(i->conf->path_backup);
-		if (srunlikely(rc == -1)) {
+		rc = ss_filemkdir(i->conf->path_backup);
+		if (ssunlikely(rc == -1)) {
 			sr_error(r->e, "backup directory '%s' create error: %s",
 					 i->conf->path_backup, strerror(errno));
 			return -1;
@@ -22221,7 +25002,7 @@ se_recoverbackup(se *i, sr *r)
 	}
 	/* recover backup sequential number */
 	DIR *dir = opendir(i->conf->path_backup);
-	if (srunlikely(dir == NULL)) {
+	if (ssunlikely(dir == NULL)) {
 		sr_error(r->e, "backup directory '%s' open error: %s",
 				 i->conf->path_backup, strerror(errno));
 		return -1;
@@ -22229,10 +25010,10 @@ se_recoverbackup(se *i, sr *r)
 	uint32_t bsn = 0;
 	struct dirent *de;
 	while ((de = readdir(dir))) {
-		if (srunlikely(de->d_name[0] == '.'))
+		if (ssunlikely(de->d_name[0] == '.'))
 			continue;
 		uint32_t id = 0;
-		rc = se_process(de->d_name, &id);
+		rc = sy_process(de->d_name, &id);
 		switch (rc) {
 		case  1:
 		case  0:
@@ -22248,32 +25029,32 @@ se_recoverbackup(se *i, sr *r)
 	return 0;
 }
 
-int se_open(se *e, sr *r, seconf *conf)
+int sy_open(sy *e, sr *r, syconf *conf)
 {
 	e->conf = conf;
-	int rc = se_recoverbackup(e, r);
-	if (srunlikely(rc == -1))
+	int rc = sy_recoverbackup(e, r);
+	if (ssunlikely(rc == -1))
 		return -1;
-	int exists = sr_fileexists(conf->path);
+	int exists = ss_fileexists(conf->path);
 	if (exists == 0) {
-		if (srunlikely(! conf->path_create)) {
+		if (ssunlikely(! conf->path_create)) {
 			sr_error(r->e, "directory '%s' does not exist", conf->path);
 			return -1;
 		}
-		return se_deploy(e, r);
+		return sy_deploy(e, r);
 	}
-	return se_recover(e, r);
+	return 0;
 }
 
-int se_close(se *e, sr *r)
+int sy_close(sy *e, sr *r)
 {
 	(void)e;
 	(void)r;
 	return 0;
 }
-#line 1 "sophia/sophia/so_status.h"
-#ifndef SO_STATUS_H_
-#define SO_STATUS_H_
+#line 1 "sophia/environment/se_o.h"
+#ifndef SE_O_H_
+#define SE_O_H_
 
 /*
  * sophia database
@@ -22284,90 +25065,192 @@ int se_close(se *e, sr *r)
 */
 
 enum {
-	SO_OFFLINE,
-	SO_ONLINE,
-	SO_RECOVER,
-	SO_SHUTDOWN,
-	SO_MALFUNCTION
+	SEUNDEF,
+	SEDESTROYED,
+	SE,
+	SEMETA,
+	SEMETACURSOR,
+	SEMETAV,
+	SEREQ,
+	SEV,
+	SEDB,
+	SEDBASYNC,
+	SEBATCH,
+	SETX,
+	SECURSOR,
+	SESNAPSHOT,
+	SESNAPSHOTCURSOR
 };
 
-typedef struct sostatus sostatus;
+extern sotype se_o[];
 
-struct sostatus {
+#define se_cast(ptr, cast, id) \
+	so_cast(ptr, cast, &se_o[id])
+
+static inline so*
+se_cast_validate(void *ptr)
+{
+	so *o = ptr;
+	if ((char*)o->type >= (char*)&se_o[0] &&
+	    (char*)o->type <= (char*)&se_o[SESNAPSHOTCURSOR])
+		return ptr;
+	return NULL;
+}
+
+static inline void
+se_mark_destroyed(so *o)
+{
+	so_init(o, &se_o[SEDESTROYED], NULL, NULL, NULL);
+}
+
+#endif
+#line 1 "sophia/environment/se_worker.h"
+#ifndef SE_WORKER_H_
+#define SE_WORKER_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct seworkerpool seworkerpool;
+typedef struct seworker seworker;
+
+struct seworker {
+	ssthread t;
+	char name[16];
+	sstrace trace;
+	void *arg;
+	sdc dc;
+	sslist link;
+};
+
+struct seworkerpool {
+	sslist list;
+	int n;
+};
+
+int se_workerpool_init(seworkerpool*);
+int se_workerpool_shutdown(seworkerpool*, sr*);
+int se_workerpool_new(seworkerpool*, sr*, int, ssthreadf, void*);
+
+static inline void
+se_workerstub_init(seworker *w)
+{
+	sd_cinit(&w->dc);
+	ss_listinit(&w->link);
+	ss_traceinit(&w->trace);
+	ss_trace(&w->trace, "%s", "init");
+}
+
+static inline void
+se_workerstub_free(seworker *w, sr *r)
+{
+	sd_cfree(&w->dc, r);
+	ss_tracefree(&w->trace);
+}
+
+#endif
+#line 1 "sophia/environment/se_status.h"
+#ifndef SE_STATUS_H_
+#define SE_STATUS_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+enum {
+	SE_OFFLINE,
+	SE_ONLINE,
+	SE_RECOVER,
+	SE_SHUTDOWN,
+	SE_MALFUNCTION
+};
+
+typedef struct sestatus sestatus;
+
+struct sestatus {
 	int status;
-	srspinlock lock;
+	ssspinlock lock;
 };
 
 static inline void
-so_statusinit(sostatus *s)
+se_statusinit(sestatus *s)
 {
-	s->status = SO_OFFLINE;
-	sr_spinlockinit(&s->lock);
+	s->status = SE_OFFLINE;
+	ss_spinlockinit(&s->lock);
 }
 
 static inline void
-so_statusfree(sostatus *s)
+se_statusfree(sestatus *s)
 {
-	sr_spinlockfree(&s->lock);
+	ss_spinlockfree(&s->lock);
 }
 
 static inline void
-so_statuslock(sostatus *s) {
-	sr_spinlock(&s->lock);
+se_statuslock(sestatus *s) {
+	ss_spinlock(&s->lock);
 }
 
 static inline void
-so_statusunlock(sostatus *s) {
-	sr_spinunlock(&s->lock);
+se_statusunlock(sestatus *s) {
+	ss_spinunlock(&s->lock);
 }
 
 static inline int
-so_statusset(sostatus *s, int status)
+se_statusset(sestatus *s, int status)
 {
-	sr_spinlock(&s->lock);
+	ss_spinlock(&s->lock);
 	int old = s->status;
-	if (old == SO_MALFUNCTION) {
-		sr_spinunlock(&s->lock);
+	if (old == SE_MALFUNCTION) {
+		ss_spinunlock(&s->lock);
 		return -1;
 	}
 	s->status = status;
-	sr_spinunlock(&s->lock);
+	ss_spinunlock(&s->lock);
 	return old;
 }
 
 static inline int
-so_status(sostatus *s)
+se_status(sestatus *s)
 {
-	sr_spinlock(&s->lock);
+	ss_spinlock(&s->lock);
 	int status = s->status;
-	sr_spinunlock(&s->lock);
+	ss_spinunlock(&s->lock);
 	return status;
 }
 
 static inline char*
-so_statusof(sostatus *s)
+se_statusof(sestatus *s)
 {
-	int status = so_status(s);
+	int status = se_status(s);
 	switch (status) {
-	case SO_OFFLINE:     return "offline";
-	case SO_ONLINE:      return "online";
-	case SO_RECOVER:     return "recover";
-	case SO_SHUTDOWN:    return "shutdown";
-	case SO_MALFUNCTION: return "malfunction";
+	case SE_OFFLINE:     return "offline";
+	case SE_ONLINE:      return "online";
+	case SE_RECOVER:     return "recover";
+	case SE_SHUTDOWN:    return "shutdown";
+	case SE_MALFUNCTION: return "malfunction";
 	}
 	assert(0);
 	return NULL;
 }
 
 static inline int
-so_statusactive_is(int status) {
+se_statusactive_is(int status) {
 	switch (status) {
-	case SO_ONLINE:
-	case SO_RECOVER:
+	case SE_ONLINE:
+	case SE_RECOVER:
 		return 1;
-	case SO_SHUTDOWN:
-	case SO_OFFLINE:
-	case SO_MALFUNCTION:
+	case SE_SHUTDOWN:
+	case SE_OFFLINE:
+	case SE_MALFUNCTION:
 		return 0;
 	}
 	assert(0);
@@ -22375,19 +25258,19 @@ so_statusactive_is(int status) {
 }
 
 static inline int
-so_statusactive(sostatus *s) {
-	return so_statusactive_is(so_status(s));
+se_statusactive(sestatus *s) {
+	return se_statusactive_is(se_status(s));
 }
 
 static inline int
-so_online(sostatus *s) {
-	return so_status(s) == SO_ONLINE;
+se_online(sestatus *s) {
+	return se_status(s) == SE_ONLINE;
 }
 
 #endif
-#line 1 "sophia/sophia/so_worker.h"
-#ifndef SO_WORKER_H_
-#define SO_WORKER_H_
+#line 1 "sophia/environment/se_meta.h"
+#ifndef SE_META_H_
+#define SE_META_H_
 
 /*
  * sophia database
@@ -22397,326 +25280,20 @@ so_online(sostatus *s) {
  * BSD License
 */
 
-typedef struct soworker soworker;
-typedef struct soworkers soworkers;
+typedef struct semetart semetart;
+typedef struct semeta semeta;
 
-struct soworker {
-	srthread t;
-	char name[16];
-	srtrace trace;
+typedef void (*serecovercbf)(char*, void*);
+
+typedef struct {
+	serecovercbf function;
 	void *arg;
-	sdc dc;
-	srlist link;
-};
+} serecovercb;
 
-struct soworkers {
-	srlist list;
-	int n;
-};
-
-int so_workersinit(soworkers*);
-int so_workersshutdown(soworkers*, sr*);
-int so_workersnew(soworkers*, sr*, int, srthreadf, void*);
-
-static inline void
-so_workerstub_init(soworker *w)
-{
-	sd_cinit(&w->dc);
-	sr_listinit(&w->link);
-	sr_traceinit(&w->trace);
-	sr_trace(&w->trace, "%s", "init");
-}
-
-static inline void
-so_workerstub_free(soworker *w, sr *r)
-{
-	sd_cfree(&w->dc, r);
-	sr_tracefree(&w->trace);
-}
-
-#endif
-#line 1 "sophia/sophia/so_obj.h"
-#ifndef SO_OBJ_H_
-#define SO_OBJ_H_
-
-/*
- * sophia database
- * sehia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef enum {
-	SOUNDEF      = 0L,
-	SOENV        = 0x06154834L,
-	SOCTL        = 0x1234FFBBL,
-	SOCTLCURSOR  = 0x6AB65429L,
-	SOV          = 0x2FABCDE2L,
-	SODB         = 0x34591111L,
-	SODBCTL      = 0x59342222L,
-	SOTX         = 0x13491FABL,
-	SOCURSOR     = 0x45ABCDFAL,
-	SOSNAPSHOT   = 0x71230BAFL
-} soobjid;
-
-static inline soobjid
-so_objof(void *ptr) {
-	return *(soobjid*)ptr;
-}
-
-typedef struct soobjif soobjif;
-typedef struct soobj soobj;
-
-struct soobjif {
-	void *(*ctl)(soobj*, va_list);
-	int   (*open)(soobj*, va_list);
-	int   (*error)(soobj*, va_list);
-	int   (*destroy)(soobj*, va_list);
-	int   (*set)(soobj*, va_list);
-	void *(*get)(soobj*, va_list);
-	int   (*del)(soobj*, va_list);
-	int   (*drop)(soobj*, va_list);
-	void *(*begin)(soobj*, va_list);
-	int   (*prepare)(soobj*, va_list);
-	int   (*commit)(soobj*, va_list);
-	void *(*cursor)(soobj*, va_list);
-	void *(*object)(soobj*, va_list);
-	void *(*type)(soobj*, va_list);
-};
-
-struct soobj {
-	soobjid  id;
-	soobjif *i;
-	soobj *env;
-	srlist link;
-};
-
-static inline void
-so_objinit(soobj *o, soobjid id, soobjif *i, soobj *env)
-{
-	o->id  = id;
-	o->i   = i;
-	o->env = env;
-	sr_listinit(&o->link);
-}
-
-static inline int
-so_objopen(soobj *o, ...)
-{
-	va_list args;
-	va_start(args, o);
-	int rc = o->i->open(o, args);
-	va_end(args);
-	return rc;
-}
-
-static inline int
-so_objdestroy(soobj *o, ...) {
-	va_list args;
-	va_start(args, o);
-	int rc = o->i->destroy(o, args);
-	va_end(args);
-	return rc;
-}
-
-static inline int
-so_objerror(soobj *o, ...)
-{
-	va_list args;
-	va_start(args, o);
-	int rc = o->i->error(o, args);
-	va_end(args);
-	return rc;
-}
-
-static inline void*
-so_objobject(soobj *o, ...)
-{
-	va_list args;
-	va_start(args, o);
-	void *h = o->i->object(o, args);
-	va_end(args);
-	return h;
-}
-
-static inline int
-so_objset(soobj *o, ...)
-{
-	va_list args;
-	va_start(args, o);
-	int rc = o->i->set(o, args);
-	va_end(args);
-	return rc;
-}
-
-static inline void*
-so_objget(soobj *o, ...)
-{
-	va_list args;
-	va_start(args, o);
-	void *h = o->i->get(o, args);
-	va_end(args);
-	return h;
-}
-
-static inline int
-so_objdelete(soobj *o, ...)
-{
-	va_list args;
-	va_start(args, o);
-	int rc = o->i->del(o, args);
-	va_end(args);
-	return rc;
-}
-
-static inline void*
-so_objbegin(soobj *o, ...) {
-	va_list args;
-	va_start(args, o);
-	void *h = o->i->begin(o, args);
-	va_end(args);
-	return h;
-}
-
-static inline int
-so_objprepare(soobj *o, ...)
-{
-	va_list args;
-	va_start(args, o);
-	int rc = o->i->prepare(o, args);
-	va_end(args);
-	return rc;
-}
-
-static inline int
-so_objcommit(soobj *o, ...)
-{
-	va_list args;
-	va_start(args, o);
-	int rc = o->i->commit(o, args);
-	va_end(args);
-	return rc;
-}
-
-static inline void*
-so_objcursor(soobj *o, ...) {
-	va_list args;
-	va_start(args, o);
-	void *h = o->i->cursor(o, args);
-	va_end(args);
-	return h;
-}
-
-#endif
-#line 1 "sophia/sophia/so_objindex.h"
-#ifndef SO_OBJINDEX_H_
-#define SO_OBJINDEX_H_
-
-/*
- * sophia database
- * sehia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct soobjindex soobjindex;
-
-struct soobjindex {
-	srlist list;
-	int n;
-};
-
-static inline void
-so_objindex_init(soobjindex *i)
-{
-	sr_listinit(&i->list);
-	i->n = 0;
-}
-
-static inline int
-so_objindex_destroy(soobjindex *i)
-{
-	int rcret = 0;
-	int rc;
-	srlist *p, *n;
-	sr_listforeach_safe(&i->list, p, n) {
-		soobj *o = srcast(p, soobj, link);
-		rc = so_objdestroy(o);
-		if (srunlikely(rc == -1))
-			rcret = -1;
-	}
-	i->n = 0;
-	sr_listinit(&i->list);
-	return rcret;
-}
-
-static inline void
-so_objindex_register(soobjindex *i, soobj *o)
-{
-	sr_listappend(&i->list, &o->link);
-	i->n++;
-}
-
-static inline void
-so_objindex_unregister(soobjindex *i, soobj *o)
-{
-	sr_listunlink(&o->link);
-	i->n--;
-}
-
-static inline soobj*
-so_objindex_first(soobjindex *i)
-{
-	assert(i->n > 0);
-	return srcast(i->list.next, soobj, link);
-}
-
-#endif
-#line 1 "sophia/sophia/so_ctlcursor.h"
-#ifndef SO_CTLCURSOR_H_
-#define SO_CTLCURSOR_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct soctlcursor soctlcursor;
-
-struct soctlcursor {
-	soobj o;
-	int ready;
-	srbuf dump;
-	srcv *pos;
-	soobj *v;
-} srpacked;
-
-soobj *so_ctlcursor_new(void*);
-
-#endif
-#line 1 "sophia/sophia/so_ctl.h"
-#ifndef SO_CTL_H_
-#define SO_CTL_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct soctlrt soctlrt;
-typedef struct soctl soctl;
-
-struct soctlrt {
+struct semetart {
 	/* sophia */
 	char      version[16];
+	char      build[32];
 	/* memory */
 	uint64_t  memory_used;
 	/* scheduler */
@@ -22728,293 +25305,240 @@ struct soctlrt {
 	uint32_t  backup_last;
 	uint32_t  backup_last_complete;
 	uint32_t  gc_active;
+	uint32_t  reqs;
 	/* log */
 	uint32_t  log_files;
 	/* metric */
 	srseq     seq;
 };
 
-struct soctl {
-	soobj o;
+struct semeta {
 	/* sophia */
-	char       *path;
-	uint32_t    path_create;
-	/* backup */
-	char       *backup_path;
-	srtrigger   backup_on_complete;
-	/* compaction */
-	uint32_t    node_size;
-	uint32_t    page_size;
-	uint32_t    page_checksum;
-	sizonemap   zones;
-	/* scheduler */
-	uint32_t    threads;
-	srtrigger   checkpoint_on_complete;
-	/* memory */
-	uint64_t    memory_limit;
-	/* log */
-	uint32_t    log_enable;
-	char       *log_path;
-	uint32_t    log_sync;
-	uint32_t    log_rotate_wm;
-	uint32_t    log_rotate_sync;
-	uint32_t    two_phase_recover;
-	uint32_t    commit_lsn;
-};
-
-void  so_ctlinit(soctl*, void*);
-void  so_ctlfree(soctl*);
-int   so_ctlvalidate(soctl*);
-int   so_ctlserialize(soctl*, srbuf*);
-void *so_ctlreturn(src*, void*);
-
-#endif
-#line 1 "sophia/sophia/so_scheduler.h"
-#ifndef SO_SCHEDULER_H_
-#define SO_SCHEDULER_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct soscheduler soscheduler;
-typedef struct sotask sotask;
-
-struct sotask {
-	siplan plan;
-	int rotate;
-	int gc;
-	int checkpoint_complete;
-	int backup_complete;
-	void *db;
-};
-
-struct soscheduler {
-	soworkers workers;
-	srmutex lock;
-	uint64_t checkpoint_lsn_last;
-	uint64_t checkpoint_lsn;
-	uint32_t checkpoint;
-	uint32_t age;
-	uint32_t age_last;
-	uint32_t backup_bsn;
-	uint32_t backup_last;
-	uint32_t backup_last_complete;
-	uint32_t backup;
-	uint32_t gc;
-	uint32_t gc_last;
-	uint32_t workers_backup;
-	uint32_t workers_branch;
-	uint32_t workers_gc;
-	uint32_t workers_gc_db;
-	int rotate;
-	int rr;
-	void **i;
-	int count;
-	void *env;
-};
-
-int so_scheduler_init(soscheduler*, void*);
-int so_scheduler_run(soscheduler*);
-int so_scheduler_shutdown(soscheduler*);
-int so_scheduler_add(soscheduler*, void*);
-int so_scheduler_del(soscheduler*, void*);
-int so_scheduler(soscheduler*, soworker*);
-
-int so_scheduler_branch(void*);
-int so_scheduler_compact(void*);
-int so_scheduler_checkpoint(void*);
-int so_scheduler_gc(void*);
-int so_scheduler_backup(void*);
-int so_scheduler_call(void*);
-
-#endif
-#line 1 "sophia/sophia/so.h"
-#ifndef SO_H_
-#define SO_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct so so;
-
-struct so {
-	soobj o;
-	srmutex apilock;
-	srspinlock dblock;
-	soobjindex db;
-	soobjindex db_shutdown;
-	soobjindex tx;
-	soobjindex snapshot;
-	soobjindex ctlcursor;
-	sostatus status;
-	soctl ctl;
-	srseq seq;
-	srquota quota;
-	srpager pager;
-	sra a;
-	sra a_db;
-	sra a_v;
-	sra a_cursor;
-	sra a_cursorcache;
-	sra a_ctlcursor;
-	sra a_snapshot;
-	sra a_tx;
-	sra a_sxv;
-	seconf seconf;
-	se se;
-	slconf lpconf;
-	slpool lp;
-	sxmanager xm;
-	soscheduler sched;
-	srinjection ei;
-	srerror error;
-	sr r;
-};
-
-static inline int
-so_active(so *o) {
-	return so_statusactive(&o->status);
-}
-
-static inline void
-so_apilock(soobj *o) {
-	sr_mutexlock(&((so*)o)->apilock);
-}
-
-static inline void
-so_apiunlock(soobj *o) {
-	sr_mutexunlock(&((so*)o)->apilock);
-}
-
-static inline so*
-so_of(soobj *o) {
-	return (so*)o->env;
-}
-
-soobj *so_new(void);
-
-#endif
-#line 1 "sophia/sophia/so_v.h"
-#ifndef SO_V_H_
-#define SO_V_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct sov sov;
-
-#define SO_VALLOCATED 1
-#define SO_VRO        2
-#define SO_VIMMUTABLE 4
-
-struct sov {
-	soobj o;
-	uint8_t flags;
-	svlocal lv;
-	sv v;
-	srorder order;
-	uint16_t prefixsize;
-	void *prefix;
-	void *log;
-	soobj *parent;
-} srpacked;
-
-static inline int
-so_vhas(sov *v) {
-	return v->v.v != NULL;
-}
-
-soobj *so_vnew(so*, soobj*);
-soobj *so_vdup(so*, soobj*, sv*);
-soobj *so_vinit(sov*, so*, soobj*);
-soobj *so_vrelease(sov*);
-soobj *so_vput(sov*, sv*);
-int    so_vimmutable(sov*);
-
-#endif
-#line 1 "sophia/sophia/so_db.h"
-#ifndef SO_DB_H_
-#define SO_DB_H_
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-typedef struct sodbctl sodbctl;
-typedef struct sodb sodb;
-
-struct sodbctl {
-	soobj         o;
-	void         *parent;
-	char         *name;
-	uint32_t      id;
-	srcomparator  cmp;
 	char         *path;
-	uint32_t      created;
-	uint32_t      dropped;
-	uint32_t      sync;
-	char         *compression;
-	srfilterif   *compression_if;
-	siprofiler    rtp;
-} srpacked;
+	uint32_t      path_create;
+	/* backup */
+	char         *backup_path;
+	/* compaction */
+	uint32_t      node_size;
+	uint32_t      page_size;
+	uint32_t      page_checksum;
+	srzonemap     zones;
+	/* scheduler */
+	uint32_t      threads;
+	serecovercb   on_recover;
+	sstrigger     on_event;
+	uint32_t      event_on_backup;
+	/* memory */
+	uint64_t      memory_limit;
+	/* log */
+	uint32_t      log_enable;
+	char         *log_path;
+	uint32_t      log_sync;
+	uint32_t      log_rotate_wm;
+	uint32_t      log_rotate_sync;
+	uint32_t      two_phase_recover;
+	uint32_t      commit_lsn;
+	srscheme      scheme;
+	so           *env;
+};
 
-struct sodb {
-	soobj o;
-	sostatus status;
-	sodbctl ctl;
-	soobjindex cursor;
-	sxindex coindex;
-	sdc dc;
-	siconf indexconf;
-	si index;
-	srspinlock reflock;
-	uint32_t ref;
-	uint32_t ref_be;
-	uint32_t txn_min;
-	uint32_t txn_max;
-	sr r;
-} srpacked;
+void     se_metainit(semeta*, so*);
+void     se_metafree(semeta*);
+int      se_metavalidate(semeta*);
+int      se_metaserialize(semeta*, ssbuf*);
+int      se_metaset_object(so*, const char*, void*);
+int      se_metaset_string(so*, const char*, void*, int);
+int      se_metaset_int(so*, const char*, int64_t);
+void    *se_metaget_object(so*, const char*);
+void    *se_metaget_string(so*, const char*, int*);
+int64_t  se_metaget_int(so*, const char*);
+
+#endif
+#line 1 "sophia/environment/se_metacursor.h"
+#ifndef SE_METACURSOR_H_
+#define SE_METACURSOR_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct semetav semetav;
+typedef struct semetacursor semetacursor;
+
+struct semetav {
+	so o;
+	char *key;
+	char *value;
+	int keysize;
+	int valuesize;
+};
+
+struct semetacursor {
+	so o;
+	ssbuf dump;
+	int first;
+	srmetadump *pos;
+};
+
+so *se_metacursor_new(void*);
+
+#endif
+#line 1 "sophia/environment/se_scheduler.h"
+#ifndef SE_SCHEDULER_H_
+#define SE_SCHEDULER_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sescheduler sescheduler;
+typedef struct setask setask;
+
+struct setask {
+	siplan  plan;
+	int     rotate;
+	int     req;
+	int     gc;
+	int     checkpoint_complete;
+	int     backup_complete;
+	void   *db;
+};
+
+struct sescheduler {
+	ssmutex       lock;
+	uint64_t      checkpoint_lsn_last;
+	uint64_t      checkpoint_lsn;
+	uint32_t      checkpoint;
+	uint32_t      age;
+	uint32_t      age_last;
+	uint32_t      backup_bsn;
+	uint32_t      backup_last;
+	uint32_t      backup_last_complete;
+	uint32_t      backup_events;
+	uint32_t      backup;
+	uint32_t      gc;
+	uint32_t      gc_last;
+	uint32_t      workers_backup;
+	uint32_t      workers_branch;
+	uint32_t      workers_gc;
+	uint32_t      workers_gc_db;
+	int           rotate;
+	int           req;
+	int           rr;
+	int           count;
+	void        **i;
+	seworkerpool  workers;
+	so           *env;
+};
+
+int se_scheduler_init(sescheduler*, so*);
+int se_scheduler_run(sescheduler*);
+int se_scheduler_shutdown(sescheduler*);
+int se_scheduler_add(sescheduler*, void*);
+int se_scheduler_del(sescheduler*, void*);
+int se_scheduler(sescheduler*, seworker*);
+int se_scheduler_branch(void*);
+int se_scheduler_compact(void*);
+int se_scheduler_checkpoint(void*);
+int se_scheduler_gc(void*);
+int se_scheduler_backup(void*);
+int se_scheduler_call(void*);
+
+#endif
+#line 1 "sophia/environment/se.h"
+#ifndef SE_H_
+#define SE_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct se se;
+
+struct se {
+	so          o;
+	sestatus    status;
+	ssmutex     apilock;
+	ssmutex     reqlock;
+	sscond      reqcond;
+	ssspinlock  dblock;
+	solist      db;
+	solist      db_shutdown;
+	solist      cursor;
+	solist      tx;
+	solist      req;
+	solist      reqactive;
+	solist      reqready;
+	solist      snapshot;
+	solist      metacursor;
+	srseq       seq;
+	semeta      meta;
+	ssquota     quota;
+	sspager     pagersx;
+	sspager     pager;
+	ssa         a;
+	ssa         a_db;
+	ssa         a_v;
+	ssa         a_cursor;
+	ssa         a_cachebranch;
+	ssa         a_cache;
+	ssa         a_metacursor;
+	ssa         a_metav;
+	ssa         a_snapshot;
+	ssa         a_snapshotcursor;
+	ssa         a_batch;
+	ssa         a_tx;
+	ssa         a_sxv;
+	ssa         a_req;
+	sicachepool cachepool;
+	syconf      repconf;
+	sy          rep;
+	slconf      lpconf;
+	slpool      lp;
+	sxmanager   xm;
+	sescheduler sched;
+	srerror     error;
+	ssinjection ei;
+	sr          r;
+};
 
 static inline int
-so_dbactive(sodb *o) {
-	return so_statusactive(&o->status);
+se_active(se *e) {
+	return se_statusactive(&e->status);
 }
 
-soobj    *so_dbnew(so*, char*);
-soobj    *so_dbmatch(so*, char*);
-soobj    *so_dbmatch_id(so*, uint32_t);
-void      so_dbref(sodb*, int);
-uint32_t  so_dbunref(sodb*, int);
-uint32_t  so_dbrefof(sodb*, int);
-int       so_dbgarbage(sodb*);
-int       so_dbvisible(sodb*, uint32_t);
-void      so_dbbind(so*);
-void      so_dbunbind(so*, uint32_t);
-int       so_dbmalfunction(sodb *o);
+static inline void
+se_apilock(so *o) {
+	ss_mutexlock(&((se*)o)->apilock);
+}
+
+static inline void
+se_apiunlock(so *o) {
+	ss_mutexunlock(&((se*)o)->apilock);
+}
+
+static inline se *se_of(so *o) {
+	return (se*)o->env;
+}
+
+so *se_new(void);
 
 #endif
-#line 1 "sophia/sophia/so_recover.h"
-#ifndef SO_RECOVER_H_
-#define SO_RECOVER_H_
+#line 1 "sophia/environment/se_req.h"
+#ifndef SE_REQ_H_
+#define SE_REQ_H_
 
 /*
  * sophia database
@@ -23024,15 +25548,60 @@ int       so_dbmalfunction(sodb *o);
  * BSD License
 */
 
-int so_recoverbegin(sodb*);
-int so_recoverend(sodb*);
-int so_recover(so*);
-int so_recover_repository(so*);
+typedef struct sereqarg sereqarg;
+typedef struct sereq sereq;
+
+typedef enum {
+	SE_REQREAD,
+	SE_REQWRITE,
+	SE_REQON_BACKUP
+} sereqop;
+
+struct sereqarg {
+	sv        v;
+	sv        vprefix;
+	sv        vup;
+	sicache  *cache;
+	int       cachegc;
+	ssorder   order;
+	int       update;
+	int       update_eq;
+	int       vlsn_generate;
+	uint64_t  vlsn;
+	svlog    *log;
+	void     *arg;
+	int       recover;
+	uint64_t  lsn;
+};
+
+struct sereq {
+	so        o;
+	uint64_t  id;
+	sereqop   op;
+	sereqarg  arg;
+	so       *object;
+	so       *db;
+	void     *v;
+	int       rc; 
+};
+
+void   se_reqinit(se*, sereq*, sereqop, so*, so*);
+char  *se_reqof(sereqop);
+void   se_reqend(sereq*);
+void   se_reqonbackup(se*);
+void   se_reqready(sereq*);
+int    se_reqcount(se*);
+int    se_reqqueue(se*);
+sereq *se_reqnew(se*, sereq*, int);
+sereq *se_reqdispatch(se*, int);
+sereq *se_reqdispatch_ready(se*);
+void   se_reqwakeup(se*);
+so    *se_reqresult(sereq*, int);
 
 #endif
-#line 1 "sophia/sophia/so_tx.h"
-#ifndef SO_TX_H_
-#define SO_TX_H_
+#line 1 "sophia/environment/se_v.h"
+#ifndef SE_V_H_
+#define SE_V_H_
 
 /*
  * sophia database
@@ -23042,21 +25611,142 @@ int so_recover_repository(so*);
  * BSD License
 */
 
-typedef struct sotx sotx;
+typedef struct sev sev;
 
-struct sotx {
-	soobj o;
+struct sev {
+	so        o;
+	sv        v;
+	sv        vprefix;
+	ssorder   order;
+	int       orderset;
+	sfv       keyv[8];
+	int       keyc;
+	void     *prefix;
+	uint32_t  prefixsize;
+	void     *value;
+	uint32_t  valuesize;
+	/* recover */
+	void     *raw;
+	uint32_t  rawsize;
+	void     *log;
+	/* async */
+	int       async;
+	int       async_status;
+	uint32_t  async_operation;
+	uint64_t  async_seq;
+	void     *async_arg;
+};
+
+so *se_vnew(se*, so*, sv*, int);
+
+#endif
+#line 1 "sophia/environment/se_db.h"
+#ifndef SE_DB_H_
+#define SE_DB_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sedb sedb;
+
+struct sedb {
+	so         o;
+	so         async;
+	sestatus   status;
+	uint32_t   created;
+	uint32_t   scheduled;
+	uint32_t   dropped;
+	siprofiler rtp;
+	solist     batch;
+	sdc        dc;
+	sischeme   scheme;
+	si         index;
+	sxindex    coindex;
+	ssspinlock reflock;
+	uint32_t   ref;
+	uint32_t   ref_be;
+	uint32_t   txn_min;
+	uint32_t   txn_max;
+	sr         r;
+};
+
+static inline int
+se_dbactive(sedb *o) {
+	return se_statusactive(&o->status);
+}
+
+so       *se_dbnew(se*, char*);
+so       *se_dbmatch(se*, char*);
+so       *se_dbmatch_id(se*, uint32_t);
+void     *se_dbread(sedb*, sev*, sx*, int, sicache*, ssorder);
+void      se_dbref(sedb*, int);
+uint32_t  se_dbunref(sedb*, int);
+uint32_t  se_dbrefof(sedb*, int);
+int       se_dbgarbage(sedb*);
+int       se_dbvisible(sedb*, uint32_t);
+void      se_dbbind(se*);
+void      se_dbunbind(se*, uint32_t);
+int       se_dbmalfunction(sedb*);
+int       se_dbv(sedb*, sev*, int, svv**);
+int       se_dbvprefix(sedb*, sev*, svv**);
+
+#endif
+#line 1 "sophia/environment/se_batch.h"
+#ifndef SE_BATCH_H_
+#define SE_BATCH_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sebatch sebatch;
+
+struct sebatch {
+	so o;
+	uint64_t lsn;
+	svlog log;
+};
+
+so *se_batchnew(sedb*);
+
+#endif
+#line 1 "sophia/environment/se_tx.h"
+#ifndef SE_TX_H_
+#define SE_TX_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct setx setx;
+
+struct setx {
+	so o;
+	uint64_t lsn;
+	uint32_t half_commit;
 	sx t;
-} srpacked;
+};
 
-int    so_txdbset(sodb*, uint8_t, va_list);
-void  *so_txdbget(sodb*, uint64_t, va_list);
-soobj *so_txnew(so*);
+so   *se_txnew(se*);
+void  se_txend(setx*);
 
 #endif
-#line 1 "sophia/sophia/so_cursor.h"
-#ifndef SO_CURSOR_H_
-#define SO_CURSOR_H_
+#line 1 "sophia/environment/se_cursor.h"
+#ifndef SE_CURSOR_H_
+#define SE_CURSOR_H_
 
 /*
  * sophia database
@@ -23066,25 +25756,20 @@ soobj *so_txnew(so*);
  * BSD License
 */
 
-typedef struct socursor socursor;
+typedef struct secursor secursor;
 
-struct socursor {
-	soobj o;
-	int ready;
-	srorder order;
+struct secursor {
+	so o;
 	sx t;
-	sicache cache;
-	sov v;
-	soobj *key;
-	sodb *db;
-} srpacked;
+	sicache *cache;
+};
 
-soobj *so_cursornew(sodb*, uint64_t, va_list);
+so *se_cursornew(se*, uint64_t);
 
 #endif
-#line 1 "sophia/sophia/so_snapshot.h"
-#ifndef SO_SNAPSHOT_H_
-#define SO_SNAPSHOT_H_
+#line 1 "sophia/environment/se_snapshot.h"
+#ifndef SE_SNAPSHOT_H_
+#define SE_SNAPSHOT_H_
 
 /*
  * sophia database
@@ -23094,22 +25779,23 @@ soobj *so_cursornew(sodb*, uint64_t, va_list);
  * BSD License
 */
 
-typedef struct sosnapshot sosnapshot;
+typedef struct sesnapshot sesnapshot;
 
-struct sosnapshot {
-	soobj o;
-	sx t;
+struct sesnapshot {
+	so o;
 	uint64_t vlsn;
 	char *name;
-} srpacked;
+	sx t;
+	solist cursor;
+} sspacked;
 
-soobj *so_snapshotnew(so*, uint64_t, char*);
-int    so_snapshotupdate(sosnapshot*);
+so  *se_snapshotnew(se*, uint64_t, char*);
+int  se_snapshotupdate(sesnapshot*);
 
 #endif
-#line 1 "sophia/sophia/sophia.h"
-#ifndef SOPHIA_H_
-#define SOPHIA_H_
+#line 1 "sophia/environment/se_snapshotcursor.h"
+#ifndef SE_SNAPSHOTCURSOR_H_
+#define SE_SNAPSHOTCURSOR_H_
 
 /*
  * sophia database
@@ -23119,41 +25805,120 @@ int    so_snapshotupdate(sosnapshot*);
  * BSD License
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef struct sesnapshotcursor sesnapshotcursor;
 
-#include <stdlib.h>
-#include <stdint.h>
+struct sesnapshotcursor {
+	so o;
+	int ready;
+	ssbuf list;
+	char *pos;
+	sedb *v;
+	sesnapshot *s;
+} sspacked;
 
-#if __GNUC__ >= 4
-#  define SP_API __attribute__((visibility("default")))
-#else
-#  define SP_API
-#endif
-
-SP_API void *sp_env(void);
-SP_API void *sp_ctl(void*, ...);
-SP_API void *sp_object(void*, ...);
-SP_API int   sp_open(void*, ...);
-SP_API int   sp_destroy(void*, ...);
-SP_API int   sp_error(void*, ...);
-SP_API int   sp_set(void*, ...);
-SP_API void *sp_get(void*, ...);
-SP_API int   sp_delete(void*, ...);
-SP_API int   sp_drop(void*, ...);
-SP_API void *sp_begin(void*, ...);
-SP_API int   sp_prepare(void*, ...);
-SP_API int   sp_commit(void*, ...);
-SP_API void *sp_cursor(void*, ...);
-SP_API void *sp_type(void*, ...);
-
-#ifdef __cplusplus
-}
-#endif
+so *se_snapshotcursor_new(sesnapshot*);
 
 #endif
-#line 1 "sophia/sophia/so.c"
+#line 1 "sophia/environment/se_execute.h"
+#ifndef SE_EXECUTE_H_
+#define SE_EXECUTE_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+int se_execute(sereq*);
+
+#endif
+#line 1 "sophia/environment/se_recover.h"
+#ifndef SE_RECOVER_H_
+#define SE_RECOVER_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+int se_recoverbegin(sedb*);
+int se_recoverend(sedb*);
+int se_recover(se*);
+int se_recover_repository(se*);
+
+#endif
+#line 1 "sophia/environment/se_scheduler.h"
+#ifndef SE_SCHEDULER_H_
+#define SE_SCHEDULER_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef struct sescheduler sescheduler;
+typedef struct setask setask;
+
+struct setask {
+	siplan  plan;
+	int     rotate;
+	int     req;
+	int     gc;
+	int     checkpoint_complete;
+	int     backup_complete;
+	void   *db;
+};
+
+struct sescheduler {
+	ssmutex       lock;
+	uint64_t      checkpoint_lsn_last;
+	uint64_t      checkpoint_lsn;
+	uint32_t      checkpoint;
+	uint32_t      age;
+	uint32_t      age_last;
+	uint32_t      backup_bsn;
+	uint32_t      backup_last;
+	uint32_t      backup_last_complete;
+	uint32_t      backup_events;
+	uint32_t      backup;
+	uint32_t      gc;
+	uint32_t      gc_last;
+	uint32_t      workers_backup;
+	uint32_t      workers_branch;
+	uint32_t      workers_gc;
+	uint32_t      workers_gc_db;
+	int           rotate;
+	int           req;
+	int           rr;
+	int           count;
+	void        **i;
+	seworkerpool  workers;
+	so           *env;
+};
+
+int se_scheduler_init(sescheduler*, so*);
+int se_scheduler_run(sescheduler*);
+int se_scheduler_shutdown(sescheduler*);
+int se_scheduler_add(sescheduler*, void*);
+int se_scheduler_del(sescheduler*, void*);
+int se_scheduler(sescheduler*, seworker*);
+int se_scheduler_branch(void*);
+int se_scheduler_compact(void*);
+int se_scheduler_checkpoint(void*);
+int se_scheduler_gc(void*);
+int se_scheduler_backup(void*);
+int se_scheduler_call(void*);
+
+#endif
+#line 1 "sophia/environment/se.c"
 
 /*
  * sophia database
@@ -23172,199 +25937,270 @@ SP_API void *sp_type(void*, ...);
 
 
 
-static void*
-so_ctl(soobj *obj, va_list args srunused)
-{
-	so *o = (so*)obj;
-	return &o->ctl;
-}
+
+
 
 static int
-so_open(soobj *o, va_list args)
+se_open(so *o)
 {
-	so *e = (so*)o;
-	int status = so_status(&e->status);
-	if (status == SO_RECOVER) {
-		assert(e->ctl.two_phase_recover == 1);
+	se *e = se_cast(o, se*, SE);
+	int status = se_status(&e->status);
+	if (status == SE_RECOVER) {
+		assert(e->meta.two_phase_recover == 1);
 		goto online;
 	}
-	if (status != SO_OFFLINE)
+	if (status != SE_OFFLINE)
 		return -1;
 	int rc;
-	rc = so_ctlvalidate(&e->ctl);
-	if (srunlikely(rc == -1))
+	rc = se_metavalidate(&e->meta);
+	if (ssunlikely(rc == -1))
 		return -1;
-	so_statusset(&e->status, SO_RECOVER);
+	se_statusset(&e->status, SE_RECOVER);
 
 	/* set memory quota (disable during recovery) */
-	sr_quotaset(&e->quota, e->ctl.memory_limit);
-	sr_quotaenable(&e->quota, 0);
+	ss_quotaset(&e->quota, e->meta.memory_limit);
+	ss_quotaenable(&e->quota, 0);
 
 	/* repository recover */
-	rc = so_recover_repository(e);
-	if (srunlikely(rc == -1))
+	rc = se_recover_repository(e);
+	if (ssunlikely(rc == -1))
 		return -1;
 	/* databases recover */
-	srlist *i, *n;
-	sr_listforeach_safe(&e->db.list, i, n) {
-		soobj *o = srcast(i, soobj, link);
-		rc = o->i->open(o, args);
-		if (srunlikely(rc == -1))
+	sslist *i, *n;
+	ss_listforeach_safe(&e->db.list, i, n) {
+		so *o = sscast(i, so, link);
+		rc = so_open(o);
+		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	/* recover logpool */
-	rc = so_recover(e);
-	if (srunlikely(rc == -1))
+	rc = se_recover(e);
+	if (ssunlikely(rc == -1))
 		return -1;
-	if (e->ctl.two_phase_recover)
+	if (e->meta.two_phase_recover)
 		return 0;
 
 online:
 	/* complete */
-	sr_listforeach_safe(&e->db.list, i, n) {
-		soobj *o = srcast(i, soobj, link);
-		rc = o->i->open(o, args);
-		if (srunlikely(rc == -1))
+	ss_listforeach_safe(&e->db.list, i, n) {
+		so *o = sscast(i, so, link);
+		rc = so_open(o);
+		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	/* enable quota */
-	sr_quotaenable(&e->quota, 1);
-	so_statusset(&e->status, SO_ONLINE);
+	ss_quotaenable(&e->quota, 1);
+	se_statusset(&e->status, SE_ONLINE);
 	/* run thread-pool and scheduler */
-	rc = so_scheduler_run(&e->sched);
-	if (srunlikely(rc == -1))
+	rc = se_scheduler_run(&e->sched);
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
 }
 
 static int
-so_destroy(soobj *o, va_list args srunused)
+se_destroy(so *o)
 {
-	so *e = (so*)o;
+	se *e = se_cast(o, se*, SE);
 	int rcret = 0;
 	int rc;
-	so_statusset(&e->status, SO_SHUTDOWN);
-	rc = so_scheduler_shutdown(&e->sched);
-	if (srunlikely(rc == -1))
+	se_statusset(&e->status, SE_SHUTDOWN);
+	rc = se_scheduler_shutdown(&e->sched);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->tx);
-	if (srunlikely(rc == -1))
+	rc = so_listdestroy(&e->req);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->snapshot);
-	if (srunlikely(rc == -1))
+	rc = so_listdestroy(&e->reqactive);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->ctlcursor);
-	if (srunlikely(rc == -1))
+	rc = so_listdestroy(&e->reqready);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->db);
-	if (srunlikely(rc == -1))
+	rc = so_listdestroy(&e->cursor);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->db_shutdown);
-	if (srunlikely(rc == -1))
+	rc = so_listdestroy(&e->tx);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	rc = so_listdestroy(&e->snapshot);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	rc = so_listdestroy(&e->metacursor);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	rc = so_listdestroy(&e->db);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	rc = so_listdestroy(&e->db_shutdown);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = sl_poolshutdown(&e->lp);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = se_close(&e->se, &e->r);
-	if (srunlikely(rc == -1))
+	rc = sy_close(&e->rep, &e->r);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	sx_free(&e->xm);
-	so_ctlfree(&e->ctl);
-	sr_quotafree(&e->quota);
-	sr_mutexfree(&e->apilock);
-	sr_spinlockfree(&e->dblock);
+	sx_managerfree(&e->xm);
+	si_cachepool_free(&e->cachepool, &e->r);
+	se_metafree(&e->meta);
+	ss_quotafree(&e->quota);
+	ss_mutexfree(&e->apilock);
+	ss_mutexfree(&e->reqlock);
+	ss_condfree(&e->reqcond);
+	ss_spinlockfree(&e->dblock);
 	sr_seqfree(&e->seq);
-	sr_pagerfree(&e->pager);
-	so_statusfree(&e->status);
+	ss_pagerfree(&e->pager);
+	ss_pagerfree(&e->pagersx);
+	se_statusfree(&e->status);
+	se_mark_destroyed(&e->o);
 	free(e);
 	return rcret;
 }
 
 static void*
-so_begin(soobj *o, va_list args srunused) {
-	return so_txnew((so*)o);
+se_begin(so *o)
+{
+	se *e = se_of(o);
+	return se_txnew(e);
+}
+
+static void*
+se_poll(so *o)
+{
+	se *e = se_cast(o, se*, SE);
+	so *result;
+	if (e->meta.event_on_backup) {
+		ss_mutexlock(&e->sched.lock);
+		if (ssunlikely(e->sched.backup_events > 0)) {
+			e->sched.backup_events--;
+			sereq r;
+			se_reqinit(e, &r, SE_REQON_BACKUP, &e->o, NULL);
+			result = se_reqresult(&r, 1);
+			ss_mutexunlock(&e->sched.lock);
+			return result;
+		}
+		ss_mutexunlock(&e->sched.lock);
+	}
+	sereq *req = se_reqdispatch_ready(e);
+	if (req == NULL)
+		return NULL;
+	result = se_reqresult(req, 1);
+	so_destroy(&req->o);
+	return result;
 }
 
 static int
-so_error(soobj *o, va_list args srunused)
+se_error(so *o)
 {
-	so *e = (so*)o;
+	se *e = se_cast(o, se*, SE);
 	int status = sr_errorof(&e->error);
 	if (status == SR_ERROR_MALFUNCTION)
 		return 1;
-	status = so_status(&e->status);
-	if (status == SO_MALFUNCTION)
+	status = se_status(&e->status);
+	if (status == SE_MALFUNCTION)
 		return 1;
 	return 0;
 }
 
 static void*
-so_type(soobj *o srunused, va_list args srunused) {
-	return "env";
+se_cursor(so *o)
+{
+	se *e = se_cast(o, se*, SE);
+	return se_cursornew(e, 0);
 }
 
-static soobjif soif =
+static soif seif =
 {
-	.ctl      = so_ctl,
-	.open     = so_open,
-	.destroy  = so_destroy,
-	.error    = so_error,
-	.set      = NULL,
-	.get      = NULL,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = so_begin,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = NULL,
-	.type     = so_type
+	.open         = se_open,
+	.destroy      = se_destroy,
+	.error        = se_error,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = se_poll,
+	.drop         = NULL,
+	.setobject    = se_metaset_object,
+	.setstring    = se_metaset_string,
+	.setint       = se_metaset_int,
+	.getobject    = se_metaget_object,
+	.getstring    = se_metaget_string,
+	.getint       = se_metaget_int,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = NULL,
+	.batch        = NULL,
+	.begin        = se_begin,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = se_cursor,
 };
 
-soobj *so_new(void)
+so *se_new(void)
 {
-	so *e = malloc(sizeof(*e));
-	if (srunlikely(e == NULL))
+	se *e = malloc(sizeof(*e));
+	if (ssunlikely(e == NULL))
 		return NULL;
 	memset(e, 0, sizeof(*e));
-	so_objinit(&e->o, SOENV, &soif, &e->o /* self */);
-	sr_pagerinit(&e->pager, 10, 4096);
-	int rc = sr_pageradd(&e->pager);
-	if (srunlikely(rc == -1)) {
+	so_init(&e->o, &se_o[SE], &seif, &e->o, &e->o /* self */);
+	se_statusinit(&e->status);
+	se_statusset(&e->status, SE_OFFLINE);
+	ss_pagerinit(&e->pager, 10, 4096);
+	int rc = ss_pageradd(&e->pager);
+	if (ssunlikely(rc == -1)) {
 		free(e);
 		return NULL;
 	}
-	sr_aopen(&e->a, &sr_stda);
-	sr_aopen(&e->a_db, &sr_slaba, &e->pager, sizeof(sodb));
-	sr_aopen(&e->a_v, &sr_slaba, &e->pager, sizeof(sov));
-	sr_aopen(&e->a_cursor, &sr_slaba, &e->pager, sizeof(socursor));
-	sr_aopen(&e->a_cursorcache, &sr_slaba, &e->pager, sizeof(sicachebranch));
-	sr_aopen(&e->a_ctlcursor, &sr_slaba, &e->pager, sizeof(soctlcursor));
-	sr_aopen(&e->a_snapshot, &sr_slaba, &e->pager, sizeof(sosnapshot));
-	sr_aopen(&e->a_tx, &sr_slaba, &e->pager, sizeof(sotx));
-	sr_aopen(&e->a_sxv, &sr_slaba, &e->pager, sizeof(sxv));
-	so_statusinit(&e->status);
-	so_statusset(&e->status, SO_OFFLINE);
-	so_ctlinit(&e->ctl, e);
-	so_objindex_init(&e->db);
-	so_objindex_init(&e->db_shutdown);
-	so_objindex_init(&e->tx);
-	so_objindex_init(&e->snapshot);
-	so_objindex_init(&e->ctlcursor);
-	sr_mutexinit(&e->apilock);
-	sr_spinlockinit(&e->dblock);
-	sr_quotainit(&e->quota);
+	ss_pagerinit(&e->pagersx, 10, 4096);
+	rc = ss_pageradd(&e->pagersx);
+	if (ssunlikely(rc == -1)) {
+		ss_pagerfree(&e->pager);
+		free(e);
+		return NULL;
+	}
+	ss_aopen(&e->a, &ss_stda);
+	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
+	ss_aopen(&e->a_v, &ss_slaba, &e->pager, sizeof(sev));
+	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(secursor));
+	ss_aopen(&e->a_cachebranch, &ss_slaba, &e->pager, sizeof(sicachebranch));
+	ss_aopen(&e->a_cache, &ss_slaba, &e->pager, sizeof(sicache));
+	ss_aopen(&e->a_metacursor, &ss_slaba, &e->pager, sizeof(semetacursor));
+	ss_aopen(&e->a_metav, &ss_slaba, &e->pager, sizeof(semetav));
+	ss_aopen(&e->a_snapshot, &ss_slaba, &e->pager, sizeof(sesnapshot));
+	ss_aopen(&e->a_snapshotcursor, &ss_slaba, &e->pager, sizeof(sesnapshotcursor));
+	ss_aopen(&e->a_batch, &ss_slaba, &e->pager, sizeof(sebatch));
+	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(setx));
+	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sereq));
+	ss_aopen(&e->a_sxv, &ss_slaba, &e->pagersx, sizeof(sxv));
+	se_metainit(&e->meta, &e->o);
+	so_listinit(&e->db);
+	so_listinit(&e->db_shutdown);
+	so_listinit(&e->cursor);
+	so_listinit(&e->tx);
+	so_listinit(&e->snapshot);
+	so_listinit(&e->metacursor);
+	so_listinit(&e->req);
+	so_listinit(&e->reqready);
+	so_listinit(&e->reqactive);
+	ss_mutexinit(&e->apilock);
+	ss_mutexinit(&e->reqlock);
+	ss_condinit(&e->reqcond);
+	ss_spinlockinit(&e->dblock);
+	ss_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
-	srcrcf crc = sr_crc32c_function();
-	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, &e->ei, crc, NULL);
-	se_init(&e->se);
+	sscrcf crc = ss_crc32c_function();
+	sr_init(&e->r, &e->error, &e->a, &e->quota, &e->seq,
+	        SF_KV, SF_SRAW, NULL,
+	        &e->meta.scheme, &e->ei, crc, NULL);
+	sy_init(&e->rep);
 	sl_poolinit(&e->lp, &e->r);
-	sx_init(&e->xm, &e->r, &e->a_sxv);
-	so_scheduler_init(&e->sched, e);
+	sx_managerinit(&e->xm, &e->seq, &e->a, &e->a_sxv);
+	si_cachepool_init(&e->cachepool, &e->a_cache, &e->a_cachebranch);
+	se_scheduler_init(&e->sched, &e->o);
 	return &e->o;
 }
-#line 1 "sophia/sophia/so_ctl.c"
+#line 1 "sophia/environment/se_batch.c"
 
 /*
  * sophia database
@@ -23383,686 +26219,1898 @@ soobj *so_new(void)
 
 
 
-void *so_ctlreturn(src *c, void *o)
+
+
+
+static int
+se_batchrollback(so *o)
 {
-	so *e = o;
-	int size = 0;
-	int type = c->flags & ~SR_CRO;
-	char *value = NULL;
-	char function_sz[] = "function";
-	char integer[64];
-	switch (type) {
-	case SR_CU32:
-		size = snprintf(integer, sizeof(integer), "%"PRIu32, *(uint32_t*)c->value);
-		value = integer;
-		break;
-	case SR_CU64:
-		size = snprintf(integer, sizeof(integer), "%"PRIu64, *(uint64_t*)c->value);
-		value = integer;
-		break;
-	case SR_CSZREF:
-		value = *(char**)c->value;
-		if (value)
-			size = strlen(value);
-		break;
-	case SR_CSZ:
-		value = c->value;
-		if (value)
-			size = strlen(value);
-		break;
-	case SR_CVOID: {
-		value = function_sz;
-		size = sizeof(function_sz);
-		break;
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	se *e = se_of(o);
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &b->log.buf, sizeof(svlogv));
+	int gc = 0;
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
+	{
+		svlogv *lv = ss_iterof(ss_bufiter, &i);
+		gc += sv_vsize((svv*)lv->v.v);
+		ss_free(&e->a, lv->v.v);
 	}
-	case SR_CC: assert(0);
-		break;
-	}
-	if (value)
-		size++;
-	svlocal l;
-	l.lsn       = 0;
-	l.flags     = 0;
-	l.keysize   = strlen(c->name) + 1;
-	l.key       = c->name;
-	l.valuesize = size;
-	l.value     = value;
-	sv vp;
-	sv_init(&vp, &sv_localif, &l, NULL);
-	svv *v = sv_valloc(&e->a, &vp);
-	if (srunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		return NULL;
-	}
-	sov *result = (sov*)so_vnew(e, NULL);
-	if (srunlikely(result == NULL)) {
-		sv_vfree(&e->a, v);
-		sr_error(&e->error, "%s", "memory allocation failed");
-		return NULL;
-	}
-	sv_init(&vp, &sv_vif, v, NULL);
-	return so_vput(result, &vp);
+	ss_quota(&e->quota, SS_QREMOVE, gc);
+	sv_logfree(&b->log, &e->a);
+	sedb *db = (sedb*)b->o.parent;
+	se_dbunref(db, 0);
+	so_listdel(&db->batch, &b->o);
+	se_mark_destroyed(&b->o);
+	ss_free(&e->a_batch, b);
+	return 0;
 }
 
 static inline int
-so_ctlv(src *c, srcstmt *s, va_list args)
+se_batchwrite(sebatch *b, sev *o, uint8_t flags)
 {
-	switch (s->op) {
-	case SR_CGET: {
-		void *ret = so_ctlreturn(c, s->ptr);
-		if ((srunlikely(ret == NULL)))
-			return -1;
-		*s->result = ret;
+	se *e = se_of(&b->o);
+	sedb *db = se_cast(o->o.parent, sedb*, SEDB);
+
+	/* xxx: validate database status */
+	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+		flags = 0;
+
+	/* prepare object */
+	svv *v;
+	int rc = se_dbv(db, o, 0, &v);
+	if (ssunlikely(rc == -1))
+		goto error;
+	v->flags = flags;
+	v->log = o->log;
+	sv vp;
+	sv_init(&vp, &sv_vif, v, NULL);
+	so_destroy(&o->o);
+
+	/* ensure quota */
+	int size = sizeof(svv) + sv_size(&vp);
+	ss_quota(&e->quota, SS_QADD, size);
+
+	/* log add */
+	svlogv lv;
+	sv_logvinit(&lv, db->coindex.dsn);
+	sv_init(&lv.v, &sv_vif, v, NULL);
+	rc = sv_logadd(&b->log, &e->a, &lv, db->coindex.ptr);
+	if (ssunlikely(rc == -1)) {
+		ss_quota(&e->quota, SS_QREMOVE, size);
+		return sr_oom(&e->error);
+	}
+	return 0;
+error:
+	so_destroy(&o->o);
+	return -1;
+}
+
+static int
+se_batchset(so *o, so *v)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_batchwrite(b, key, 0);
+}
+
+static int
+se_batchupdate(so *o, so *v)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_batchwrite(b, key, SVUPDATE);
+}
+
+static int
+se_batchdelete(so *o, so *v)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_batchwrite(b, key, SVDELETE);
+}
+
+static int
+se_batchcommit(so *o)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	se *e = se_of(o);
+	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
+	if (ssunlikely(lsn != b->lsn)) {
+		se_batchrollback(o);
+		return 1;
+	}
+	if (ssunlikely(! sv_logcount(&b->log))) {
+		se_batchrollback(o);
 		return 0;
 	}
-	case SR_CSERIALIZE:
-		return sr_cserialize(c, s);
-	case SR_CSET: {
-		char *arg = va_arg(args, char*);
-		return sr_cset(c, s, arg);
+
+	/* log write */
+	sl_prepare(&e->lp, &b->log, 0);
+	sltx tl;
+	sl_begin(&e->lp, &tl);
+	int rc = sl_write(&tl, &b->log);
+	if (ssunlikely(rc == -1)) {
+		sl_rollback(&tl);
+		se_batchrollback(o);
+		return -1;
 	}
+	sl_commit(&tl);
+
+	/* commit */
+	uint64_t vlsn = sx_vlsn(&e->xm);
+	uint64_t now = ss_utime();
+	svlogindex *i   = (svlogindex*)b->log.index.s;
+	svlogindex *end = (svlogindex*)b->log.index.p;
+	while (i < end) {
+		sedb *db = i->ptr;
+		sitx ti;
+		si_begin(&ti, &db->index, vlsn, now, &b->log, i);
+		si_write(&ti, 0);
+		si_commit(&ti);
+		i++;
+	}
+	sv_logfree(&b->log, &e->a);
+	return 0;
+}
+
+static soif sebatchif =
+{
+	.open         = NULL,
+	.destroy      = se_batchrollback,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = se_batchset,
+	.update       = se_batchupdate,
+	.del          = se_batchdelete,
+	.get          = NULL,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = se_batchcommit,
+	.cursor       = NULL,
+};
+
+so *se_batchnew(sedb *db)
+{
+	se *e = se_of(&db->o);
+	sebatch *b = ss_malloc(&e->a_batch, sizeof(sebatch));
+	if (ssunlikely(b == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	so_init(&b->o, &se_o[SEBATCH], &sebatchif, &db->o, &e->o);
+	b->lsn = sr_seq(&e->seq, SR_LSN);
+	sv_loginit(&b->log);
+	se_dbref(db, 0);
+	so_listadd(&db->batch, &b->o);
+	return &b->o;
+}
+#line 1 "sophia/environment/se_cursor.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+static int
+se_cursordestroy(so *o)
+{
+	secursor *c = se_cast(o, secursor*, SECURSOR);
+	se *e = se_of(&c->o);
+	sx_rollback(&c->t);
+	uint32_t id = c->t.id;
+	if (c->cache)
+		si_cachepool_push(c->cache);
+	so_listdel(&e->cursor, &c->o);
+	se_dbunbind(e, id);
+	se_mark_destroyed(&c->o);
+	ss_free(&e->a_cursor, c);
+	return 0;
+}
+
+static void*
+se_cursorget(so *o, so *v)
+{
+	secursor *c = se_cast(o, secursor*, SECURSOR);
+	sev *key = se_cast(v, sev*, SEV);
+	sedb *db = se_cast(v->parent, sedb*, SEDB);
+	ssorder order = key->order;
+	if (ssunlikely(! key->orderset))
+		order = SS_GTE;
+	return se_dbread(db, key, &c->t, 0, c->cache, order);
+}
+
+static soif secursorif =
+{
+	.open         = NULL,
+	.destroy      = se_cursordestroy,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = se_cursorget,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
+};
+
+so *se_cursornew(se *e, uint64_t vlsn)
+{
+	secursor *c = ss_malloc(&e->a_cursor, sizeof(secursor));
+	if (ssunlikely(c == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	so_init(&c->o, &se_o[SECURSOR], &secursorif, &e->o, &e->o);
+	sx_init(&e->xm, &c->t);
+	c->t.s = SXUNDEF;
+	c->cache = si_cachepool_pop(&e->cachepool);
+	if (ssunlikely(c->cache == NULL)) {
+		ss_free(&e->a_cursor, c);
+		return NULL;
+	}
+	sx_begin(&e->xm, &c->t, vlsn);
+	se_dbbind(e);
+	so_listadd(&e->cursor, &c->o);
+	return &c->o;
+}
+#line 1 "sophia/environment/se_db.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+static int
+se_dbscheme_init(sedb *db, char *name)
+{
+	se *e = se_of(&db->o);
+	/* prepare index scheme */
+	sischeme *scheme = &db->scheme;
+	scheme->name = ss_strdup(&e->a, name);
+	if (ssunlikely(scheme->name == NULL))
+		goto e0;
+	scheme->id                  = sr_seq(&e->seq, SR_DSNNEXT);
+	scheme->sync                = 1;
+	scheme->mmap                = 0;
+	scheme->compression         = 0;
+	scheme->compression_key     = 0;
+	scheme->compression_if      = &ss_nonefilter;
+	scheme->fmt                 = SF_KV;
+	scheme->fmt_storage         = SF_SRAW;
+	scheme->path_fail_on_exists = 0;
+	scheme->path_fail_on_drop   = 1;
+	sf_updateinit(&scheme->fmt_update);
+	scheme->compression_sz = ss_strdup(&e->a, scheme->compression_if->name);
+	if (ssunlikely(scheme->compression_sz == NULL))
+		goto e1;
+	scheme->fmt_sz = ss_strdup(&e->a, "kv");
+	if (ssunlikely(scheme->fmt_sz == NULL))
+		goto e1;
+	/* init single key part as string */
+	int rc;
+	sr_schemeinit(&scheme->scheme);
+	srkey *part = sr_schemeadd(&scheme->scheme, &e->a);
+	if (ssunlikely(part == NULL))
+		goto e1;
+	rc = sr_keysetname(part, &e->a, "key");
+	if (ssunlikely(rc == -1))
+		goto e1;
+	rc = sr_keyset(part, &e->a, "string");
+	if (ssunlikely(rc == -1))
+		goto e1;
+	return 0;
+e1:
+	si_schemefree(&db->scheme, &db->r);
+e0:
+	sr_oom(&e->error);
+	return -1;
+}
+
+static int
+se_dbscheme_set(sedb *db)
+{
+	se *e = se_of(&db->o);
+	sischeme *s = &db->scheme;
+	/* format */
+	if (strcmp(s->fmt_sz, "kv") == 0) {
+		s->fmt = SF_KV;
+	} else
+	if (strcmp(s->fmt_sz, "document") == 0) {
+		s->fmt = SF_DOCUMENT;
+	} else {
+		sr_error(&e->error, "unknown format type '%s'", s->fmt_sz);
+		return -1;
+	}
+	/* compression_key */
+	if (s->compression_key) {
+		if (s->fmt == SF_DOCUMENT) {
+			sr_error(&e->error, "%s", "incompatible options: format=document "
+			         "and compression_key=1");
+			return -1;
+		}
+		s->fmt_storage = SF_SKEYVALUE;
+	}
+	/* compression */
+	if (strcmp(s->compression_sz, "none") == 0) {
+		s->compression_if = &ss_nonefilter;
+	} else
+	if (strcmp(s->compression_sz, "zstd") == 0) {
+		s->compression_if = &ss_zstdfilter;
+	} else
+	if (strcmp(s->compression_sz, "lz4") == 0) {
+		s->compression_if = &ss_lz4filter;
+	} else {
+		sr_error(&e->error, "unknown compression type '%s'",
+		         s->compression_sz);
+		return -1;
+	}
+	s->compression = s->compression_if != &ss_nonefilter;
+	/* path */
+	if (s->path == NULL) {
+		char path[1024];
+		snprintf(path, sizeof(path), "%s/%s", e->meta.path, s->name);
+		s->path = ss_strdup(&e->a, path);
+		if (ssunlikely(s->path == NULL))
+			return sr_oom(&e->error);
+	}
+	/* backup path */
+	s->path_backup = e->meta.backup_path;
+	if (e->meta.backup_path) {
+		s->path_backup = ss_strdup(&e->a, e->meta.backup_path);
+		if (ssunlikely(s->path_backup == NULL))
+			return sr_oom(&e->error);
+	}
+	/* compaction */
+	s->node_size          = e->meta.node_size;
+	s->node_page_size     = e->meta.page_size;
+	s->node_page_checksum = e->meta.page_checksum;
+
+	db->r.scheme = &s->scheme;
+	db->r.fmt = s->fmt;
+	db->r.fmt_storage = s->fmt_storage;
+	db->r.fmt_update  = &s->fmt_update;
+	db->r.compression = s->compression_if;
+	return 0;
+}
+
+static void*
+se_dbasync_object(so *o)
+{
+	(void)se_cast(o, so*, SEDBASYNC);
+	sedb *db = se_cast(o->parent, sedb*, SEDB);
+	se *e = se_of(&db->o);
+	return se_vnew(e, &db->o, NULL, 1);
+}
+
+static soif sedbasyncif =
+{
+	.open         = NULL,
+	.destroy      = NULL,
+	.error        = NULL,
+	.object       = se_dbasync_object,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = NULL,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
+};
+
+static void*
+se_dbasync(so *o)
+{
+	return &se_cast(o, sedb*, SEDB)->async;
+}
+
+static int
+se_dbopen(so *o)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	se *e = se_of(&db->o);
+	int status = se_status(&db->status);
+	if (status == SE_RECOVER)
+		goto online;
+	if (status != SE_OFFLINE)
+		return -1;
+	int rc = se_dbscheme_set(db);
+	if (ssunlikely(rc == -1))
+		return -1;
+	sx_indexset(&db->coindex, db->scheme.id, db->r.scheme);
+	rc = se_recoverbegin(db);
+	if (ssunlikely(rc == -1))
+		return -1;
+	if (se_status(&e->status) == SE_RECOVER)
+		return 0;
+online:
+	se_recoverend(db);
+	rc = se_scheduler_add(&e->sched, db);
+	if (ssunlikely(rc == -1))
+		return -1;
+	db->scheduled = 1;
+	return 0;
+}
+
+static int
+se_dbdestroy(so *o)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	se *e = se_of(&db->o);
+	int rcret = 0;
+	int rc;
+	int status = se_status(&e->status);
+	if (status == SE_SHUTDOWN)
+		goto shutdown;
+
+	uint32_t ref;
+	status = se_status(&db->status);
+	switch (status) {
+	case SE_MALFUNCTION:
+	case SE_ONLINE:
+	case SE_RECOVER:
+		ref = se_dbunref(db, 0);
+		if (ref > 0)
+			return 0;
+		/* set last visible transaction id */
+		db->txn_max = sx_max(&e->xm);
+		if (db->scheduled) {
+			rc = se_scheduler_del(&e->sched, o);
+			if (ssunlikely(rc == -1))
+				return -1;
+		}
+		so_listdel(&e->db, &db->o);
+		ss_spinlock(&e->dblock);
+		so_listadd(&e->db_shutdown, &db->o);
+		ss_spinunlock(&e->dblock);
+		se_statusset(&db->status, SE_SHUTDOWN);
+		return 0;
+	case SE_SHUTDOWN:
+		/* this intended to be called from a
+		 * background gc task */
+		assert(se_dbrefof(db, 0) == 0);
+		ref = se_dbrefof(db, 1);
+		if (ref > 0)
+			return 0;
+		goto shutdown;
+	case SE_OFFLINE:
+		so_listdel(&e->db, &db->o);
+		goto shutdown;
+	default: assert(0);
+	}
+
+shutdown:;
+	rc = so_listdestroy(&db->batch);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	sx_indexfree(&db->coindex, &e->xm);
+	rc = si_close(&db->index);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	si_schemefree(&db->scheme, &db->r);
+	sd_cfree(&db->dc, &db->r);
+	se_statusfree(&db->status);
+	ss_spinlockfree(&db->reflock);
+	se_mark_destroyed(&db->o);
+	ss_free(&e->a_db, db);
+	return rcret;
+}
+
+static int
+se_dbdrop(so *o)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	int status = se_status(&db->status);
+	if (ssunlikely(! se_statusactive_is(status)))
+		return -1;
+	if (ssunlikely(db->dropped))
+		return 0;
+	int rc = si_dropmark(&db->index);
+	if (ssunlikely(rc == -1))
+		return -1;
+	db->dropped = 1;
+	return 0;
+}
+
+void*
+se_dbread(sedb *db, sev *o, sx *x, int x_search,
+          sicache *cache, ssorder order)
+{
+	se *e = se_of(&db->o);
+	/* validate req */
+	if (ssunlikely(o->o.parent != &db->o)) {
+		sr_error(&e->error, "%s", "bad object parent");
+		return NULL;
+	}
+	if (ssunlikely(! se_online(&db->status)))
+		goto e0;
+	int async = o->async;
+	void *async_arg = o->async_arg;
+
+	/* set key */
+	svv *v;
+	int rc = se_dbv(db, o, 1, &v);
+	if (ssunlikely(rc == -1))
+		goto e0;
+	sv vp;
+	sv_init(&vp, &sv_vif, v, NULL);
+	/* set prefix */
+	svv *vprf;
+	rc = se_dbvprefix(db, o, &vprf);
+	if (ssunlikely(rc == -1))
+		goto e1;
+	sv vprefix;
+	sv_init(&vprefix, &sv_vif, vprf, NULL);
+	/* if key is not set: use prefix */
+	if (vprf && v == NULL) {
+		v = sv_vdup(db->r.a, &vprefix);
+		sv_init(&vp, &sv_vif, v, NULL);
+	}
+	sv vup;
+	memset(&vup, 0, sizeof(vup));
+	so_destroy(&o->o);
+	o = NULL;
+
+	/* concurrent */
+	if (x_search) {
+		/* note: prefix is ignored during concurrent
+		 * index search */
+		assert(v != NULL);
+		int rc = sx_get(x, &db->coindex, &vp, &vup);
+		if (rc == 2) /* delete */
+			goto e2;
+		if (rc == 1 && !sv_is(&vup, SVUPDATE)) {
+			so *ret = se_vnew(e, &db->o, &vup, async);
+			if (ssunlikely(ret == NULL))
+				sv_vfree(db->r.a, vup.v);
+			if (async) {
+				sev *match = (sev*)ret;
+				match->async_operation = SE_REQREAD;
+				match->async_status    = 1;
+				match->async_arg       = async_arg;
+				match->async_seq       = 0;
+			}
+			if (vprf)
+				sv_vfree(db->r.a, vprf);
+			sv_vfree(db->r.a, v);
+			return ret;
+		}
+	} else {
+		sx_getstmt(&e->xm, &db->coindex);
+	}
+
+	/* prepare read cache */
+	int cachegc = 0;
+	if (cache == NULL) {
+		cachegc = 1;
+		cache = si_cachepool_pop(&e->cachepool);
+		if (ssunlikely(cache == NULL)) {
+			sr_oom(&e->error);
+			goto e2;
+		}
+	}
+
+	/* prepare request */
+	sereq q;
+	se_reqinit(e, &q, SE_REQREAD, &db->o, &db->o);
+	sereqarg *arg = &q.arg;
+	arg->v       = vp;
+	arg->vup     = vup;
+	arg->vprefix = vprefix;
+	arg->cache   = cache;
+	arg->cachegc = cachegc;
+	arg->order   = order;
+	arg->arg     = async_arg;
+	if (x) {
+		arg->vlsn = x->vlsn;
+		arg->vlsn_generate = 0;
+	} else {
+		arg->vlsn = 0;
+		arg->vlsn_generate = 1;
+	}
+	if (sf_updatehas(&db->scheme.fmt_update)) {
+		arg->update = 1;
+		if (arg->order == SS_EQ) {
+			arg->order = SS_GTE;
+			arg->update_eq = 1;
+		}
+	}
+
+	/* asynchronous */
+	if (async) {
+		o = (sev*)se_reqresult(&q, 1);
+		if (ssunlikely(o == NULL)) {
+			se_reqend(&q);
+			return NULL;
+		}
+		sereq *req = se_reqnew(e, &q, 1);
+		if (ssunlikely(req == NULL)) {
+			so_destroy(&o->o);
+			se_reqend(&q);
+			return NULL;
+		}
+		return o;
+	}
+	/* synchronous */
+	rc = se_execute(&q);
+	if (rc == 1)
+		o = (sev*)se_reqresult(&q, async);
+	se_reqend(&q);
+	return o;
+e2: if (vprf)
+		sv_vfree(db->r.a, vprf);
+e1: if (v)
+		sv_vfree(db->r.a, v);
+e0: if (o)
+		so_destroy(&o->o);
+	return NULL;
+}
+
+static inline int
+se_dbwrite(sedb *db, sev *o, uint8_t flags)
+{
+	se *e = se_of(&db->o);
+	/* validate req */
+	if (ssunlikely(o->o.parent != &db->o)) {
+		sr_error(&e->error, "%s", "bad object parent");
+		return -1;
+	}
+	if (ssunlikely(! se_online(&db->status)))
+		goto error;
+	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+		flags = 0;
+
+	/* prepare object */
+	svv *v;
+	int rc = se_dbv(db, o, 0, &v);
+	if (ssunlikely(rc == -1))
+		goto error;
+	so_destroy(&o->o);
+	v->flags = flags;
+	svlogv lv;
+	sv_logvinit(&lv, db->scheme.id);
+	sv_init(&lv.v, &sv_vif, v, NULL);
+	svlog log;
+	sv_loginit(&log);
+	sv_logadd(&log, db->r.a, &lv, db);
+
+	/* concurrency */
+	sxstate s = sx_setstmt(&e->xm, &db->coindex, &lv.v);
+	rc = 1; /* rollback */
+	switch (s) {
+	case SXLOCK: rc = 2;
+	case SXROLLBACK:
+		sv_vfree(db->r.a, v);
+		return rc;
+	default: break;
+	}
+
+	/* ensure quota */
+	int size = sizeof(svv) + sv_size(&lv.v);
+	ss_quota(&e->quota, SS_QADD, size);
+
+	/* execute req */
+	sereq q;
+	se_reqinit(e, &q, SE_REQWRITE, &db->o, &db->o);
+	sereqarg *arg = &q.arg;
+	arg->vlsn_generate = 1;
+	arg->lsn = 0;
+	arg->recover = 0;
+	arg->log = &log;
+	se_execute(&q);
+	if (ssunlikely(q.rc == -1))
+		ss_quota(&e->quota, SS_QREMOVE, size);
+	se_reqend(&q);
+	return q.rc;
+error:
+	so_destroy(&o->o);
+	return -1;
+}
+
+static int
+se_dbset(so *o, so *v)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_dbwrite(db, key, 0);
+}
+
+static int
+se_dbupdate(so *o, so *v)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_dbwrite(db, key, SVUPDATE);
+}
+
+static int
+se_dbdel(so *o, so *v)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_dbwrite(db, key, SVDELETE);
+}
+
+static void*
+se_dbget(so *o, so *v)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_dbread(db, key, NULL, 0, NULL, key->order);
+}
+
+static void*
+se_dbbatch(so *o)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	return se_batchnew(db);
+}
+
+static void*
+se_dbobject(so *o)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	se *e = se_of(&db->o);
+	return se_vnew(e, &db->o, NULL, 0);
+}
+
+static void*
+se_dbget_string(so *o, const char *path, int *size)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	if (strcmp(path, "name") == 0) {
+		int namesize = strlen(db->scheme.name) + 1;
+		if (size)
+			*size = namesize;
+		char *name = malloc(namesize);
+		if (name == NULL)
+			return NULL;
+		memcpy(name, db->scheme.name, namesize);
+		return name;
+	}
+	return NULL;
+}
+
+static int64_t
+se_dbget_int(so *o, const char *path)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	if (strcmp(path, "id") == 0)
+		return db->scheme.id;
+	else
+	if (strcmp(path, "key-count") == 0)
+		return db->scheme.scheme.count;
+	return -1;
+}
+
+static soif sedbif =
+{
+	.open         = se_dbopen,
+	.destroy      = se_dbdestroy,
+	.error        = NULL,
+	.object       = se_dbobject,
+	.asynchronous = se_dbasync,
+	.poll         = NULL,
+	.drop         = se_dbdrop,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = se_dbget_string,
+	.getint       = se_dbget_int,
+	.set          = se_dbset,
+	.update       = se_dbupdate,
+	.del          = se_dbdel,
+	.get          = se_dbget,
+	.batch        = se_dbbatch,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
+};
+
+so *se_dbnew(se *e, char *name)
+{
+	sedb *o = ss_malloc(&e->a_db, sizeof(sedb));
+	if (ssunlikely(o == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	memset(o, 0, sizeof(*o));
+	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
+	so_init(&o->async, &se_o[SEDBASYNC], &sedbasyncif, &o->o, &e->o);
+	so_listinit(&o->batch);
+	se_statusinit(&o->status);
+	se_statusset(&o->status, SE_OFFLINE);
+	o->r         = e->r;
+	o->r.scheme  = &o->scheme.scheme;
+	o->created   = 0;
+	o->scheduled = 0;
+	o->dropped   = 0;
+	memset(&o->rtp, 0, sizeof(o->rtp));
+	int rc = se_dbscheme_init(o, name);
+	if (ssunlikely(rc == -1)) {
+		ss_free(&e->a_db, o);
+		return NULL;
+	}
+	rc = si_init(&o->index, &o->r);
+	if (ssunlikely(rc == -1)) {
+		ss_free(&e->a_db, o);
+		si_schemefree(&o->scheme, &o->r);
+		return NULL;
+	}
+	sx_indexinit(&o->coindex, &o->r, o);
+	ss_spinlockinit(&o->reflock);
+	o->ref_be = 0;
+	o->ref = 0;
+	o->txn_min = sx_min(&e->xm);
+	o->txn_max = o->txn_min;
+	sd_cinit(&o->dc);
+	return &o->o;
+}
+
+so *se_dbmatch(se *e, char *name)
+{
+	sslist *i;
+	ss_listforeach(&e->db.list, i) {
+		sedb *db = (sedb*)sscast(i, so, link);
+		if (strcmp(db->scheme.name, name) == 0)
+			return &db->o;
+	}
+	return NULL;
+}
+
+so *se_dbmatch_id(se *e, uint32_t id)
+{
+	sslist *i;
+	ss_listforeach(&e->db.list, i) {
+		sedb *db = (sedb*)sscast(i, so, link);
+		if (db->scheme.id == id)
+			return &db->o;
+	}
+	return NULL;
+}
+
+void se_dbref(sedb *o, int be)
+{
+	ss_spinlock(&o->reflock);
+	if (be)
+		o->ref_be++;
+	else
+		o->ref++;
+	ss_spinunlock(&o->reflock);
+}
+
+uint32_t se_dbunref(sedb *o, int be)
+{
+	uint32_t prev_ref = 0;
+	ss_spinlock(&o->reflock);
+	if (be) {
+		prev_ref = o->ref_be;
+		if (o->ref_be > 0)
+			o->ref_be--;
+	} else {
+		prev_ref = o->ref;
+		if (o->ref > 0)
+			o->ref--;
+	}
+	ss_spinunlock(&o->reflock);
+	return prev_ref;
+}
+
+uint32_t se_dbrefof(sedb *o, int be)
+{
+	uint32_t ref = 0;
+	ss_spinlock(&o->reflock);
+	if (be)
+		ref = o->ref_be;
+	else
+		ref = o->ref;
+	ss_spinunlock(&o->reflock);
+	return ref;
+}
+
+int se_dbgarbage(sedb *o)
+{
+	ss_spinlock(&o->reflock);
+	int v = o->ref_be == 0 && o->ref == 0;
+	ss_spinunlock(&o->reflock);
+	return v;
+}
+
+int se_dbvisible(sedb *db, uint32_t txn)
+{
+	return db->txn_min < txn && txn <= db->txn_max;
+}
+
+void se_dbbind(se *e)
+{
+	sslist *i;
+	ss_listforeach(&e->db.list, i) {
+		sedb *db = (sedb*)sscast(i, so, link);
+		int status = se_status(&db->status);
+		if (se_statusactive_is(status))
+			se_dbref(db, 1);
+	}
+}
+
+void se_dbunbind(se *e, uint32_t txn)
+{
+	sslist *i;
+	ss_listforeach(&e->db.list, i) {
+		sedb *db = (sedb*)sscast(i, so, link);
+		int status = se_status(&db->status);
+		if (status != SE_ONLINE)
+			continue;
+		if (txn > db->txn_min)
+			se_dbunref(db, 1);
+	}
+	ss_spinlock(&e->dblock);
+	ss_listforeach(&e->db_shutdown.list, i) {
+		sedb *db = (sedb*)sscast(i, so, link);
+		if (se_dbvisible(db, txn))
+			se_dbunref(db, 1);
+	}
+	ss_spinunlock(&e->dblock);
+}
+
+int se_dbmalfunction(sedb *o)
+{
+	se_statusset(&o->status, SE_MALFUNCTION);
+	return -1;
+}
+
+int se_dbv(sedb *db, sev *o, int search, svv **v)
+{
+	se *e = se_of(&db->o);
+	*v = NULL;
+	/* reuse object */
+	if (o->v.v) {
+		*v = o->v.v;
+		o->v.v = NULL;
+		return 0;
+	}
+	/* create object from raw data */
+	if (o->raw) {
+		*v = sv_vbuildraw(db->r.a, o->raw, o->rawsize);
+		goto ret;
+	}
+	sr *runtime = &db->r;
+	sr  runtime_search;
+	if (search) {
+		if (o->keyc == 0)
+			return 0;
+		/* switch to key-value format to avoid value
+		 * copy during search operations */
+		if (db->r.fmt == SF_DOCUMENT) {
+			runtime_search = db->r;
+			runtime_search.fmt = SF_KV;
+			runtime = &runtime_search;
+		}
+	}
+
+	/* create object using current format, supplied
+	 * key-chain and value */
+	if (ssunlikely(o->keyc != db->scheme.scheme.count))
+		return sr_error(&e->error, "%s", "bad object key");
+
+	*v = sv_vbuild(runtime, o->keyv, o->keyc,
+	               o->value,
+	               o->valuesize);
+ret:
+	if (ssunlikely(*v == NULL))
+		return sr_oom(&e->error);
+	return 0;
+}
+
+int se_dbvprefix(sedb *db, sev *o, svv **v)
+{
+	se *e = se_of(&db->o);
+	*v = NULL;
+	/* reuse prefix */
+	if (o->vprefix.v) {
+		*v = o->vprefix.v;
+		o->vprefix.v = NULL;
+		return 0;
+	}
+	if (o->prefix == NULL)
+		return 0;
+	/* validate index type */
+	if (sr_schemeof(&db->scheme.scheme, 0)->type != SS_STRING)
+		return sr_error(&e->error, "%s", "prefix search is only "
+		                "supported for a string key");
+	/* create prefix object */
+	sfv fv;
+	fv.key      = o->prefix;
+	fv.r.size   = o->prefixsize;
+	fv.r.offset = 0;
+	*v = sv_vbuild(&e->r, &fv, 1, NULL, 0);
+	if (ssunlikely(*v == NULL))
+		return -1;
+	return 0;
+}
+#line 1 "sophia/environment/se_execute.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+int se_reqread(sereq *r)
+{
+	sereqarg *arg = &r->arg;
+	sedb *db = (sedb*)r->db;
+	uint32_t keysize;
+	void *key;
+	if (sslikely(arg->v.v)) {
+		keysize = sv_size(&arg->v);
+		key = sv_pointer(&arg->v);
+	} else {
+		keysize = 0;
+		key = NULL;
+	}
+	char *prefix;
+	uint32_t prefixsize;
+	if (arg->vprefix.v) {
+		void *vptr = sv_vpointer(arg->vprefix.v);
+		prefix = sf_key(vptr, 0);
+		prefixsize = sf_keysize(vptr, 0);
+	} else {
+		prefix = NULL;
+		prefixsize = 0;
+	}
+	if (sslikely(arg->vlsn_generate))
+		arg->vlsn = sr_seq(db->r.seq, SR_LSN);
+	siquery q;
+	si_queryopen(&q, arg->cache, &db->index,
+	             arg->order,
+	             arg->vlsn,
+	             prefix,
+	             prefixsize, key, keysize);
+	if (arg->update)
+		si_queryupdate(&q, &arg->vup, arg->update_eq);
+	r->rc = si_query(&q);
+	r->v = q.result.v;
+	si_queryclose(&q);
+	return r->rc;
+}
+
+int se_reqwrite(sereq *r)
+{
+	sereqarg *arg = &r->arg;
+	svlog *log = r->arg.log;
+	se *e = se_of(r->object);
+	/* set lsn */
+	sl_prepare(&e->lp, log, arg->lsn);
+	/* log write */
+	if (! arg->recover) {
+		sltx tl;
+		sl_begin(&e->lp, &tl);
+		int rc = sl_write(&tl, log);
+		if (ssunlikely(rc == -1)) {
+			sl_rollback(&tl);
+			r->rc = -1;
+			return -1;
+		}
+		sl_commit(&tl);
+	}
+	/* commit */
+	if (sslikely(arg->vlsn_generate))
+		arg->vlsn = sx_vlsn(&e->xm);
+	uint64_t now = ss_utime();
+	svlogindex *i   = (svlogindex*)log->index.s;
+	svlogindex *end = (svlogindex*)log->index.p;
+	while (i < end) {
+		sedb *db = i->ptr;
+		sitx ti;
+		si_begin(&ti, &db->index, arg->vlsn, now, log, i);
+		si_write(&ti, arg->recover);
+		si_commit(&ti);
+		i++;
+	}
+	return 0;
+}
+
+int se_execute(sereq *r)
+{
+	switch (r->op) {
+	case SE_REQREAD:  return se_reqread(r);
+	case SE_REQWRITE: return se_reqwrite(r);
+	default: assert(0);
+	}
+	return 0;
+}
+#line 1 "sophia/environment/se_meta.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+static inline int
+se_metav(srmeta *c, srmetastmt *s)
+{
+	switch (s->op) {
+	case SR_SERIALIZE: return sr_meta_serialize(c, s);
+	case SR_READ:      return sr_meta_read(c, s);
+	case SR_WRITE:     return sr_meta_write(c, s);
 	}
 	assert(0);
 	return -1;
 }
 
 static inline int
-so_ctlv_offline(src *c, srcstmt *s, va_list args)
+se_metav_offline(srmeta *c, srmetastmt *s)
 {
-	so *e = s->ptr;
-	if (srunlikely(s->op == SR_CSET && so_statusactive(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
+	se *e = s->ptr;
+	if (s->op == SR_WRITE) {
+		if (se_status(&e->status)) {
+			sr_error(s->r->e, "write to %s is offline-only", s->path);
+			return -1;
+		}
 	}
-	return so_ctlv(c, s, args);
+	return se_metav(c, s);
 }
 
 static inline int
-so_ctlsophia_error(src *c, srcstmt *s, va_list args srunused)
+se_metasophia_error(srmeta *c, srmetastmt *s)
 {
-	so *e = s->ptr;
+	se *e = s->ptr;
 	char *errorp;
 	char  error[128];
 	error[0] = 0;
 	int len = sr_errorcopy(&e->error, error, sizeof(error));
-	if (srlikely(len == 0))
+	if (sslikely(len == 0))
 		errorp = NULL;
 	else
 		errorp = error;
-	src ctl = {
-		.name     = c->name,
+	srmeta meta = {
+		.key      = c->key,
 		.flags    = c->flags,
+		.type     = c->type,
 		.function = NULL,
 		.value    = errorp,
+		.ptr      = NULL,
 		.next     = NULL
 	};
-	return so_ctlv(&ctl, s, args);
+	return se_metav(&meta, s);
 }
 
-static inline src*
-so_ctlsophia(so *e, soctlrt *rt, src **pc)
+static inline srmeta*
+se_metasophia(se *e, semetart *rt, srmeta **pc)
 {
-	src *sophia = *pc;
-	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv,            "version",     SR_CSZ|SR_CRO, rt->version));
-	sr_clink(&p, sr_c(pc, so_ctlv,            "build",       SR_CSZ|SR_CRO, SR_VERSION_COMMIT));
-	sr_clink(&p, sr_c(pc, so_ctlsophia_error, "error",       SR_CSZ|SR_CRO, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,    "path",        SR_CSZREF,     &e->ctl.path));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,    "path_create", SR_CU32,       &e->ctl.path_create));
-	return sr_c(pc, NULL, "sophia", SR_CC, sophia);
+	srmeta *sophia = *pc;
+	srmeta *p = NULL;
+	sr_M(&p, pc, se_metav, "version", SS_STRING, rt->version, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "build", SS_STRING, rt->build, SR_RO, NULL);
+	sr_M(&p, pc, se_metasophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
+	sr_m(&p, pc, se_metav_offline, "path", SS_STRINGPTR, &e->meta.path);
+	sr_m(&p, pc, se_metav_offline, "path_create", SS_U32, &e->meta.path_create);
+	return sr_M(NULL, pc, NULL, "sophia", SS_UNDEF, sophia, SR_NS, NULL);
 }
 
-static inline src*
-so_ctlmemory(so *e, soctlrt *rt, src **pc)
+static inline srmeta*
+se_metamemory(se *e, semetart *rt, srmeta **pc)
 {
-	src *memory = *pc;
-	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline, "limit",           SR_CU64,        &e->ctl.memory_limit));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "used",            SR_CU64|SR_CRO, &rt->memory_used));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_pool_size", SR_CU32|SR_CRO, &e->pager.pool_size));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_page_size", SR_CU32|SR_CRO, &e->pager.page_size));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_pools",     SR_CU32|SR_CRO, &e->pager.pools));
-	return sr_c(pc, NULL, "memory", SR_CC, memory);
+	srmeta *memory = *pc;
+	srmeta *p = NULL;
+	sr_m(&p, pc, se_metav_offline, "limit", SS_U64, &e->meta.memory_limit);
+	sr_M(&p, pc, se_metav, "used", SS_U64, &rt->memory_used, SR_RO, NULL);
+	return sr_M(NULL, pc, NULL, "memory", SS_UNDEF, memory, SR_NS, NULL);
 }
 
 static inline int
-so_ctlcompaction_set(src *c srunused, srcstmt *s, va_list args)
+se_metacompaction_set(srmeta *c ssunused, srmetastmt *s)
 {
-	so *e = s->ptr;
-	if (s->op != SR_CSET) {
+	se *e = s->ptr;
+	if (s->op != SR_WRITE) {
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
-	if (srunlikely(so_statusactive(&e->status))) {
+	if (ssunlikely(se_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	/* validate argument */
-	char *arg = va_arg(args, char*);
-	uint32_t percent = atoi(arg);
+	uint32_t percent = *(uint32_t*)s->value;
 	if (percent > 100) {
 		sr_error(&e->error, "%s", "bad argument");
 		return -1;
 	}
-	sizone z;
+	srzone z;
 	memset(&z, 0, sizeof(z));
 	z.enable = 1;
-	si_zonemap_set(&e->ctl.zones, percent, &z);
+	sr_zonemap_set(&e->meta.zones, percent, &z);
 	return 0;
 }
 
-static inline src*
-so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
+static inline srmeta*
+se_metacompaction(se *e, semetart *rt ssunused, srmeta **pc)
 {
-	src *compaction = *pc;
-	src *prev;
-	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline, "node_size", SR_CU32, &e->ctl.node_size));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline, "page_size", SR_CU32, &e->ctl.page_size));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline, "page_checksum", SR_CU32, &e->ctl.page_checksum));
+	srmeta *compaction = *pc;
+	srmeta *prev;
+	srmeta *p = NULL;
+	sr_m(&p, pc, se_metav_offline, "node_size", SS_U32, &e->meta.node_size);
+	sr_m(&p, pc, se_metav_offline, "page_size", SS_U32, &e->meta.page_size);
+	sr_m(&p, pc, se_metav_offline, "page_checksum", SS_U32, &e->meta.page_checksum);
 	prev = p;
 	int i = 0;
 	for (; i < 11; i++) {
-		sizone *z = &e->ctl.zones.zones[i];
+		srzone *z = &e->meta.zones.zones[i];
 		if (! z->enable)
 			continue;
-		src *zone = *pc;
+		srmeta *zone = *pc;
 		p = NULL;
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "mode",              SR_CU32, &z->mode));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "compact_wm",        SR_CU32, &z->compact_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_prio",       SR_CU32, &z->branch_prio));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_wm",         SR_CU32, &z->branch_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_age",        SR_CU32, &z->branch_age));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_age_period", SR_CU32, &z->branch_age_period));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_age_wm",     SR_CU32, &z->branch_age_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "backup_prio",       SR_CU32, &z->backup_prio));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_wm",             SR_CU32, &z->gc_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_db_prio",        SR_CU32, &z->gc_db_prio));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_prio",           SR_CU32, &z->gc_prio));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_period",         SR_CU32, &z->gc_period));
-		sr_clink(&prev, sr_c(pc, NULL, z->name, SR_CC, zone));
+		sr_m(&p, pc, se_metav_offline, "mode", SS_U32, &z->mode);
+		sr_m(&p, pc, se_metav_offline, "compact_wm", SS_U32, &z->compact_wm);
+		sr_m(&p, pc, se_metav_offline, "branch_prio", SS_U32, &z->branch_prio);
+		sr_m(&p, pc, se_metav_offline, "branch_wm", SS_U32, &z->branch_wm);
+		sr_m(&p, pc, se_metav_offline, "branch_age", SS_U32, &z->branch_age);
+		sr_m(&p, pc, se_metav_offline, "branch_age_period", SS_U32, &z->branch_age_period);
+		sr_m(&p, pc, se_metav_offline, "branch_age_wm", SS_U32, &z->branch_age_wm);
+		sr_m(&p, pc, se_metav_offline, "backup_prio", SS_U32, &z->backup_prio);
+		sr_m(&p, pc, se_metav_offline, "gc_wm", SS_U32, &z->gc_wm);
+		sr_m(&p, pc, se_metav_offline, "gc_db_prio", SS_U32, &z->gc_db_prio);
+		sr_m(&p, pc, se_metav_offline, "gc_prio", SS_U32, &z->gc_prio);
+		sr_m(&p, pc, se_metav_offline, "gc_period", SS_U32, &z->gc_period);
+		sr_m(&p, pc, se_metav_offline, "async", SS_U32, &z->async);
+		sr_M(&prev, pc, NULL, z->name, SS_UNDEF, zone, SR_NS, NULL);
 	}
-	return sr_c(pc, so_ctlcompaction_set, "compaction", SR_CC, compaction);
+	return sr_M(NULL, pc, se_metacompaction_set, "compaction", SS_U32,
+	            compaction, SR_NS, NULL);
 }
 
 static inline int
-so_ctlscheduler_trace(src *c, srcstmt *s, va_list args srunused)
+se_metascheduler_trace(srmeta *c, srmetastmt *s)
 {
-	soworker *w = c->value;
+	seworker *w = c->value;
 	char tracesz[128];
 	char *trace;
-	int tracelen = sr_tracecopy(&w->trace, tracesz, sizeof(tracesz));
-	if (srlikely(tracelen == 0))
+	int tracelen = ss_tracecopy(&w->trace, tracesz, sizeof(tracesz));
+	if (sslikely(tracelen == 0))
 		trace = NULL;
 	else
 		trace = tracesz;
-	src ctl = {
-		.name     = c->name,
+	srmeta meta = {
+		.key      = c->key,
 		.flags    = c->flags,
+		.type     = c->type,
 		.function = NULL,
 		.value    = trace,
+		.ptr      = NULL,
 		.next     = NULL
 	};
-	return so_ctlv(&ctl, s, args);
+	return se_metav(&meta, s);
 }
 
 static inline int
-so_ctlscheduler_checkpoint(src *c, srcstmt *s, va_list args)
+se_metascheduler_checkpoint(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	so *e = s->ptr;
-	return so_scheduler_checkpoint(e);
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	se *e = s->ptr;
+	return se_scheduler_checkpoint(e);
 }
 
 static inline int
-so_ctlscheduler_checkpoint_on_complete(src *c, srcstmt *s, va_list args)
+se_metascheduler_on_recover(srmeta *c, srmetastmt *s)
 {
-	so *e = s->ptr;
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	if (srunlikely(so_statusactive(&e->status))) {
+	se *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	if (ssunlikely(se_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	char *v   = va_arg(args, char*);
-	char *arg = va_arg(args, char*);
-	int rc = sr_triggerset(&e->ctl.checkpoint_on_complete, v);
-	if (srunlikely(rc == -1))
-		return -1;
-	if (arg) {
-		rc = sr_triggersetarg(&e->ctl.checkpoint_on_complete, arg);
-		if (srunlikely(rc == -1))
-			return -1;
-	}
+	e->meta.on_recover.function =
+		(serecovercbf)(uintptr_t)s->value;
 	return 0;
 }
 
 static inline int
-so_ctlscheduler_gc(src *c, srcstmt *s, va_list args)
+se_metascheduler_on_recover_arg(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	so *e = s->ptr;
-	return so_scheduler_gc(e);
-}
-
-static inline int
-so_ctlscheduler_run(src *c, srcstmt *s, va_list args)
-{
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	so *e = s->ptr;
-	return so_scheduler_call(e);
-}
-
-static inline src*
-so_ctlscheduler(so *e, soctlrt *rt, src **pc)
-{
-	src *scheduler = *pc;
-	src *prev;
-	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,     "threads",                SR_CU32,        &e->ctl.threads));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "zone",                   SR_CSZ|SR_CRO,  rt->zone));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_active",      SR_CU32|SR_CRO, &rt->checkpoint_active));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_lsn",         SR_CU64|SR_CRO, &rt->checkpoint_lsn));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_lsn_last",    SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint_on_complete, "checkpoint_on_complete", SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint",      SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "gc_active",              SR_CU32|SR_CRO, &rt->gc_active));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_gc,  "gc",                     SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_run, "run",                    SR_CVOID, NULL));
-	prev = p;
-	srlist *i;
-	sr_listforeach(&e->sched.workers.list, i) {
-		soworker *w = srcast(i, soworker, link);
-		src *worker = *pc;
-		p = NULL;
-		sr_clink(&p,    sr_c(pc, so_ctlscheduler_trace, "trace", SR_CSZ|SR_CRO, w));
-		sr_clink(&prev, sr_c(pc, NULL, w->name, SR_CC, worker));
+	se *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	if (ssunlikely(se_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
 	}
-	return sr_c(pc, NULL, "scheduler", SR_CC, scheduler);
+	e->meta.on_recover.arg = s->value;
+	return 0;
 }
 
 static inline int
-so_ctllog_rotate(src *c, srcstmt *s, va_list args)
+se_metascheduler_on_event(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	so *e = s->ptr;
+	se *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	if (ssunlikely(se_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	ss_triggerset(&e->meta.on_event, s->value);
+	return 0;
+}
+
+static inline int
+se_metascheduler_on_event_arg(srmeta *c, srmetastmt *s)
+{
+	se *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	if (ssunlikely(se_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	ss_triggerset_arg(&e->meta.on_event, s->value);
+	return 0;
+}
+
+static inline int
+se_metascheduler_gc(srmeta *c, srmetastmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	se *e = s->ptr;
+	return se_scheduler_gc(e);
+}
+
+static inline int
+se_metascheduler_run(srmeta *c, srmetastmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	se *e = s->ptr;
+	return se_scheduler_call(e);
+}
+
+static inline srmeta*
+se_metascheduler(se *e, semetart *rt, srmeta **pc)
+{
+	srmeta *scheduler = *pc;
+	srmeta *prev;
+	srmeta *p = NULL;
+	sr_m(&p, pc, se_metav_offline, "threads", SS_U32, &e->meta.threads);
+	sr_M(&p, pc, se_metav, "zone", SS_STRING, rt->zone, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "checkpoint_active", SS_U32, &rt->checkpoint_active, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "checkpoint_lsn", SS_U64, &rt->checkpoint_lsn, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "checkpoint_lsn_last", SS_U64, &rt->checkpoint_lsn_last, SR_RO, NULL);
+	sr_m(&p, pc, se_metascheduler_checkpoint, "checkpoint",  SS_FUNCTION, NULL);
+	sr_m(&p, pc, se_metascheduler_on_recover, "on_recover", SS_STRING, NULL);
+	sr_m(&p, pc, se_metascheduler_on_recover_arg, "on_recover_arg", SS_STRING, NULL);
+	sr_m(&p, pc, se_metascheduler_on_event, "on_event", SS_STRING, NULL);
+	sr_m(&p, pc, se_metascheduler_on_event_arg, "on_event_arg", SS_STRING, NULL);
+	sr_m(&p, pc, se_metav_offline, "event_on_backup", SS_U32, &e->meta.event_on_backup);
+	sr_M(&p, pc, se_metav, "gc_active", SS_U32, &rt->gc_active, SR_RO, NULL);
+	sr_m(&p, pc, se_metascheduler_gc, "gc", SS_FUNCTION, NULL);
+	sr_M(&p, pc, se_metav, "reqs", SS_U32, &rt->reqs, SR_RO, NULL);
+	sr_m(&p, pc, se_metascheduler_run, "run", SS_FUNCTION, NULL);
+	prev = p;
+	sslist *i;
+	ss_listforeach(&e->sched.workers.list, i) {
+		seworker *w = sscast(i, seworker, link);
+		srmeta *worker = *pc;
+		p = NULL;
+		sr_M(&p, pc, se_metascheduler_trace, "trace", SS_STRING, w, SR_RO, NULL);
+		sr_M(&prev, pc, NULL, w->name, SS_UNDEF, worker, SR_NS, NULL);
+	}
+	return sr_M(NULL, pc, NULL, "scheduler", SS_UNDEF, scheduler, SR_NS, NULL);
+}
+
+static inline int
+se_metalog_rotate(srmeta *c, srmetastmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	se *e = s->ptr;
 	return sl_poolrotate(&e->lp);
 }
 
 static inline int
-so_ctllog_gc(src *c, srcstmt *s, va_list args)
+se_metalog_gc(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	so *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	se *e = s->ptr;
 	return sl_poolgc(&e->lp);
 }
 
-static inline src*
-so_ctllog(so *e, soctlrt *rt, src **pc)
+static inline srmeta*
+se_metalog(se *e, semetart *rt, srmeta **pc)
 {
-	src *log = *pc;
-	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "enable",            SR_CU32,        &e->ctl.log_enable));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "path",              SR_CSZREF,      &e->ctl.log_path));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "sync",              SR_CU32,        &e->ctl.log_sync));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "rotate_wm",         SR_CU32,        &e->ctl.log_rotate_wm));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "rotate_sync",       SR_CU32,        &e->ctl.log_rotate_sync));
-	sr_clink(&p, sr_c(pc, so_ctllog_rotate, "rotate",            SR_CVOID,       NULL));
-	sr_clink(&p, sr_c(pc, so_ctllog_gc,     "gc",                SR_CVOID,       NULL));
-	sr_clink(&p, sr_c(pc, so_ctlv,          "files",             SR_CU32|SR_CRO, &rt->log_files));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "two_phase_recover", SR_CU32,        &e->ctl.two_phase_recover));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "commit_lsn",        SR_CU32,        &e->ctl.commit_lsn));
-	return sr_c(pc, NULL, "log", SR_CC, log);
+	srmeta *log = *pc;
+	srmeta *p = NULL;
+	sr_m(&p, pc, se_metav_offline, "enable", SS_U32, &e->meta.log_enable);
+	sr_m(&p, pc, se_metav_offline, "path", SS_STRINGPTR, &e->meta.log_path);
+	sr_m(&p, pc, se_metav_offline, "sync", SS_U32, &e->meta.log_sync);
+	sr_m(&p, pc, se_metav_offline, "rotate_wm", SS_U32, &e->meta.log_rotate_wm);
+	sr_m(&p, pc, se_metav_offline, "rotate_sync", SS_U32, &e->meta.log_rotate_sync);
+	sr_m(&p, pc, se_metalog_rotate, "rotate", SS_FUNCTION, NULL);
+	sr_m(&p, pc, se_metalog_gc, "gc", SS_FUNCTION, NULL);
+	sr_M(&p, pc, se_metav, "files", SS_U32, &rt->log_files, SR_RO, NULL);
+	sr_m(&p, pc, se_metav_offline, "two_phase_recover", SS_U32, &e->meta.two_phase_recover);
+	sr_m(&p, pc, se_metav_offline, "commit_lsn", SS_U32, &e->meta.commit_lsn);
+	return sr_M(NULL, pc, NULL, "log", SS_UNDEF, log, SR_NS, NULL);
 }
 
-static inline src*
-so_ctlmetric(so *e srunused, soctlrt *rt, src **pc)
+static inline srmeta*
+se_metametric(se *e ssunused, semetart *rt, srmeta **pc)
 {
-	src *metric = *pc;
-	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv, "dsn",  SR_CU32|SR_CRO, &rt->seq.dsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "nsn",  SR_CU32|SR_CRO, &rt->seq.nsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "bsn",  SR_CU32|SR_CRO, &rt->seq.bsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "lsn",  SR_CU64|SR_CRO, &rt->seq.lsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "lfsn", SR_CU32|SR_CRO, &rt->seq.lfsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "tsn",  SR_CU32|SR_CRO, &rt->seq.tsn));
-	return sr_c(pc, NULL, "metric", SR_CC, metric);
+	srmeta *metric = *pc;
+	srmeta *p = NULL;
+	sr_M(&p, pc, se_metav, "dsn",  SS_U32, &rt->seq.dsn, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "nsn",  SS_U32, &rt->seq.nsn, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "bsn",  SS_U32, &rt->seq.bsn, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "lsn",  SS_U64, &rt->seq.lsn, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "lfsn", SS_U32, &rt->seq.lfsn, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tsn",  SS_U32, &rt->seq.tsn, SR_RO, NULL);
+	return sr_M(NULL, pc, NULL, "metric", SS_UNDEF, metric, SR_NS, NULL);
 }
 
 static inline int
-so_ctldb_set(src *c srunused, srcstmt *s, va_list args)
+se_metadb_set(srmeta *c ssunused, srmetastmt *s)
 {
 	/* set(db) */
-	so *e = s->ptr;
-	if (s->op != SR_CSET) {
+	se *e = s->ptr;
+	if (s->op != SR_WRITE) {
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
-	char *name = va_arg(args, char*);
-	sodb *db = (sodb*)so_dbmatch(e, name);
-	if (srunlikely(db)) {
-		sr_error(&e->error, "database '%s' is exists", name);
+	char *name = s->value;
+	sedb *db = (sedb*)se_dbmatch(e, name);
+	if (ssunlikely(db)) {
+		sr_error(&e->error, "database '%s' already exists", name);
 		return -1;
 	}
-	db = (sodb*)so_dbnew(e, name);
-	if (srunlikely(db == NULL))
+	db = (sedb*)se_dbnew(e, name);
+	if (ssunlikely(db == NULL))
 		return -1;
-	so_objindex_register(&e->db, &db->o);
+	so_listadd(&e->db, &db->o);
 	return 0;
 }
 
 static inline int
-so_ctldb_get(src *c, srcstmt *s, va_list args srunused)
+se_metadb_get(srmeta *c, srmetastmt *s)
 {
 	/* get(db.name) */
-	so *e = s->ptr;
-	if (s->op != SR_CGET) {
+	se *e = s->ptr;
+	if (s->op != SR_READ) {
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
 	assert(c->ptr != NULL);
-	sodb *db = c->ptr;
-	so_dbref(db, 0);
-	*s->result = db;
+	sedb *db = c->ptr;
+	se_dbref(db, 0);
+	*(void**)s->value = db;
 	return 0;
 }
 
 static inline int
-so_ctldb_cmp(src *c, srcstmt *s, va_list args)
+se_metadb_update(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sodb *db = c->value;
-	if (srunlikely(so_statusactive(&db->status))) {
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	sedb *db = c->ptr;
+	if (ssunlikely(se_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	char *v   = va_arg(args, char*);
-	char *arg = va_arg(args, char*);
-	int rc = sr_cmpset(&db->ctl.cmp, v);
-	if (srunlikely(rc == -1))
-		return -1;
-	if (arg) {
-		rc = sr_cmpsetarg(&db->ctl.cmp, arg);
-		if (srunlikely(rc == -1))
-			return -1;
-	}
+	/* set update function */
+	sfupdatef update = (sfupdatef)(uintptr_t)s->value;
+	sf_updateset(&db->scheme.fmt_update, update);
 	return 0;
 }
 
 static inline int
-so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
+se_metadb_updatearg(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sodb *db = c->value;
-	if (srunlikely(so_statusactive(&db->status))) {
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	sedb *db = c->ptr;
+	if (ssunlikely(se_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	char *v   = va_arg(args, char*);
-	char *arg = va_arg(args, char*);
-	int rc = sr_cmpset_prefix(&db->ctl.cmp, v);
-	if (srunlikely(rc == -1))
-		return -1;
-	if (arg) {
-		rc = sr_cmpset_prefixarg(&db->ctl.cmp, arg);
-		if (srunlikely(rc == -1))
-			return -1;
-	}
+	sf_updateset_arg(&db->scheme.fmt_update, s->value);
 	return 0;
 }
 
 static inline int
-so_ctldb_status(src *c, srcstmt *s, va_list args)
+se_metadb_status(srmeta *c, srmetastmt *s)
 {
-	sodb *db = c->value;
-	char *status = so_statusof(&db->status);
-	src ctl = {
-		.name     = c->name,
+	sedb *db = c->value;
+	char *status = se_statusof(&db->status);
+	srmeta meta = {
+		.key      = c->key,
 		.flags    = c->flags,
+		.type     = c->type,
 		.function = NULL,
 		.value    = status,
+		.ptr      = NULL,
 		.next     = NULL
 	};
-	return so_ctlv(&ctl, s, args);
+	return se_metav(&meta, s);
 }
 
 static inline int
-so_ctldb_branch(src *c, srcstmt *s, va_list args)
+se_metadb_branch(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sodb *db = c->value;
-	return so_scheduler_branch(db);
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	sedb *db = c->value;
+	return se_scheduler_branch(db);
 }
 
 static inline int
-so_ctldb_compact(src *c, srcstmt *s, va_list args)
+se_metadb_compact(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sodb *db = c->value;
-	return so_scheduler_compact(db);
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	sedb *db = c->value;
+	return se_scheduler_compact(db);
 }
 
 static inline int
-so_ctldb_lockdetect(src *c, srcstmt *s, va_list args)
+se_metadb_deadlock(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sotx *tx = va_arg(args, sotx*);
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	if (s->valuetype != SS_OBJECT) {
+		sr_error(s->r->e, "%s", "deadlock(transaction) expected");
+		return -1;
+	}
+	setx *tx = se_cast(s->value, setx*, SETX);
 	int rc = sx_deadlock(&tx->t);
 	return rc;
 }
 
 static inline int
-so_ctlv_dboffline(src *c, srcstmt *s, va_list args)
+se_metav_dboffline(srmeta *c, srmetastmt *s)
 {
-	sodb *db = c->ptr;
-	if (srunlikely(s->op == SR_CSET && so_statusactive(&db->status))) {
+	sedb *db = c->ptr;
+	if (s->op == SR_WRITE) {
+		if (se_status(&db->status)) {
+			sr_error(s->r->e, "write to %s is offline-only", s->path);
+			return -1;
+		}
+	}
+	return se_metav(c, s);
+}
+
+static inline int
+se_metadb_index(srmeta *c ssunused, srmetastmt *s)
+{
+	/* set(index, key) */
+	sedb *db = c->ptr;
+	se *e = se_of(&db->o);
+	if (s->op != SR_WRITE) {
+		sr_error(&e->error, "%s", "bad operation");
+		return -1;
+	}
+	if (ssunlikely(se_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	return so_ctlv(c, s, args);
+	char *name = s->value;
+	srkey *part = sr_schemefind(&db->scheme.scheme, name);
+	if (ssunlikely(part)) {
+		sr_error(&e->error, "keypart '%s' already exists", name);
+		return -1;
+	}
+	/* create new key-part */
+	part = sr_schemeadd(&db->scheme.scheme, &e->a);
+	if (ssunlikely(part == NULL))
+		return -1;
+	int rc = sr_keysetname(part, &e->a, name);
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sr_keyset(part, &e->a, "string");
+	if (ssunlikely(rc == -1))
+		goto error;
+	return 0;
+error:
+	sr_schemedelete(&db->scheme.scheme, &e->a, part->pos);
+	return -1;
 }
 
-static inline src*
-so_ctldb(so *e, soctlrt *rt srunused, src **pc)
+static inline int
+se_metadb_key(srmeta *c, srmetastmt *s)
 {
-	src *db = NULL;
-	src *prev = NULL;
-	src *p;
-	srlist *i;
-	sr_listforeach(&e->db.list, i)
+	sedb *db = c->ptr;
+	se *e = se_of(&db->o);
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	if (ssunlikely(se_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	char *path = s->value;
+	/* update key-part path */
+	srkey *part = sr_schemefind(&db->scheme.scheme, c->key);
+	assert(part != NULL);
+	return sr_keyset(part, &e->a, path);
+}
+
+static inline srmeta*
+se_metadb(se *e, semetart *rt ssunused, srmeta **pc)
+{
+	srmeta *db = NULL;
+	srmeta *prev = NULL;
+	srmeta *p;
+	sslist *i;
+	ss_listforeach(&e->db.list, i)
 	{
-		sodb *o = (sodb*)srcast(i, soobj, link);
-		si_profilerbegin(&o->ctl.rtp, &o->index);
-		si_profiler(&o->ctl.rtp);
-		si_profilerend(&o->ctl.rtp);
-		src *index = *pc;
+		sedb *o = (sedb*)sscast(i, so, link);
+		si_profilerbegin(&o->rtp, &o->index);
+		si_profiler(&o->rtp);
+		si_profilerend(&o->rtp);
+		/* database index */
+		srmeta *index = *pc;
 		p = NULL;
-		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp",              SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp_prefix",       SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "count_dup",        SR_CU64|SR_CRO, &o->ctl.rtp.count_dup));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_histogram", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
-		src *database = *pc;
+		sr_M(&p, pc, se_metav, "memory_used", SS_U64, &o->rtp.memory_used, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "node_count", SS_U32, &o->rtp.total_node_count, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "node_size", SS_U64, &o->rtp.total_node_size, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "node_origin_size", SS_U64, &o->rtp.total_node_origin_size, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "count", SS_U64, &o->rtp.count, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "count_dup", SS_U64, &o->rtp.count_dup, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "read_disk", SS_U64, &o->rtp.read_disk, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "read_cache", SS_U64, &o->rtp.read_cache, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "branch_count", SS_U32, &o->rtp.total_branch_count, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "branch_avg", SS_U32, &o->rtp.total_branch_avg, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "branch_max", SS_U32, &o->rtp.total_branch_max, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "branch_histogram", SS_STRINGPTR, &o->rtp.histogram_branch_ptr, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "page_count", SS_U32, &o->rtp.total_page_count, SR_RO, NULL);
+		sr_M(&p, pc, se_metadb_update, "update", SS_STRING, NULL, 0, o);
+		sr_M(&p, pc, se_metadb_updatearg, "update_arg", SS_STRING, NULL, 0, o);
+		/* index keys */
+		int i = 0;
+		while (i < o->scheme.scheme.count) {
+			srkey *part = sr_schemeof(&o->scheme.scheme, i);
+			sr_M(&p, pc, se_metadb_key, part->name, SS_STRING, part->path, 0, o);
+			i++;
+		}
+		/* database */
+		srmeta *database = *pc;
 		p = NULL;
-		sr_clink(&p,          sr_c(pc, so_ctlv,             "name",        SR_CSZ|SR_CRO,  o->ctl.name));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,             "id",          SR_CU32,        &o->ctl.id), o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_status,     "status",      SR_CSZ|SR_CRO,  o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "path",        SR_CSZREF,      &o->ctl.path), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "sync",        SR_CU32,        &o->ctl.sync), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "compression", SR_CSZREF,      &o->ctl.compression), o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_branch,     "branch",      SR_CVOID,       o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_compact,    "compact",     SR_CVOID,       o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect, "lockdetect",  SR_CVOID,       NULL));
-		sr_clink(&p,          sr_c(pc, NULL,                "index",       SR_CC,          index));
-		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
+		sr_M(&p, pc, se_metav, "name", SS_STRINGPTR, &o->scheme.name, SR_RO, NULL);
+		sr_M(&p, pc, se_metav_dboffline, "id", SS_U32, &o->scheme.id, 0, o);
+		sr_M(&p, pc, se_metadb_status,   "status", SS_STRING, o, SR_RO, NULL);
+		sr_M(&p, pc, se_metav_dboffline, "format", SS_STRINGPTR, &o->scheme.fmt_sz, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "path", SS_STRINGPTR, &o->scheme.path, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "path_fail_on_exists", SS_U32, &o->scheme.path_fail_on_exists, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "path_fail_on_drop", SS_U32, &o->scheme.path_fail_on_drop, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "sync", SS_U32, &o->scheme.sync, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "mmap", SS_U32, &o->scheme.mmap, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "compression_key", SS_U32, &o->scheme.compression_key, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "compression", SS_STRINGPTR, &o->scheme.compression_sz, 0, o);
+		sr_m(&p, pc, se_metadb_branch, "branch", SS_FUNCTION, o);
+		sr_m(&p, pc, se_metadb_compact, "compact", SS_FUNCTION, o);
+		sr_m(&p, pc, se_metadb_deadlock, "deadlock", SS_FUNCTION, NULL);
+		sr_M(&p, pc, se_metadb_index, "index", SS_UNDEF, index, SR_NS, o);
+		sr_M(&prev, pc, se_metadb_get, o->scheme.name, SS_STRING, database, SR_NS, o);
 		if (db == NULL)
 			db = prev;
 	}
-	return sr_c(pc, so_ctldb_set, "db", SR_CC, db);
+	return sr_M(NULL, pc, se_metadb_set, "db", SS_STRING, db, SR_NS, NULL);
 }
 
 static inline int
-so_ctlsnapshot_set(src *c, srcstmt *s, va_list args)
+se_metasnapshot_set(srmeta *c, srmetastmt *s)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	so *e = s->ptr;
-	char *name = va_arg(args, char*);
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	se *e = s->ptr;
+	char *name = s->value;
 	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
 	/* create snapshot object */
-	sosnapshot *snapshot =
-		(sosnapshot*)so_snapshotnew(e, lsn, name);
-	if (srunlikely(snapshot == NULL))
+	sesnapshot *snapshot =
+		(sesnapshot*)se_snapshotnew(e, lsn, name);
+	if (ssunlikely(snapshot == NULL))
 		return -1;
-	so_objindex_register(&e->snapshot, &snapshot->o);
+	so_listadd(&e->snapshot, &snapshot->o);
 	return 0;
 }
 
 static inline int
-so_ctlsnapshot_setlsn(src *c, srcstmt *s, va_list args)
+se_metasnapshot_lsn(srmeta *c, srmetastmt *s)
 {
-	int rc = so_ctlv(c, s, args);
-	if (srunlikely(rc == -1))
+	int rc = se_metav(c, s);
+	if (ssunlikely(rc == -1))
 		return -1;
-	if (s->op != SR_CSET)
-		return  0;
-	sosnapshot *snapshot = c->ptr;
-	so_snapshotupdate(snapshot);
+	if (s->op != SR_WRITE)
+		return 0;
+	sesnapshot *snapshot = c->ptr;
+	se_snapshotupdate(snapshot);
 	return 0;
 }
 
 static inline int
-so_ctlsnapshot_get(src *c, srcstmt *s, va_list args srunused)
+se_metasnapshot_get(srmeta *c, srmetastmt *s)
 {
 	/* get(snapshot.name) */
-	so *e = s->ptr;
-	if (s->op != SR_CGET) {
+	se *e = s->ptr;
+	if (s->op != SR_READ) {
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
 	assert(c->ptr != NULL);
-	*s->result = c->ptr;
+	*(void**)s->value = c->ptr;
 	return 0;
 }
 
-static inline src*
-so_ctlsnapshot(so *e, soctlrt *rt srunused, src **pc)
+static inline srmeta*
+se_metasnapshot(se *e, semetart *rt ssunused, srmeta **pc)
 {
-	src *snapshot = NULL;
-	src *prev = NULL;
-	srlist *i;
-	sr_listforeach(&e->snapshot.list, i)
+	srmeta *snapshot = NULL;
+	srmeta *prev = NULL;
+	sslist *i;
+	ss_listforeach(&e->snapshot.list, i)
 	{
-		sosnapshot *s = (sosnapshot*)srcast(i, soobj, link);
-		src *p = sr_cptr(sr_c(pc, so_ctlsnapshot_setlsn, "lsn", SR_CU64, &s->vlsn), s);
-		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctlsnapshot_get, s->name, SR_CC, p), s));
+		sesnapshot *s = (sesnapshot*)sscast(i, so, link);
+		srmeta *p = sr_M(NULL, pc, se_metasnapshot_lsn, "lsn", SS_U64, &s->vlsn, 0, s);
+		sr_M(&prev, pc, se_metasnapshot_get, s->name, SS_STRING, p, SR_NS, s);
 		if (snapshot == NULL)
 			snapshot = prev;
 	}
-	return sr_c(pc, so_ctlsnapshot_set, "snapshot", SR_CC, snapshot);
+	return sr_M(NULL, pc, se_metasnapshot_set, "snapshot", SS_STRING,
+	            snapshot, SR_NS, NULL);
 }
 
 static inline int
-so_ctlbackup_on_complete(src *c, srcstmt *s, va_list args)
+se_metabackup_run(srmeta *c, srmetastmt *s)
 {
-	so *e = s->ptr;
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	if (srunlikely(so_statusactive(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	char *v   = va_arg(args, char*);
-	char *arg = va_arg(args, char*);
-	int rc = sr_triggerset(&e->ctl.backup_on_complete, v);
-	if (srunlikely(rc == -1))
-		return -1;
-	if (arg) {
-		rc = sr_triggersetarg(&e->ctl.backup_on_complete, arg);
-		if (srunlikely(rc == -1))
-			return -1;
-	}
-	return 0;
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	se *e = s->ptr;
+	return se_scheduler_backup(e);
 }
 
-static inline int
-so_ctlbackup_run(src *c, srcstmt *s, va_list args)
+static inline srmeta*
+se_metabackup(se *e, semetart *rt, srmeta **pc)
 {
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	so *e = s->ptr;
-	return so_scheduler_backup(e);
+	srmeta *backup = *pc;
+	srmeta *p = NULL;
+	sr_m(&p, pc, se_metav_offline, "path", SS_STRINGPTR, &e->meta.backup_path);
+	sr_m(&p, pc, se_metabackup_run, "run", SS_FUNCTION, NULL);
+	sr_M(&p, pc, se_metav, "active", SS_U32, &rt->backup_active, SR_RO, NULL);
+	sr_m(&p, pc, se_metav, "last", SS_U32, &rt->backup_last);
+	sr_m(&p, pc, se_metav, "last_complete", SS_U32, &rt->backup_last_complete);
+	return sr_M(NULL, pc, NULL, "backup", 0, backup, SR_NS, NULL);
 }
 
-
-static inline src*
-so_ctlbackup(so *e, soctlrt *rt, src **pc)
+static inline srmeta*
+se_metadebug(se *e, semetart *rt ssunused, srmeta **pc)
 {
-	src *backup = *pc;
-	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline, "path", SR_CSZREF, &e->ctl.backup_path));
-	sr_clink(&p, sr_c(pc, so_ctlbackup_run, "run", SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlbackup_on_complete, "on_complete", SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlv, "active", SR_CU32|SR_CRO, &rt->backup_active));
-	sr_clink(&p, sr_c(pc, so_ctlv, "last", SR_CU32|SR_CRO, &rt->backup_last));
-	sr_clink(&p, sr_c(pc, so_ctlv, "last_complete", SR_CU32|SR_CRO, &rt->backup_last_complete));
-	return sr_c(pc, NULL, "backup", SR_CC, backup);
-}
-
-static inline src*
-so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
-{
-	src *prev = NULL;
-	src *p = NULL;
+	srmeta *prev = NULL;
+	srmeta *p = NULL;
 	prev = p;
-	src *ei = *pc;
-	sr_clink(&p, sr_c(pc, so_ctlv, "sd_build_0",      SR_CU32, &e->ei.e[0]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "sd_build_1",      SR_CU32, &e->ei.e[1]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_branch_0",     SR_CU32, &e->ei.e[2]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_0", SR_CU32, &e->ei.e[3]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_1", SR_CU32, &e->ei.e[4]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_2", SR_CU32, &e->ei.e[5]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_3", SR_CU32, &e->ei.e[6]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_4", SR_CU32, &e->ei.e[7]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_recover_0",    SR_CU32, &e->ei.e[8]));
-	sr_clink(&prev, sr_c(pc, so_ctldb_set, "error_injection", SR_CC, ei));
-	src *debug = prev;
-	return sr_c(pc, NULL, "debug", SR_CC, debug);
+	srmeta *ei = *pc;
+	sr_m(&p, pc, se_metav, "sd_build_0",      SS_U32, &e->ei.e[0]);
+	sr_m(&p, pc, se_metav, "sd_build_1",      SS_U32, &e->ei.e[1]);
+	sr_m(&p, pc, se_metav, "si_branch_0",     SS_U32, &e->ei.e[2]);
+	sr_m(&p, pc, se_metav, "si_compaction_0", SS_U32, &e->ei.e[3]);
+	sr_m(&p, pc, se_metav, "si_compaction_1", SS_U32, &e->ei.e[4]);
+	sr_m(&p, pc, se_metav, "si_compaction_2", SS_U32, &e->ei.e[5]);
+	sr_m(&p, pc, se_metav, "si_compaction_3", SS_U32, &e->ei.e[6]);
+	sr_m(&p, pc, se_metav, "si_compaction_4", SS_U32, &e->ei.e[7]);
+	sr_m(&p, pc, se_metav, "si_recover_0",    SS_U32, &e->ei.e[8]);
+	sr_M(&prev, pc, se_metadb_set, "error_injection", SS_UNDEF, ei, SR_NS, NULL);
+	srmeta *debug = prev;
+	return sr_M(NULL, pc, NULL, "debug", SS_UNDEF, debug, SR_NS, NULL);
 }
 
-static src*
-so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
+static srmeta*
+se_metaprepare(se *e, semetart *rt, srmeta *c, int serialize)
 {
 	/* sophia */
-	src *pc = c;
-	src *sophia     = so_ctlsophia(e, rt, &pc);
-	src *memory     = so_ctlmemory(e, rt, &pc);
-	src *compaction = so_ctlcompaction(e, rt, &pc);
-	src *scheduler  = so_ctlscheduler(e, rt, &pc);
-	src *metric     = so_ctlmetric(e, rt, &pc);
-	src *log        = so_ctllog(e, rt, &pc);
-	src *snapshot   = so_ctlsnapshot(e, rt, &pc);
-	src *backup     = so_ctlbackup(e, rt, &pc);
-	src *db         = so_ctldb(e, rt, &pc);
-	src *debug      = so_ctldebug(e, rt, &pc);
+	srmeta *pc = c;
+	srmeta *sophia     = se_metasophia(e, rt, &pc);
+	srmeta *memory     = se_metamemory(e, rt, &pc);
+	srmeta *compaction = se_metacompaction(e, rt, &pc);
+	srmeta *scheduler  = se_metascheduler(e, rt, &pc);
+	srmeta *metric     = se_metametric(e, rt, &pc);
+	srmeta *log        = se_metalog(e, rt, &pc);
+	srmeta *snapshot   = se_metasnapshot(e, rt, &pc);
+	srmeta *backup     = se_metabackup(e, rt, &pc);
+	srmeta *db         = se_metadb(e, rt, &pc);
+	srmeta *debug      = se_metadebug(e, rt, &pc);
 
 	sophia->next     = memory;
 	memory->next     = compaction;
@@ -24078,7 +28126,7 @@ so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
 }
 
 static int
-so_ctlrt(so *e, soctlrt *rt)
+se_metart(se *e, semetart *rt)
 {
 	/* sophia */
 	snprintf(rt->version, sizeof(rt->version),
@@ -24086,12 +28134,14 @@ so_ctlrt(so *e, soctlrt *rt)
 	         SR_VERSION_A - '0',
 	         SR_VERSION_B - '0',
 	         SR_VERSION_C - '0');
+	snprintf(rt->build, sizeof(rt->build), "%s",
+	         SR_VERSION_COMMIT);
 
 	/* memory */
-	rt->memory_used = sr_quotaused(&e->quota);
+	rt->memory_used = ss_quotaused(&e->quota);
 
 	/* scheduler */
-	sr_mutexlock(&e->sched.lock);
+	ss_mutexlock(&e->sched.lock);
 	rt->checkpoint_active    = e->sched.checkpoint;
 	rt->checkpoint_lsn_last  = e->sched.checkpoint_lsn_last;
 	rt->checkpoint_lsn       = e->sched.checkpoint_lsn;
@@ -24099,10 +28149,17 @@ so_ctlrt(so *e, soctlrt *rt)
 	rt->backup_last          = e->sched.backup_last;
 	rt->backup_last_complete = e->sched.backup_last_complete;
 	rt->gc_active            = e->sched.gc;
-	sr_mutexunlock(&e->sched.lock);
+	ss_mutexunlock(&e->sched.lock);
 
-	int v = sr_quotaused_percent(&e->quota);
-	sizone *z = si_zonemap(&e->ctl.zones, v);
+	/* requests */
+	rt->reqs = se_reqcount(e);
+
+	ss_mutexlock(&e->reqlock);
+	rt->reqs = e->req.n + e->reqactive.n + e->reqready.n;
+	ss_mutexunlock(&e->reqlock);
+
+	int v = ss_quotaused_percent(&e->quota);
+	srzone *z = sr_zonemap(&e->meta.zones, v);
 	memcpy(rt->zone, z->name, sizeof(rt->zone));
 
 	/* log */
@@ -24115,120 +28172,138 @@ so_ctlrt(so *e, soctlrt *rt)
 	return 0;
 }
 
-static int
-so_ctlset(soobj *obj, va_list args)
+int se_metaserialize(semeta *c, ssbuf *buf)
 {
-	so *e = so_of(obj);
-	soctlrt rt;
-	so_ctlrt(e, &rt);
-	src ctl[1024];
-	src *root;
-	root = so_ctlprepare(e, &rt, ctl, 0);
-	char *path = va_arg(args, char*);
-	srcstmt stmt = {
-		.op        = SR_CSET,
-		.path      = path,
-		.serialize = NULL,
-		.result    = NULL,
+	se *e = (se*)c->env;
+	semetart rt;
+	se_metart(e, &rt);
+	srmeta meta[1024];
+	srmeta *root;
+	root = se_metaprepare(e, &rt, meta, 1);
+	srmetastmt stmt = {
+		.op        = SR_SERIALIZE,
+		.path      = NULL,
+		.value     = NULL,
+		.valuesize = 0,
+		.valuetype = SS_UNDEF,
+		.serialize = buf,
 		.ptr       = e,
 		.r         = &e->r
 	};
-	return sr_cexecv(root, &stmt, args);
+	return sr_metaexec(root, &stmt);
 }
 
-static void*
-so_ctlget(soobj *obj, va_list args)
+static int
+se_metaquery(se *e, int op, const char *path,
+             sstype valuetype, void *value, int valuesize,
+             int *size)
 {
-	so *e = so_of(obj);
-	soctlrt rt;
-	so_ctlrt(e, &rt);
-	src ctl[1024];
-	src *root;
-	root = so_ctlprepare(e, &rt, ctl, 0);
-	char *path   = va_arg(args, char*);
-	void *result = NULL;
-	srcstmt stmt = {
-		.op        = SR_CGET,
+	semetart rt;
+	se_metart(e, &rt);
+	srmeta meta[1024];
+	srmeta *root;
+	root = se_metaprepare(e, &rt, meta, 0);
+	srmetastmt stmt = {
+		.op        = op,
 		.path      = path,
+		.value     = value,
+		.valuesize = valuesize,
+		.valuetype = valuetype,
 		.serialize = NULL,
-		.result    = &result,
 		.ptr       = e,
 		.r         = &e->r
 	};
-	int rc = sr_cexecv(root, &stmt, args);
-	if (srunlikely(rc == -1))
+	int rc = sr_metaexec(root, &stmt);
+	if (size)
+		*size = stmt.valuesize;
+	return rc;
+}
+
+int se_metaset_object(so *o, const char *path, void *object)
+{
+	se *e = se_of(o);
+	return se_metaquery(e, SR_WRITE, path, SS_OBJECT,
+	                    object, sizeof(so*), NULL);
+}
+
+int se_metaset_string(so *o, const char *path, void *string, int size)
+{
+	se *e = se_of(o);
+	if (string && size == 0)
+		size = strlen(string) + 1;
+	return se_metaquery(e, SR_WRITE, path, SS_STRING,
+	                   string, size, NULL);
+}
+
+int se_metaset_int(so *o, const char *path, int64_t v)
+{
+	se *e = se_of(o);
+	return se_metaquery(e, SR_WRITE, path, SS_I64,
+	                    &v, sizeof(v), NULL);
+}
+
+void *se_metaget_object(so *o, const char *path)
+{
+	se *e = se_of(o);
+	if (path == NULL)
+		return se_metacursor_new(o);
+	void *result = NULL;
+	int rc = se_metaquery(e, SR_READ, path, SS_OBJECT,
+	                      &result, sizeof(void*), NULL);
+	if (ssunlikely(rc == -1))
 		return NULL;
 	return result;
 }
 
-int so_ctlserialize(soctl *c, srbuf *buf)
+void *se_metaget_string(so *o, const char *path, int *size)
 {
-	so *e = so_of(&c->o);
-	soctlrt rt;
-	so_ctlrt(e, &rt);
-	src ctl[1024];
-	src *root;
-	root = so_ctlprepare(e, &rt, ctl, 1);
-	srcstmt stmt = {
-		.op        = SR_CSERIALIZE,
-		.path      = NULL,
-		.serialize = buf,
-		.result    = NULL,
-		.ptr       = e,
-		.r         = &e->r
-	};
-	return sr_cexec(root, &stmt);
+	se *e = se_of(o);
+	void *result = NULL;
+	int rc = se_metaquery(e, SR_READ, path, SS_STRING,
+	                      &result, sizeof(void*), size);
+	if (ssunlikely(rc == -1))
+		return NULL;
+	return result;
 }
 
-static void*
-so_ctlcursor(soobj *o, va_list args srunused)
+int64_t se_metaget_int(so *o, const char *path)
 {
-	so *e = so_of(o);
-	return so_ctlcursor_new(e);
+	se *e = se_of(o);
+	int64_t result = 0;
+	int rc = se_metaquery(e, SR_READ, path, SS_I64,
+	                      &result, sizeof(void*), NULL);
+	if (ssunlikely(rc == -1))
+		return -1;
+	return result;
 }
 
-static void*
-so_ctltype(soobj *o srunused, va_list args srunused) {
-	return "ctl";
-}
-
-static soobjif soctlif =
+void se_metainit(semeta *c, so *e)
 {
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = NULL,
-	.error    = NULL,
-	.set      = so_ctlset,
-	.get      = so_ctlget,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = so_ctlcursor,
-	.object   = NULL,
-	.type     = so_ctltype
-};
-
-void so_ctlinit(soctl *c, void *e)
-{
-	so *o = e;
-	so_objinit(&c->o, SOCTL, &soctlif, e);
-	c->path              = NULL;
-	c->path_create       = 1;
-	c->memory_limit      = 0;
-	c->node_size         = 64 * 1024 * 1024;
-	c->page_size         = 64 * 1024;
-	c->page_checksum     = 1;
-	c->threads           = 5;
-	c->log_enable        = 1;
-	c->log_path          = NULL;
-	c->log_rotate_wm     = 500000;
-	c->log_sync          = 0;
-	c->log_rotate_sync   = 1;
-	c->two_phase_recover = 0;
-	c->commit_lsn        = 0;
-	sizone def = {
+	se *o = (se*)e;
+	sr_schemeinit(&c->scheme);
+	srkey *part = sr_schemeadd(&c->scheme, &o->a);
+	sr_keysetname(part, &o->a, "key");
+	sr_keyset(part, &o->a, "string");
+	c->env                 = e;
+	c->path                = NULL;
+	c->path_create         = 1;
+	c->memory_limit        = 0;
+	c->node_size           = 64 * 1024 * 1024;
+	c->page_size           = 64 * 1024;
+	c->page_checksum       = 1;
+	c->threads             = 6;
+	c->log_enable          = 1;
+	c->log_path            = NULL;
+	c->log_rotate_wm       = 500000;
+	c->log_sync            = 0;
+	c->log_rotate_sync     = 1;
+	c->two_phase_recover   = 0;
+	c->commit_lsn          = 0;
+	c->on_recover.function = NULL;
+	c->on_recover.arg      = NULL;
+	ss_triggerinit(&c->on_event);
+	c->event_on_backup     = 0;
+	srzone def = {
 		.enable        = 1,
 		.mode          = 3, /* branch + compact */
 		.compact_wm    = 2,
@@ -24241,9 +28316,10 @@ void so_ctlinit(soctl *c, void *e)
 		.gc_db_prio    = 1,
 		.gc_prio       = 1,
 		.gc_period     = 60,
-		.gc_wm         = 30
+		.gc_wm         = 30,
+		.async         = 2 /* do not own thread */
 	};
-	sizone redzone = {
+	srzone redzone = {
 		.enable        = 1,
 		.mode          = 2, /* checkpoint */
 		.compact_wm    = 4,
@@ -24256,36 +28332,35 @@ void so_ctlinit(soctl *c, void *e)
 		.gc_db_prio    = 0,
 		.gc_prio       = 0,
 		.gc_period     = 0,
-		.gc_wm         = 0
+		.gc_wm         = 0,
+		.async         = 2
 	};
-	si_zonemap_set(&o->ctl.zones,  0, &def);
-	si_zonemap_set(&o->ctl.zones, 80, &redzone);
-
+	sr_zonemap_set(&o->meta.zones,  0, &def);
+	sr_zonemap_set(&o->meta.zones, 80, &redzone);
 	c->backup_path = NULL;
-	sr_triggerinit(&c->backup_on_complete);
-	sr_triggerinit(&c->checkpoint_on_complete);
 }
 
-void so_ctlfree(soctl *c)
+void se_metafree(semeta *c)
 {
-	so *e = so_of(&c->o);
+	se *e = (se*)c->env;
 	if (c->path) {
-		sr_free(&e->a, c->path);
+		ss_free(&e->a, c->path);
 		c->path = NULL;
 	}
 	if (c->log_path) {
-		sr_free(&e->a, c->log_path);
+		ss_free(&e->a, c->log_path);
 		c->log_path = NULL;
 	}
 	if (c->backup_path) {
-		sr_free(&e->a, c->backup_path);
+		ss_free(&e->a, c->backup_path);
 		c->backup_path = NULL;
 	}
+	sr_schemefree(&c->scheme, &e->a);
 }
 
-int so_ctlvalidate(soctl *c)
+int se_metavalidate(semeta *c)
 {
-	so *e = so_of(&c->o);
+	se *e = (se*)c->env;
 	if (c->path == NULL) {
 		sr_error(&e->error, "%s", "repository path is not set");
 		return -1;
@@ -24293,15 +28368,14 @@ int so_ctlvalidate(soctl *c)
 	char path[1024];
 	if (c->log_path == NULL) {
 		snprintf(path, sizeof(path), "%s/log", c->path);
-		c->log_path = sr_strdup(&e->a, path);
-		if (srunlikely(c->log_path == NULL)) {
-			sr_error(&e->error, "%s", "memory allocation failed");
-			return -1;
+		c->log_path = ss_strdup(&e->a, path);
+		if (ssunlikely(c->log_path == NULL)) {
+			return sr_oom(&e->error);
 		}
 	}
 	int i = 0;
 	for (; i < 11; i++) {
-		sizone *z = &e->ctl.zones.zones[i];
+		srzone *z = &e->meta.zones.zones[i];
 		if (! z->enable)
 			continue;
 		if (z->compact_wm <= 1) {
@@ -24311,7 +28385,7 @@ int so_ctlvalidate(soctl *c)
 	}
 	return 0;
 }
-#line 1 "sophia/sophia/so_ctlcursor.c"
+#line 1 "sophia/environment/se_metacursor.c"
 
 /*
  * sophia database
@@ -24330,331 +28404,183 @@ int so_ctlvalidate(soctl *c)
 
 
 
+
+
+
 static int
-so_ctlcursor_destroy(soobj *o, va_list args srunused)
+se_metav_destroy(so *o)
 {
-	soctlcursor *c = (soctlcursor*)o;
-	so *e = so_of(o);
-	sr_buffree(&c->dump, &e->a);
-	if (c->v)
-		so_objdestroy(c->v);
-	so_objindex_unregister(&e->ctlcursor, &c->o);
-	sr_free(&e->a_ctlcursor, c);
+	semetav *v = se_cast(o, semetav*, SEMETAV);
+	se *e = se_of(o);
+	ss_free(&e->a, v->key);
+	if (v->value)
+		ss_free(&e->a, v->value);
+	se_mark_destroyed(&v->o);
+	ss_free(&e->a_metav, v);
 	return 0;
 }
 
-static inline int
-so_ctlcursor_set(soctlcursor *c)
+void *se_metav_string(so *o, const char *path, int *size)
 {
-	int type = c->pos->type;
-	void *value = NULL;
-	if (c->pos->valuelen > 0)
-		value = sr_cvvalue(c->pos);
-	src match = {
-		.name     = sr_cvname(c->pos),
-		.value    = value,
-		.flags    = type,
-		.ptr      = NULL,
-		.function = NULL,
-		.next     = NULL
-	};
-	so *e = so_of(&c->o);
-	void *v = so_ctlreturn(&match, e);
-	if (srunlikely(v == NULL))
-		return -1;
-	if (c->v)
-		so_objdestroy(c->v);
-	c->v = v;
+	semetav *v = se_cast(o, semetav*, SEMETAV);
+	if (strcmp(path, "key") == 0) {
+		if (size)
+			*size = v->keysize;
+		return v->key;
+	} else
+	if (strcmp(path, "value") == 0) {
+		if (size)
+			*size = v->valuesize;
+		return v->value;
+	}
+	return NULL;
+}
+
+static soif semetavif =
+{
+	.open         = NULL,
+	.destroy      = se_metav_destroy,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = se_metav_string,
+	.getint       = NULL,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = NULL,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
+};
+
+static inline so *se_metav_new(se *e, srmetadump *vp)
+{
+	semetav *v = ss_malloc(&e->a_metav, sizeof(semetav));
+	if (ssunlikely(v == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	so_init(&v->o, &se_o[SEMETAV], &semetavif, &e->o, &e->o);
+	v->keysize = vp->keysize;
+	v->key = ss_malloc(&e->a, v->keysize);
+	if (ssunlikely(v->key == NULL)) {
+		se_mark_destroyed(&v->o);
+		ss_free(&e->a_metav, v);
+		return NULL;
+	}
+	memcpy(v->key, sr_metakey(vp), v->keysize);
+	v->valuesize = vp->valuesize;
+	v->value = NULL;
+	if (v->valuesize > 0) {
+		v->value = ss_malloc(&e->a, v->valuesize);
+		if (ssunlikely(v->key == NULL)) {
+			ss_free(&e->a, v->key);
+			se_mark_destroyed(&v->o);
+			ss_free(&e->a_metav, v);
+			return NULL;
+		}
+	}
+	memcpy(v->value, sr_metavalue(vp), v->valuesize);
+	return &v->o;
+}
+
+static int
+se_metacursor_destroy(so *o)
+{
+	semetacursor *c = se_cast(o, semetacursor*, SEMETACURSOR);
+	se *e = se_of(o);
+	ss_buffree(&c->dump, &e->a);
+	so_listdel(&e->metacursor, &c->o);
+	se_mark_destroyed(&c->o);
+	ss_free(&e->a_metacursor, c);
 	return 0;
 }
 
-static inline int
-so_ctlcursor_next(soctlcursor *c)
+static inline so*
+se_metacursor_object(semetacursor *c)
 {
-	int rc;
-	if (c->pos == NULL) {
-		assert( sr_bufsize(&c->dump) >= (int)sizeof(srcv) );
-		c->pos = (srcv*)c->dump.s;
+	se *e = se_of(&c->o);
+	return se_metav_new(e, c->pos);
+}
+
+static void*
+se_metacursor_get(so *o, so *v)
+{
+	semetacursor *c = se_cast(o, semetacursor*, SEMETACURSOR);
+	if (v) {
+		so_destroy(v);
+	}
+	if (c->first) {
+		assert( ss_bufsize(&c->dump) >= (int)sizeof(srmetadump) );
+		c->first = 0;
+		c->pos = (srmetadump*)c->dump.s;
 	} else {
-		int size = sizeof(srcv) + c->pos->namelen + c->pos->valuelen;
-		c->pos = (srcv*)((char*)c->pos + size);
+		int size = sizeof(srmetadump) + c->pos->keysize + c->pos->valuesize;
+		c->pos = (srmetadump*)((char*)c->pos + size);
 		if ((char*)c->pos >= c->dump.p)
 			c->pos = NULL;
 	}
-	if (srunlikely(c->pos == NULL)) {
-		if (c->v)
-			so_objdestroy(c->v);
-		c->v = NULL;
-		return 0;
-	}
-	rc = so_ctlcursor_set(c);
-	if (srunlikely(rc == -1))
-		return -1;
-	return 1;
-}
-
-static void*
-so_ctlcursor_get(soobj *o, va_list args srunused)
-{
-	soctlcursor *c = (soctlcursor*)o;
-	if (c->ready) {
-		c->ready = 0;
-		return c->v;
-	}
-	if (so_ctlcursor_next(c) == 0)
+	if (ssunlikely(c->pos == NULL))
 		return NULL;
-	return c->v;
+	return se_metacursor_object(c);
 }
 
-static void*
-so_ctlcursor_obj(soobj *obj, va_list args srunused)
+static soif semetacursorif =
 {
-	soctlcursor *c = (soctlcursor*)obj;
-	if (c->v == NULL)
-		return NULL;
-	return c->v;
-}
-
-static void*
-so_ctlcursor_type(soobj *o srunused, va_list args srunused) {
-	return "ctl_cursor";
-}
-
-static soobjif soctlcursorif =
-{
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = so_ctlcursor_destroy,
-	.error    = NULL,
-	.set      = NULL,
-	.get      = so_ctlcursor_get,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = so_ctlcursor_obj,
-	.type     = so_ctlcursor_type
+	.open         = NULL,
+	.destroy      = se_metacursor_destroy,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = se_metacursor_get,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
 };
 
-static inline int
-so_ctlcursor_open(soctlcursor *c)
+so *se_metacursor_new(void *o)
 {
-	so *e = so_of(&c->o);
-	int rc = so_ctlserialize(&e->ctl, &c->dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctlcursor_next(c);
-	if (srunlikely(rc == -1))
-		return -1;
-	c->ready = 1;
-	return 0;
-}
-
-soobj *so_ctlcursor_new(void *o)
-{
-	so *e = o;
-	soctlcursor *c = sr_malloc(&e->a_ctlcursor, sizeof(soctlcursor));
-	if (srunlikely(c == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+	se *e = o;
+	semetacursor *c = ss_malloc(&e->a_metacursor, sizeof(semetacursor));
+	if (ssunlikely(c == NULL)) {
+		sr_oom(&e->error);
 		return NULL;
 	}
-	so_objinit(&c->o, SOCTLCURSOR, &soctlcursorif, &e->o);
+	so_init(&c->o, &se_o[SEMETACURSOR], &semetacursorif, &e->o, &e->o);
 	c->pos = NULL;
-	c->v = NULL;
-	c->ready = 0;
-	sr_bufinit(&c->dump);
-	int rc = so_ctlcursor_open(c);
-	if (srunlikely(rc == -1)) {
-		so_objdestroy(&c->o);
+	c->first = 1;
+	ss_bufinit(&c->dump);
+	int rc = se_metaserialize(&e->meta, &c->dump);
+	if (ssunlikely(rc == -1)) {
+		so_destroy(&c->o);
 		return NULL;
 	}
-	so_objindex_register(&e->ctlcursor, &c->o);
+	so_listadd(&e->metacursor, &c->o);
 	return &c->o;
 }
-#line 1 "sophia/sophia/so_cursor.c"
-
-/*
- * sophia databaso
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD Licenso
-*/
-
-
-
-
-
-
-
-
-
-
-static void*
-so_cursorobj(soobj *obj, va_list args srunused)
-{
-	socursor *c = (socursor*)obj;
-	if (srunlikely(! so_vhas(&c->v)))
-		return NULL;
-	return &c->v;
-}
-
-static inline int
-so_cursorseek(socursor *c, void *key, int keysize)
-{
-	sov *pref = (sov*)c->key;
-	siquery q;
-	si_queryopen(&q, &c->db->r, &c->cache,
-	             &c->db->index, c->order, c->t.vlsn,
-	             pref->prefix, pref->prefixsize,
-	             key, keysize);
-	int rc = si_query(&q);
-	so_vrelease(&c->v);
-	if (rc == 1) {
-		assert(q.result.v != NULL);
-		sv result;
-		rc = si_querydup(&q, &result);
-		if (srunlikely(rc == -1)) {
-			si_queryclose(&q);
-			return -1;
-		}
-		so_vput(&c->v, &result);
-		so_vimmutable(&c->v);
-	}
-	si_queryclose(&q);
-	return rc;
-}
-
-static int
-so_cursordestroy(soobj *o, va_list args srunused)
-{
-	socursor *c = (socursor*)o;
-	so *e = so_of(o);
-	uint32_t id = c->t.id;
-	sx_end(&c->t);
-	si_cachefree(&c->cache, &c->db->r);
-	if (c->key) {
-		so_objdestroy(c->key);
-		c->key = NULL;
-	}
-	so_vrelease(&c->v);
-	so_objindex_unregister(&c->db->cursor, &c->o);
-	so_dbunbind(e, id);
-	sr_free(&e->a_cursor, c);
-	return 0;
-}
-
-static void*
-so_cursorget(soobj *o, va_list args srunused)
-{
-	socursor *c = (socursor*)o;
-	if (srunlikely(c->ready)) {
-		c->ready = 0;
-		return &c->v;
-	}
-	if (srunlikely(c->order == SR_STOP))
-		return 0;
-	if (srunlikely(! so_vhas(&c->v)))
-		return 0;
-	int rc = so_cursorseek(c, sv_key(&c->v.v), sv_keysize(&c->v.v));
-	if (srunlikely(rc <= 0))
-		return NULL;
-	return &c->v;
-}
-
-static void*
-so_cursortype(soobj *o srunused, va_list args srunused) {
-	return "cursor";
-}
-
-static soobjif socursorif =
-{
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = so_cursordestroy,
-	.error    = NULL,
-	.set      = NULL,
-	.get      = so_cursorget,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = so_cursorobj,
-	.type     = so_cursortype
-};
-
-soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
-{
-	so *e = so_of(&db->o);
-	soobj *keyobj = va_arg(args, soobj*);
-
-	/* validate call */
-	sov *o = (sov*)keyobj;
-	if (srunlikely(o->o.id != SOV)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		return NULL;
-	}
-
-	/* prepare cursor */
-	socursor *c = sr_malloc(&e->a_cursor, sizeof(socursor));
-	if (srunlikely(c == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		goto error;
-	}
-	so_objinit(&c->o, SOCURSOR, &socursorif, &e->o);
-	c->key   = keyobj;
-	c->db    = db;
-	c->ready = 0;
-	c->order = o->order;
-	so_vinit(&c->v, e, &db->o);
-	si_cacheinit(&c->cache, &e->a_cursorcache);
-
-	/* open cursor */
-	void *key = sv_key(&o->v);
-	uint32_t keysize = sv_keysize(&o->v);
-	if (keysize == 0) {
-		key = o->prefix;
-		keysize = o->prefixsize;
-	}
-	sx_begin(&e->xm, &c->t, vlsn);
-	int rc = so_cursorseek(c, key, keysize);
-	if (srunlikely(rc == -1)) {
-		sx_end(&c->t);
-		goto error;
-	}
-
-	/* ensure correct iteration */
-	srorder next = SR_GTE;
-	switch (c->order) {
-	case SR_LT:
-	case SR_LTE:    next = SR_LT;
-		break;
-	case SR_GT:
-	case SR_GTE:    next = SR_GT;
-		break;
-	case SR_RANDOM: next = SR_STOP;
-		break;
-	default: assert(0);
-	}
-	c->order = next;
-	if (rc == 1)
-		c->ready = 1;
-
-	so_dbbind(e);
-	so_objindex_register(&db->cursor, &c->o);
-	return &c->o;
-error:
-	if (keyobj)
-		so_objdestroy(keyobj);
-	if (c)
-		sr_free(&e->a_cursor, c);
-	return NULL;
-}
-#line 1 "sophia/sophia/so_db.c"
+#line 1 "sophia/environment/se_o.c"
 
 /*
  * sophia database
@@ -24673,453 +28599,28 @@ error:
 
 
 
-static void*
-so_dbctlget(soobj *obj, va_list args)
-{
-	sodbctl *ctl = (sodbctl*)obj;
-	src c;
-	memset(&c, 0, sizeof(c));
-	char *name = va_arg(args, char*);
-	if (strcmp(name, "name") == 0) {
-		c.name  = "name";
-		c.flags = SR_CSZREF|SR_CRO;
-		c.value = &ctl->name;
-	} else
-	if (strcmp(name, "id") == 0) {
-		c.name  = "id";
-		c.flags = SR_CU32|SR_CRO;
-		c.value = &ctl->id;
-	} else {
-		return NULL;
-	}
-	sodb *db = ctl->parent;
-	return so_ctlreturn(&c, so_of(&db->o));
-}
 
-static soobjif sodbctlif =
+
+
+sotype se_o[] =
 {
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = NULL,
-	.error    = NULL,
-	.set      = NULL,
-	.get      = so_dbctlget,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = NULL,
-	.type     = NULL
+	{ 0L,          "undefined"       },
+	{ 0x9BA14568L, "destroyed"       },
+	{ 0x06154834L, "env"             },
+	{ 0x20490B34L, "env_meta"        },
+	{ 0x6AB65429L, "env_meta_cursor" },
+	{ 0x00FCDE12L, "env_meta_object" },
+	{ 0x64519F00L, "req"             },
+	{ 0x2FABCDE2L, "object"          },
+	{ 0x34591111L, "database"        },
+	{ 0x24242489L, "database_async"  },
+	{ 0x571DEF09L, "batch"           },
+	{ 0x13491FABL, "transaction"     },
+	{ 0x45ABCDFAL, "cursor"          },
+	{ 0x71230BAFL, "snapshot"        },
+	{ 0x63102654L, "snapshot_cursor" }
 };
-
-static int
-so_dbctl_init(sodbctl *c, char *name, void *db)
-{
-	memset(c, 0, sizeof(*c));
-	sodb *o = db;
-	so *e = so_of(&o->o);
-	so_objinit(&c->o, SODBCTL, &sodbctlif, &e->o);
-	c->name = sr_strdup(&e->a, name);
-	if (srunlikely(c->name == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		return -1;
-	}
-	c->parent  = db;
-	c->created = 0;
-	c->dropped = 0;
-	c->sync    = 1;
-	c->compression_if = NULL;
-	c->compression = sr_strdup(&e->a, "none");
-	if (srunlikely(c->compression == NULL)) {
-		sr_free(&e->a, c->name);
-		c->name = NULL;
-		sr_error(&e->error, "%s", "memory allocation failed");
-		return -1;
-	}
-	sr_cmpset(&c->cmp, "string");
-	return 0;
-}
-
-static int
-so_dbctl_free(sodbctl *c)
-{
-	sodb *o = c->parent;
-	so *e = so_of(&o->o);
-	if (c->name) {
-		sr_free(&e->a, c->name);
-		c->name = NULL;
-	}
-	if (c->path) {
-		sr_free(&e->a, c->path);
-		c->path = NULL;
-	}
-	if (c->compression) {
-		sr_free(&e->a, c->compression);
-		c->compression = NULL;
-	}
-	return 0;
-}
-
-static int
-so_dbctl_validate(sodbctl *c)
-{
-	sodb *o = c->parent;
-	so *e = so_of(&o->o);
-	/* path */
-	if (c->path == NULL) {
-		char path[1024];
-		snprintf(path, sizeof(path), "%s/%s", e->ctl.path, c->name);
-		c->path = sr_strdup(&e->a, path);
-		if (srunlikely(c->path == NULL)) {
-			sr_error(&e->error, "%s", "memory allocation failed");
-			return -1;
-		}
-	}
-	/* compression */
-	if (strcmp(c->compression, "none") == 0) {
-		c->compression_if = NULL;
-	} else
-	if (strcmp(c->compression, "zstd") == 0) {
-		c->compression_if = &sr_zstdfilter;
-	} else
-	if (strcmp(c->compression, "lz4") == 0) {
-		c->compression_if = &sr_lz4filter;
-	} else {
-		sr_error(&e->error, "bad compression type '%s'", c->compression);
-		return -1;
-	}
-	return 0;
-}
-
-static void*
-so_dbctl(soobj *obj, va_list args srunused)
-{
-	sodb *o = (sodb*)obj;
-	return &o->ctl.o;
-}
-
-static int
-so_dbopen(soobj *obj, va_list args srunused)
-{
-	sodb *o = (sodb*)obj;
-	so *e = so_of(&o->o);
-	int status = so_status(&o->status);
-	if (status == SO_RECOVER)
-		goto online;
-	if (status != SO_OFFLINE)
-		return -1;
-	int rc = so_dbctl_validate(&o->ctl);
-	if (srunlikely(rc == -1))
-		return -1;
-	o->r.cmp = &o->ctl.cmp;
-	o->r.compression = o->ctl.compression_if;
-	sx_indexset(&o->coindex, o->ctl.id, o->r.cmp);
-	rc = so_recoverbegin(o);
-	if (srunlikely(rc == -1))
-		return -1;
-	if (so_status(&e->status) == SO_RECOVER)
-		return 0;
-online:
-	so_recoverend(o);
-	rc = so_scheduler_add(&e->sched, o);
-	if (srunlikely(rc == -1))
-		return -1;
-	return 0;
-}
-
-static int
-so_dbdestroy(soobj *obj, va_list args srunused)
-{
-	sodb *o = (sodb*)obj;
-	so *e = so_of(&o->o);
-
-	int rcret = 0;
-	int rc;
-	int status = so_status(&e->status);
-	if (status == SO_SHUTDOWN)
-		goto shutdown;
-
-	uint32_t ref;
-	status = so_status(&o->status);
-	switch (status) {
-	case SO_MALFUNCTION:
-	case SO_ONLINE:
-		ref = so_dbunref(o, 0);
-		if (ref > 0)
-			return 0;
-		/* set last visible transaction id */
-		o->txn_max = sx_max(&e->xm);
-		rc = so_scheduler_del(&e->sched, o);
-		if (srunlikely(rc == -1))
-			return -1;
-		so_objindex_unregister(&e->db, &o->o);
-		sr_spinlock(&e->dblock);
-		so_objindex_register(&e->db_shutdown, &o->o);
-		sr_spinunlock(&e->dblock);
-		so_statusset(&o->status, SO_SHUTDOWN);
-		return 0;
-	case SO_SHUTDOWN:
-		/* this intended to be called from a
-		 * background gc task */
-		assert(so_dbrefof(o, 0) == 0);
-		ref = so_dbrefof(o, 1);
-		if (ref > 0)
-			return 0;
-		break;
-	default: break; /* recover, offline */
-	}
-
-shutdown:;
-	rc = so_objindex_destroy(&o->cursor);
-	if (srunlikely(rc == -1))
-		rcret = -1;
-	sx_indexfree(&o->coindex, &e->xm);
-	rc = si_close(&o->index, &o->r);
-	if (srunlikely(rc == -1))
-		rcret = -1;
-	so_dbctl_free(&o->ctl);
-	sd_cfree(&o->dc, &o->r);
-	so_statusfree(&o->status);
-	sr_spinlockfree(&o->reflock);
-	sr_free(&e->a_db, o);
-	return rcret;
-}
-
-static int
-so_dbdrop(soobj *obj, va_list args srunused)
-{
-	sodb *o = (sodb*)obj;
-	int status = so_status(&o->status);
-	if (status != SO_ONLINE)
-		return -1;
-	if (srunlikely(o->ctl.dropped))
-		return 0;
-	int rc = si_dropmark(&o->index, &o->r);
-	if (srunlikely(rc == -1))
-		return -1;
-	o->ctl.dropped = 1;
-	return 0;
-}
-
-static int
-so_dberror(soobj *obj, va_list args srunused)
-{
-	sodb *o = (sodb*)obj;
-	int status = so_status(&o->status);
-	if (status == SO_MALFUNCTION)
-		return 1;
-	return 0;
-}
-
-static int
-so_dbset(soobj *obj, va_list args)
-{
-	sodb *o = (sodb*)obj;
-	return so_txdbset(o, SVSET, args);
-}
-
-static void*
-so_dbget(soobj *obj, va_list args)
-{
-	sodb *o = (sodb*)obj;
-	return so_txdbget(o, 0, args);
-}
-
-static int
-so_dbdel(soobj *obj, va_list args)
-{
-	sodb *o = (sodb*)obj;
-	return so_txdbset(o, SVDELETE, args);
-}
-
-static void*
-so_dbcursor(soobj *o, va_list args)
-{
-	sodb *db = (sodb*)o;
-	return so_cursornew(db, 0, args);
-}
-
-static void*
-so_dbobj(soobj *obj, va_list args srunused)
-{
-	sodb *o = (sodb*)obj;
-	so *e = so_of(&o->o);
-	return so_vnew(e, obj);
-}
-
-static void*
-so_dbtype(soobj *o srunused, va_list args srunused) {
-	return "database";
-}
-
-static soobjif sodbif =
-{
-	.ctl      = so_dbctl,
-	.open     = so_dbopen,
-	.destroy  = so_dbdestroy,
-	.error    = so_dberror,
-	.set      = so_dbset,
-	.get      = so_dbget,
-	.del      = so_dbdel,
-	.drop     = so_dbdrop,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = so_dbcursor,
-	.object   = so_dbobj,
-	.type     = so_dbtype
-};
-
-soobj *so_dbnew(so *e, char *name)
-{
-	sodb *o = sr_malloc(&e->a_db, sizeof(sodb));
-	if (srunlikely(o == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		return NULL;
-	}
-	memset(o, 0, sizeof(*o));
-	so_objinit(&o->o, SODB, &sodbif, &e->o);
-	so_objindex_init(&o->cursor);
-	so_statusinit(&o->status);
-	so_statusset(&o->status, SO_OFFLINE);
-	o->r     = e->r;
-	o->r.cmp = &o->ctl.cmp;
-	int rc = so_dbctl_init(&o->ctl, name, o);
-	if (srunlikely(rc == -1)) {
-		sr_free(&e->a_db, o);
-		return NULL;
-	}
-	rc = si_init(&o->index, &o->r, &e->quota);
-	if (srunlikely(rc == -1)) {
-		sr_free(&e->a_db, o);
-		so_dbctl_free(&o->ctl);
-		return NULL;
-	}
-	o->ctl.id = sr_seq(&e->seq, SR_DSNNEXT);
-	sx_indexinit(&o->coindex, o);
-	sr_spinlockinit(&o->reflock);
-	o->ref_be = 0;
-	o->ref = 0;
-	o->txn_min = sx_min(&e->xm);
-	o->txn_max = o->txn_min;
-	sd_cinit(&o->dc);
-	return &o->o;
-}
-
-soobj *so_dbmatch(so *e, char *name)
-{
-	srlist *i;
-	sr_listforeach(&e->db.list, i) {
-		sodb *db = (sodb*)srcast(i, soobj, link);
-		if (strcmp(db->ctl.name, name) == 0)
-			return &db->o;
-	}
-	return NULL;
-}
-
-soobj *so_dbmatch_id(so *e, uint32_t id)
-{
-	srlist *i;
-	sr_listforeach(&e->db.list, i) {
-		sodb *db = (sodb*)srcast(i, soobj, link);
-		if (db->ctl.id == id)
-			return &db->o;
-	}
-	return NULL;
-}
-
-void so_dbref(sodb *o, int be)
-{
-	sr_spinlock(&o->reflock);
-	if (be)
-		o->ref_be++;
-	else
-		o->ref++;
-	sr_spinunlock(&o->reflock);
-}
-
-uint32_t so_dbunref(sodb *o, int be)
-{
-	uint32_t prev_ref = 0;
-	sr_spinlock(&o->reflock);
-	if (be) {
-		prev_ref = o->ref_be;
-		if (o->ref_be > 0)
-			o->ref_be--;
-	} else {
-		prev_ref = o->ref;
-		if (o->ref > 0)
-			o->ref--;
-	}
-	sr_spinunlock(&o->reflock);
-	return prev_ref;
-}
-
-uint32_t so_dbrefof(sodb *o, int be)
-{
-	uint32_t ref = 0;
-	sr_spinlock(&o->reflock);
-	if (be)
-		ref = o->ref_be;
-	else
-		ref = o->ref;
-	sr_spinunlock(&o->reflock);
-	return ref;
-}
-
-int so_dbgarbage(sodb *o)
-{
-	sr_spinlock(&o->reflock);
-	int v = o->ref_be == 0 && o->ref == 0;
-	sr_spinunlock(&o->reflock);
-	return v;
-}
-
-int so_dbvisible(sodb *db, uint32_t txn)
-{
-	return db->txn_min < txn && txn <= db->txn_max;
-}
-
-void so_dbbind(so *o)
-{
-	srlist *i;
-	sr_listforeach(&o->db.list, i) {
-		sodb *db = (sodb*)srcast(i, soobj, link);
-		int status = so_status(&db->status);
-		if (so_statusactive_is(status))
-			so_dbref(db, 1);
-	}
-}
-
-void so_dbunbind(so *o, uint32_t txn)
-{
-	srlist *i;
-	sr_listforeach(&o->db.list, i) {
-		sodb *db = (sodb*)srcast(i, soobj, link);
-		int status = so_status(&db->status);
-		if (status != SO_ONLINE)
-			continue;
-		if (txn > db->txn_min)
-			so_dbunref(db, 1);
-	}
-
-	sr_spinlock(&o->dblock);
-	sr_listforeach(&o->db_shutdown.list, i) {
-		sodb *db = (sodb*)srcast(i, soobj, link);
-		if (so_dbvisible(db, txn))
-			so_dbunref(db, 1);
-	}
-	sr_spinunlock(&o->dblock);
-}
-
-int so_dbmalfunction(sodb *o)
-{
-	so_statusset(&o->status, SO_MALFUNCTION);
-	return -1;
-}
-#line 1 "sophia/sophia/so_recover.c"
+#line 1 "sophia/environment/se_recover.c"
 
 /*
  * sophia database
@@ -25138,166 +28639,182 @@ int so_dbmalfunction(sodb *o)
 
 
 
-int so_recoverbegin(sodb *db)
+
+
+
+static inline void
+se_recoverf(se *e, char *fmt, ...)
 {
-	so_statusset(&db->status, SO_RECOVER);
-	so *e = so_of(&db->o);
+	if (e->meta.on_recover.function == NULL)
+		return;
+	char trace[1024];
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(trace, sizeof(trace), fmt, args);
+	va_end(args);
+	e->meta.on_recover.function(trace, e->meta.on_recover.arg);
+}
+
+int se_recoverbegin(sedb *db)
+{
 	/* open and recover repository */
-	siconf *c = &db->indexconf;
-	c->node_size           = e->ctl.node_size;
-	c->node_page_size      = e->ctl.page_size;
-	c->node_page_checksum  = e->ctl.page_checksum;
-	c->path_backup         = e->ctl.backup_path;
-	c->path                = db->ctl.path;
-	c->path_fail_on_exists = 0;
-	c->compression         = db->ctl.compression_if != NULL;
+	se_statusset(&db->status, SE_RECOVER);
+	se *e = se_of(&db->o);
 	/* do not allow to recover existing databases
 	 * during online (only create), since logpool
 	 * reply is required. */
-	if (so_status(&e->status) == SO_ONLINE)
-		c->path_fail_on_exists = 1;
-	c->name                = db->ctl.name;
-	c->sync                = db->ctl.sync;
-	int rc = si_open(&db->index, &db->r, &db->indexconf);
-	if (srunlikely(rc == -1))
+	if (se_status(&e->status) == SE_ONLINE)
+		db->scheme.path_fail_on_exists = 1;
+	se_recoverf(e, "loading database '%s'", db->scheme.path);
+	int rc = si_open(&db->index, &db->scheme);
+	if (ssunlikely(rc == -1))
 		goto error;
-	db->ctl.created = rc;
+	db->created = rc;
 	return 0;
 error:
-	so_dbmalfunction(db);
+	se_dbmalfunction(db);
 	return -1;
 }
 
-int so_recoverend(sodb *db)
+int se_recoverend(sedb *db)
 {
-	so_statusset(&db->status, SO_ONLINE);
+	se_statusset(&db->status, SE_ONLINE);
 	return 0;
 }
 
-static inline int
-so_recoverlog(so *e, sl *log)
+static int
+se_recoverlog(se *e, sl *log)
 {
-	soobj *transaction = NULL;
-	sodb *db = NULL;
-	sriter i;
-	sr_iterinit(sl_iter, &i, &e->r);
-	int rc = sr_iteropen(sl_iter, &i, &log->file, 1);
-	if (srunlikely(rc == -1))
+	so *tx = NULL;
+	sedb *db = NULL;
+	ssiter i;
+	ss_iterinit(sl_iter, &i);
+	int processed = 0;
+	int rc = ss_iteropen(sl_iter, &i, &e->r, &log->file, 1);
+	if (ssunlikely(rc == -1))
 		return -1;
 	for (;;)
 	{
-		sv *v = sr_iteratorof(&i);
-		if (srunlikely(v == NULL))
+		sv *v = ss_iteratorof(&i);
+		if (ssunlikely(v == NULL))
 			break;
 
 		/* reply transaction */
 		uint64_t lsn = sv_lsn(v);
-		transaction = so_objbegin(&e->o);
-		if (srunlikely(transaction == NULL))
+		tx = so_begin(&e->o);
+		if (ssunlikely(tx == NULL))
 			goto error;
 
-		while (sr_iteratorhas(&i)) {
-			v = sr_iteratorof(&i);
+		while (ss_iteratorhas(&i)) {
+			v = ss_iteratorof(&i);
 			assert(sv_lsn(v) == lsn);
 			/* match a database */
 			uint32_t dsn = sl_vdsn(v);
-			if (db == NULL || db->ctl.id != dsn)
-				db = (sodb*)so_dbmatch_id(e, dsn);
-			if (srunlikely(db == NULL)) {
-				sr_malfunction(&e->error, "%s",
-				               "database id %" PRIu32 "is not declared", dsn);
+			if (db == NULL || db->scheme.id != dsn)
+				db = (sedb*)se_dbmatch_id(e, dsn);
+			if (ssunlikely(db == NULL)) {
+				sr_malfunction(&e->error, "database id %" PRIu32
+				               " is not declared", dsn);
 				goto rlb;
 			}
-			void *o = so_objobject(&db->o);
-			if (srunlikely(o == NULL))
+			so *o = so_object(&db->o);
+			if (ssunlikely(o == NULL))
 				goto rlb;
-			so_objset(o, "key", sv_key(v), sv_keysize(v));
-			so_objset(o, "value", sv_value(v), sv_valuesize(v));
-			so_objset(o, "log", log);
-			if (sv_flags(v) == SVSET)
-				rc = so_objset(transaction, o);
-			else
-			if (sv_flags(v) == SVDELETE)
-				rc = so_objdelete(transaction, o);
-			if (srunlikely(rc == -1))
+			so_setstring(o, "raw", sv_pointer(v), sv_size(v));
+			so_setstring(o, "log", log, 0);
+			
+			int flags = sv_flags(v);
+			if (flags == SVDELETE) {
+				rc = so_delete(tx, o);
+			} else
+			if (flags == SVUPDATE) {
+				rc = so_update(tx, o);
+			} else {
+				assert(flags == 0);
+				rc = so_set(tx, o);
+			}
+			if (ssunlikely(rc == -1))
 				goto rlb;
-			sr_gcmark(&log->gc, 1);
-			sr_iteratornext(&i);
+			ss_gcmark(&log->gc, 1);
+			processed++;
+			if ((processed % 100000) == 0)
+				se_recoverf(e, " %.1fM processed", processed / 1000000.0);
+			ss_iteratornext(&i);
 		}
-		if (srunlikely(sl_iter_error(&i)))
+		if (ssunlikely(sl_iter_error(&i)))
 			goto rlb;
 
-		rc = so_objprepare(transaction, lsn);
-		if (srunlikely(rc != 0))
-			goto error;
-		rc = so_objcommit(transaction);
-		if (srunlikely(rc != 0))
+		so_setint(tx, "lsn", lsn);
+		rc = so_commit(tx);
+		if (ssunlikely(rc != 0))
 			goto error;
 		rc = sl_iter_continue(&i);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			goto error;
 		if (rc == 0)
 			break;
 	}
-	sr_iteratorclose(&i);
+	ss_iteratorclose(&i);
 	return 0;
 rlb:
-	so_objdestroy(transaction);
+	so_destroy(tx);
 error:
-	sr_iteratorclose(&i);
+	ss_iteratorclose(&i);
 	return -1;
 }
 
 static inline int
-so_recoverlogpool(so *e)
+se_recoverlogpool(se *e)
 {
-	srlist *i;
-	sr_listforeach(&e->lp.list, i) {
-		sl *log = srcast(i, sl, link);
-		int rc = so_recoverlog(e, log);
-		if (srunlikely(rc == -1))
+	sslist *i;
+	ss_listforeach(&e->lp.list, i) {
+		sl *log = sscast(i, sl, link);
+		se_recoverf(e, "loading journal '%s'", log->file.file);
+		int rc = se_recoverlog(e, log);
+		if (ssunlikely(rc == -1))
 			return -1;
-		sr_gccomplete(&log->gc);
+		ss_gccomplete(&log->gc);
 	}
 	return 0;
 }
 
-int so_recover(so *e)
+int se_recover(se *e)
 {
 	slconf *lc = &e->lpconf;
-	lc->enable         = e->ctl.log_enable;
-	lc->path           = e->ctl.log_path;
-	lc->rotatewm       = e->ctl.log_rotate_wm;
-	lc->sync_on_rotate = e->ctl.log_rotate_sync;
-	lc->sync_on_write  = e->ctl.log_sync;
+	lc->enable         = e->meta.log_enable;
+	lc->path           = e->meta.log_path;
+	lc->rotatewm       = e->meta.log_rotate_wm;
+	lc->sync_on_rotate = e->meta.log_rotate_sync;
+	lc->sync_on_write  = e->meta.log_sync;
 	int rc = sl_poolopen(&e->lp, lc);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
-	if (e->ctl.two_phase_recover)
+	if (e->meta.two_phase_recover)
 		return 0;
 	/* recover log files */
-	rc = so_recoverlogpool(e);
-	if (srunlikely(rc == -1))
+	rc = se_recoverlogpool(e);
+	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sl_poolrotate(&e->lp);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
 	return 0;
 error:
-	so_statusset(&e->status, SO_MALFUNCTION);
+	se_statusset(&e->status, SE_MALFUNCTION);
 	return -1;
 }
 
-int so_recover_repository(so *e)
+int se_recover_repository(se *e)
 {
-	seconf *ec = &e->seconf;
-	ec->path        = e->ctl.path;
-	ec->path_create = e->ctl.path_create;
-	ec->path_backup = e->ctl.backup_path;
-	ec->sync = 0;
-	return se_open(&e->se, &e->r, &e->seconf);
+	syconf *rc = &e->repconf;
+	rc->path        = e->meta.path;
+	rc->path_create = e->meta.path_create;
+	rc->path_backup = e->meta.backup_path;
+	rc->sync = 0;
+	se_recoverf(e, "recovering repository '%s'", e->meta.path);
+	return sy_open(&e->rep, &e->r, rc);
 }
-#line 1 "sophia/sophia/so_scheduler.c"
+#line 1 "sophia/environment/se_req.c"
 
 /*
  * sophia database
@@ -25316,20 +28833,259 @@ int so_recover_repository(so *e)
 
 
 
-static inline sizone*
-so_zoneof(so *e)
+
+
+
+void
+se_reqend(sereq *r)
 {
-	int p = sr_quotaused_percent(&e->quota);
-	return si_zonemap(&e->ctl.zones, p);
+	se *e = se_of(r->object);
+	/* free key, prefix, update and a pending result */
+	if (r->arg.v.v)
+		sv_vfree(&e->a, r->arg.v.v);
+	if (r->arg.vprefix.v)
+		sv_vfree(&e->a, r->arg.vprefix.v);
+	if (r->arg.vup.v)
+		sv_vfree(&e->a, r->arg.vup.v);
+	if (ssunlikely(r->v))
+		sv_vfree(&e->a, (svv*)r->v);
+	/* free read cache */
+	if (sslikely(r->arg.cachegc && r->arg.cache))
+		si_cachepool_push(r->arg.cache);
+	/* unref db */
+	if (sslikely(r->db))
+		se_dbunref((sedb*)r->db, 1);
 }
 
-int so_scheduler_branch(void *arg)
+static int
+se_reqdestroy(so *o)
 {
-	sodb *db = arg;
-	so *e = so_of(&db->o);
-	sizone *z = so_zoneof(e);
-	soworker stub;
-	so_workerstub_init(&stub);
+	sereq *r = se_cast(o, sereq*, SEREQ);
+	se *e = se_of(r->object);
+	se_reqend(r);
+	ss_free(&e->a_req, r);
+	return 0;
+}
+
+static soif sereqif =
+{
+	.open         = NULL,
+	.destroy      = se_reqdestroy,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = NULL,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
+};
+
+void se_reqinit(se *e, sereq *r, sereqop op, so *o, so *db)
+{
+	so_init(&r->o, &se_o[SEREQ], &sereqif, &e->o, &e->o);
+	r->id = sr_seq(&e->seq, SR_RSNNEXT);
+	r->op = op;
+	r->object = o;
+	r->db = db;
+	if (db) {
+		se_dbref((sedb*)db, 1);
+	}
+	memset(&r->arg, 0, sizeof(r->arg));
+	r->v = NULL;
+	r->rc = 0;
+}
+
+char *se_reqof(sereqop o)
+{
+	switch (o) {
+	case SE_REQREAD:      return "on_read";
+	case SE_REQWRITE:     return "on_write";
+	case SE_REQON_BACKUP: return "on_backup";
+	default: assert(0);
+	}
+	return NULL;
+}
+
+static void
+se_reqadd(se *e, sereq *r)
+{
+	ss_mutexlock(&e->reqlock);
+	so_listadd(&e->req, &r->o);
+	ss_condsignal(&e->reqcond);
+	ss_mutexunlock(&e->reqlock);
+}
+
+void se_reqonbackup(se *e)
+{
+	if (e->meta.event_on_backup)
+		ss_triggerrun(&e->meta.on_event);
+}
+
+void se_reqready(sereq *r)
+{
+	sedb *db = (sedb*)r->object;
+	se *e = se_of(&db->o);
+	ss_mutexlock(&e->reqlock);
+	so_listdel(&e->reqactive, &r->o);
+	so_listadd(&e->reqready, &r->o);
+	ss_mutexunlock(&e->reqlock);
+	ss_triggerrun(&e->meta.on_event);
+}
+
+sereq*
+se_reqnew(se *e, sereq *src, int add)
+{
+	sereq *r = ss_malloc(&e->a_req, sizeof(sereq));
+	if (ssunlikely(r == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	memcpy(r, src, sizeof(*r));
+	if (add) {
+		se_reqadd(e, r);
+	}
+	return r;
+}
+
+void se_reqwakeup(se *e)
+{
+	ss_mutexlock(&e->reqlock);
+	ss_condsignal(&e->reqcond);
+	ss_mutexunlock(&e->reqlock);
+}
+
+sereq*
+se_reqdispatch(se *e, int block)
+{
+	ss_mutexlock(&e->reqlock);
+	if (e->req.n == 0) {
+		if (! block)
+			goto empty;
+		ss_condwait(&e->reqcond, &e->reqlock);
+		if (e->req.n == 0)
+			goto empty;
+	}
+	sereq *r = (sereq*)so_listfirst(&e->req);
+	so_listdel(&e->req, &r->o);
+	so_listadd(&e->reqactive, &r->o);
+	ss_mutexunlock(&e->reqlock);
+	return r;
+empty:
+	ss_mutexunlock(&e->reqlock);
+	return NULL;
+}
+
+sereq*
+se_reqdispatch_ready(se *e)
+{
+	ss_mutexlock(&e->reqlock);
+	if (e->reqready.n == 0) {
+		ss_mutexunlock(&e->reqlock);
+		return NULL;
+	}
+	sereq *r = (sereq*)so_listfirst(&e->reqready);
+	so_listdel(&e->reqready, &r->o);
+	ss_mutexunlock(&e->reqlock);
+	return r;
+}
+
+int se_reqqueue(se *e)
+{
+	ss_mutexlock(&e->reqlock);
+	int n = e->req.n;
+	ss_mutexunlock(&e->reqlock);
+	return n;
+}
+
+int se_reqcount(se *e)
+{
+	ss_mutexlock(&e->reqlock);
+	int n = e->req.n + e->reqactive.n + e->reqready.n;
+	ss_mutexunlock(&e->reqlock);
+	return n;
+}
+
+so *se_reqresult(sereq *r, int async)
+{
+	se *e = se_of(&r->o);
+	sv result;
+	sv_init(&result, &sv_vif, r->v, NULL);
+	sev *v = (sev*)se_vnew(e, r->db, &result, async);
+	if (ssunlikely(v == NULL))
+		return NULL;
+	r->v = NULL;
+	v->async_operation = r->op;
+	v->async_status    = r->rc;
+	v->async_seq       = r->id;
+	v->async_arg       = r->arg.arg;
+	/* propagate current object settings to
+	 * the result one */
+	v->orderset = 1;
+	v->order = r->arg.order;
+	if (v->order == SS_GTE)
+		v->order = SS_GT;
+	else
+	if (v->order == SS_LTE)
+		v->order = SS_LT;
+	/* reuse prefix object */
+	v->vprefix.v = r->arg.vprefix.v;
+	if (v->vprefix.v) {
+		r->arg.vprefix.v = NULL;
+		void *vptr = sv_vpointer(v->vprefix.v);
+		v->prefix = sf_key(vptr, 0);
+		v->prefixsize = sf_keysize(vptr, 0);
+	}
+	return &v->o;
+}
+#line 1 "sophia/environment/se_scheduler.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+static inline srzone*
+se_zoneof(se *e)
+{
+	int p = ss_quotaused_percent(&e->quota);
+	return sr_zonemap(&e->meta.zones, p);
+}
+
+int se_scheduler_branch(void *arg)
+{
+	sedb *db = arg;
+	se *e = se_of(&db->o);
+	srzone *z = se_zoneof(e);
+	seworker stub;
+	se_workerstub_init(&stub);
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -25344,21 +29100,21 @@ int so_scheduler_branch(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &db->r, &stub.dc, &plan, vlsn);
-		if (srunlikely(rc == -1))
+		rc = si_execute(&db->index, &stub.dc, &plan, vlsn);
+		if (ssunlikely(rc == -1))
 			break;
 	}
-	so_workerstub_free(&stub, &db->r);
+	se_workerstub_free(&stub, &db->r);
 	return rc;
 }
 
-int so_scheduler_compact(void *arg)
+int se_scheduler_compact(void *arg)
 {
-	sodb *db = arg;
-	so *e = so_of(&db->o);
-	sizone *z = so_zoneof(e);
-	soworker stub;
-	so_workerstub_init(&stub);
+	sedb *db = arg;
+	se *e = se_of(&db->o);
+	srzone *z = se_zoneof(e);
+	seworker stub;
+	se_workerstub_init(&stub);
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -25373,41 +29129,41 @@ int so_scheduler_compact(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &db->r, &stub.dc, &plan, vlsn);
-		if (srunlikely(rc == -1))
+		rc = si_execute(&db->index, &stub.dc, &plan, vlsn);
+		if (ssunlikely(rc == -1))
 			break;
 	}
-	so_workerstub_free(&stub, &db->r);
+	se_workerstub_free(&stub, &db->r);
 	return rc;
 }
 
-int so_scheduler_checkpoint(void *arg)
+int se_scheduler_checkpoint(void *arg)
 {
-	so *o = arg;
-	soscheduler *s = &o->sched;
+	se *o = arg;
+	sescheduler *s = &o->sched;
 	uint64_t lsn = sr_seq(&o->seq, SR_LSN);
-	sr_mutexlock(&s->lock);
+	ss_mutexlock(&s->lock);
 	s->checkpoint_lsn = lsn;
 	s->checkpoint = 1;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int so_scheduler_gc(void *arg)
+int se_scheduler_gc(void *arg)
 {
-	so *o = arg;
-	soscheduler *s = &o->sched;
-	sr_mutexlock(&s->lock);
+	se *o = arg;
+	sescheduler *s = &o->sched;
+	ss_mutexlock(&s->lock);
 	s->gc = 1;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int so_scheduler_backup(void *arg)
+int se_scheduler_backup(void *arg)
 {
-	so *e = arg;
-	soscheduler *s = &e->sched;
-	if (srunlikely(e->ctl.backup_path == NULL)) {
+	se *e = arg;
+	sescheduler *s = &e->sched;
+	if (ssunlikely(e->meta.backup_path == NULL)) {
 		sr_error(&e->error, "%s", "backup is not enabled");
 		return -1;
 	}
@@ -25417,9 +29173,9 @@ int so_scheduler_backup(void *arg)
 	 * disable log garbage-collection
 	*/
 	sl_poolgc_enable(&e->lp, 0);
-	sr_mutexlock(&s->lock);
-	if (srunlikely(s->backup > 0)) {
-		sr_mutexunlock(&s->lock);
+	ss_mutexlock(&s->lock);
+	if (ssunlikely(s->backup > 0)) {
+		ss_mutexunlock(&s->lock);
 		sl_poolgc_enable(&e->lp, 1);
 		/* in progress */
 		return 0;
@@ -25427,14 +29183,14 @@ int so_scheduler_backup(void *arg)
 	uint64_t bsn = sr_seq(&e->seq, SR_BSNNEXT);
 	s->backup = 1;
 	s->backup_bsn = bsn;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
 static inline int
-so_backupstart(soscheduler *s)
+se_backupstart(sescheduler *s)
 {
-	so *e = s->env;
+	se *e = (se*)s->env;
 	/*
 	 * a. create backup_path/<bsn.incomplete> directory
 	 * b. create database directories
@@ -25442,21 +29198,21 @@ so_backupstart(soscheduler *s)
 	*/
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
-	         e->ctl.backup_path, s->backup_bsn);
-	int rc = sr_filemkdir(path);
-	if (srunlikely(rc == -1)) {
+	         e->meta.backup_path, s->backup_bsn);
+	int rc = ss_filemkdir(path);
+	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
 		         path, strerror(errno));
 		return -1;
 	}
 	int i = 0;
 	while (i < s->count) {
-		sodb *db = s->i[i];
+		sedb *db = s->i[i];
 		snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/%s",
-		         e->ctl.backup_path, s->backup_bsn,
-		         db->ctl.name);
-		rc = sr_filemkdir(path);
-		if (srunlikely(rc == -1)) {
+		         e->meta.backup_path, s->backup_bsn,
+		         db->scheme.name);
+		rc = ss_filemkdir(path);
+		if (ssunlikely(rc == -1)) {
 			sr_error(&e->error, "backup directory '%s' create error: %s",
 			         path, strerror(errno));
 			return -1;
@@ -25464,9 +29220,9 @@ so_backupstart(soscheduler *s)
 		i++;
 	}
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
-	         e->ctl.backup_path, s->backup_bsn);
-	rc = sr_filemkdir(path);
-	if (srunlikely(rc == -1)) {
+	         e->meta.backup_path, s->backup_bsn);
+	rc = ss_filemkdir(path);
+	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
 		         path, strerror(errno));
 		return -1;
@@ -25475,7 +29231,7 @@ so_backupstart(soscheduler *s)
 }
 
 static inline int
-so_backupcomplete(soscheduler *s, soworker *w)
+se_backupcomplete(sescheduler *s, seworker *w)
 {
 	/*
 	 * a. rotate log file
@@ -25484,22 +29240,22 @@ so_backupcomplete(soscheduler *s, soworker *w)
 	 * d. rename <bsn.incomplete> into <bsn>
 	 * e. set last backup, set COMPLETE
 	 */
-	so *e = s->env;
+	se *e = (se*)s->env;
 
 	/* force log rotation */
-	sr_trace(&w->trace, "%s", "log rotation for backup");
+	ss_trace(&w->trace, "%s", "log rotation for backup");
 	int rc = sl_poolrotate(&e->lp);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 
 	/* copy log files */
-	sr_trace(&w->trace, "%s", "log files backup");
+	ss_trace(&w->trace, "%s", "log files backup");
 
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
-	         e->ctl.backup_path, s->backup_bsn);
+	         e->meta.backup_path, s->backup_bsn);
 	rc = sl_poolcopy(&e->lp, path, &w->dc.c);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		sr_errorrecover(&e->error);
 		return -1;
 	}
@@ -25509,12 +29265,12 @@ so_backupcomplete(soscheduler *s, soworker *w)
 
 	/* complete backup */
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
-	         e->ctl.backup_path, s->backup_bsn);
+	         e->meta.backup_path, s->backup_bsn);
 	char newpath[1024];
 	snprintf(newpath, sizeof(newpath), "%s/%" PRIu32,
-	         e->ctl.backup_path, s->backup_bsn);
+	         e->meta.backup_path, s->backup_bsn);
 	rc = rename(path, newpath);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' rename error: %s",
 		         path, strerror(errno));
 		return -1;
@@ -25529,34 +29285,35 @@ so_backupcomplete(soscheduler *s, soworker *w)
 }
 
 static inline int
-so_backuperror(soscheduler *s)
+se_backuperror(sescheduler *s)
 {
-	so *e = s->env;
+	se *e = (se*)s->env;
 	sl_poolgc_enable(&e->lp, 1);
 	s->backup = 0;
 	s->backup_last_complete = 0;
 	return 0;
 }
 
-int so_scheduler_call(void *arg)
+int se_scheduler_call(void *arg)
 {
-	so *e = arg;
-	soscheduler *s = &e->sched;
-	soworker stub;
-	so_workerstub_init(&stub);
-	int rc = so_scheduler(s, &stub);
-	so_workerstub_free(&stub, &e->r);
+	se *e = arg;
+	sescheduler *s = &e->sched;
+	seworker stub;
+	se_workerstub_init(&stub);
+	int rc = se_scheduler(s, &stub);
+	se_workerstub_free(&stub, &e->r);
 	return rc;
 }
 
-int so_scheduler_init(soscheduler *s, void *env)
+int se_scheduler_init(sescheduler *s, so *env)
 {
-	sr_mutexinit(&s->lock);
+	ss_mutexinit(&s->lock);
 	s->workers_branch       = 0;
 	s->workers_backup       = 0;
 	s->workers_gc           = 0;
 	s->workers_gc_db        = 0;
 	s->rotate               = 0;
+	s->req                  = 0;
 	s->i                    = NULL;
 	s->count                = 0;
 	s->rr                   = 0;
@@ -25569,36 +29326,38 @@ int so_scheduler_init(soscheduler *s, void *env)
 	s->backup_bsn           = 0;
 	s->backup_last          = 0;
 	s->backup_last_complete = 0;
+	s->backup_events        = 0;
 	s->backup               = 0;
 	s->gc                   = 0;
 	s->gc_last              = 0;
-	so_workersinit(&s->workers);
+	se_workerpool_init(&s->workers);
 	return 0;
 }
 
-int so_scheduler_shutdown(soscheduler *s)
+int se_scheduler_shutdown(sescheduler *s)
 {
-	so *e = s->env;
+	se *e = (se*)s->env;
+	se_reqwakeup(e);
 	int rcret = 0;
-	int rc = so_workersshutdown(&s->workers, &e->r);
-	if (srunlikely(rc == -1))
+	int rc = se_workerpool_shutdown(&s->workers, &e->r);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
 	if (s->i) {
-		sr_free(&e->a, s->i);
+		ss_free(&e->a, s->i);
 		s->i = NULL;
 	}
-	sr_mutexfree(&s->lock);
+	ss_mutexfree(&s->lock);
 	return rcret;
 }
 
-int so_scheduler_add(soscheduler *s , void *db)
+int se_scheduler_add(sescheduler *s , void *db)
 {
-	sr_mutexlock(&s->lock);
-	so *e = s->env;
+	ss_mutexlock(&s->lock);
+	se *e = (se*)s->env;
 	int count = s->count + 1;
-	void **i = sr_malloc(&e->a, count * sizeof(void*));
-	if (srunlikely(i == NULL)) {
-		sr_mutexunlock(&s->lock);
+	void **i = ss_malloc(&e->a, count * sizeof(void*));
+	if (ssunlikely(i == NULL)) {
+		ss_mutexunlock(&s->lock);
 		return -1;
 	}
 	memcpy(i, s->i, s->count * sizeof(void*));
@@ -25606,29 +29365,29 @@ int so_scheduler_add(soscheduler *s , void *db)
 	void *iprev = s->i;
 	s->i = i;
 	s->count = count;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	if (iprev)
-		sr_free(&e->a, iprev);
+		ss_free(&e->a, iprev);
 	return 0;
 }
 
-int so_scheduler_del(soscheduler *s, void *db)
+int se_scheduler_del(sescheduler *s, void *db)
 {
-	if (srunlikely(s->i == NULL))
+	if (ssunlikely(s->i == NULL))
 		return 0;
-	sr_mutexlock(&s->lock);
-	so *e = s->env;
+	ss_mutexlock(&s->lock);
+	se *e = (se*)s->env;
 	int count = s->count - 1;
-	if (srunlikely(count == 0)) {
+	if (ssunlikely(count == 0)) {
 		s->count = 0;
-		sr_free(&e->a, s->i);
+		ss_free(&e->a, s->i);
 		s->i = NULL;
-		sr_mutexunlock(&s->lock);
+		ss_mutexunlock(&s->lock);
 		return 0;
 	}
-	void **i = sr_malloc(&e->a, count * sizeof(void*));
-	if (srunlikely(i == NULL)) {
-		sr_mutexunlock(&s->lock);
+	void **i = ss_malloc(&e->a, count * sizeof(void*));
+	if (ssunlikely(i == NULL)) {
+		ss_mutexunlock(&s->lock);
 		return -1;
 	}
 	int j = 0;
@@ -25645,44 +29404,44 @@ int so_scheduler_del(soscheduler *s, void *db)
 	void *iprev = s->i;
 	s->i = i;
 	s->count = count;
-	if (srunlikely(s->rr >= s->count))
+	if (ssunlikely(s->rr >= s->count))
 		s->rr = 0;
-	sr_mutexunlock(&s->lock);
-	sr_free(&e->a, iprev);
+	ss_mutexunlock(&s->lock);
+	ss_free(&e->a, iprev);
 	return 0;
 }
 
-static void *so_worker(void *arg)
+static void *se_worker(void *arg)
 {
-	soworker *self = arg;
-	so *o = self->arg;
+	seworker *self = arg;
+	se *o = self->arg;
 	for (;;)
 	{
-		int rc = so_active(o);
-		if (srunlikely(rc == 0))
+		int rc = se_active(o);
+		if (ssunlikely(rc == 0))
 			break;
-		rc = so_scheduler(&o->sched, self);
-		if (srunlikely(rc == -1))
+		rc = se_scheduler(&o->sched, self);
+		if (ssunlikely(rc == -1))
 			break;
-		if (srunlikely(rc == 0))
-			sr_sleep(10000000); /* 10ms */
+		if (ssunlikely(rc == 0))
+			ss_sleep(10000000); /* 10ms */
 	}
 	return NULL;
 }
 
-int so_scheduler_run(soscheduler *s)
+int se_scheduler_run(sescheduler *s)
 {
-	so *e = s->env;
+	se *e = (se*)s->env;
 	int rc;
-	rc = so_workersnew(&s->workers, &e->r, e->ctl.threads,
-	                   so_worker, e);
-	if (srunlikely(rc == -1))
+	rc = se_workerpool_new(&s->workers, &e->r, e->meta.threads,
+	                       se_worker, e);
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
 }
 
 static int
-so_schedule_plan(soscheduler *s, siplan *plan, sodb **dbret)
+se_schedule_plan(sescheduler *s, siplan *plan, sedb **dbret)
 {
 	int start = s->rr;
 	int limit = s->count;
@@ -25692,8 +29451,8 @@ so_schedule_plan(soscheduler *s, siplan *plan, sodb **dbret)
 	*dbret = NULL;
 first_half:
 	while (i < limit) {
-		sodb *db = s->i[i];
-		if (srunlikely(! so_dbactive(db))) {
+		sedb *db = s->i[i];
+		if (ssunlikely(! se_dbactive(db))) {
 			i++;
 			continue;
 		}
@@ -25718,24 +29477,39 @@ first_half:
 }
 
 static int
-so_schedule(soscheduler *s, sotask *task, soworker *w)
+se_schedule(sescheduler *s, setask *task, seworker *w)
 {
-	sr_trace(&w->trace, "%s", "schedule");
+	ss_trace(&w->trace, "%s", "schedule");
 	si_planinit(&task->plan);
 
-	uint64_t now = sr_utime();
-	so *e = s->env;
-	sodb *db;
-	sizone *zone = so_zoneof(e);
+	uint64_t now = ss_utime();
+	se *e = (se*)s->env;
+	sedb *db;
+	srzone *zone = se_zoneof(e);
 	assert(zone != NULL);
 
 	task->checkpoint_complete = 0;
 	task->backup_complete = 0;
 	task->rotate = 0;
+	task->req = 0;
 	task->gc = 0;
 	task->db = NULL;
 
-	sr_mutexlock(&s->lock);
+	ss_mutexlock(&s->lock);
+
+	/* asynchronous reqs dispatcher */
+	if (s->req == 0) {
+		switch (zone->async) {
+		case 2:
+			if (se_reqqueue(e) == 0)
+				break;
+		case 1:
+			s->req = 1;
+			task->req = zone->async;
+			ss_mutexunlock(&s->lock);
+			return 0;
+		}
+	}
 
 	/* log gc and rotation */
 	if (s->rotate == 0)
@@ -25751,14 +29525,14 @@ checkpoint:
 	if (s->checkpoint) {
 		task->plan.plan = SI_CHECKPOINT;
 		task->plan.a = s->checkpoint_lsn;
-		rc = so_schedule_plan(s, &task->plan, &db);
+		rc = se_schedule_plan(s, &task->plan, &db);
 		switch (rc) {
 		case 1:
 			s->workers_branch++;
-			so_dbref(db, 1);
+			se_dbref(db, 1);
 			task->db = db;
 			task->gc = 1;
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			in_progress = 1;
@@ -25781,7 +29555,7 @@ checkpoint:
 	case 2:  /* checkpoint */
 	{
 		if (in_progress) {
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 0;
 		}
 		uint64_t lsn = sr_seq(&e->seq, SR_LSN);
@@ -25795,26 +29569,26 @@ checkpoint:
 
 	/* database shutdown-drop */
 	if (s->workers_gc_db < zone->gc_db_prio) {
-		sr_spinlock(&e->dblock);
+		ss_spinlock(&e->dblock);
 		db = NULL;
-		if (srunlikely(e->db_shutdown.n > 0)) {
-			db = (sodb*)so_objindex_first(&e->db_shutdown);
-			if (so_dbgarbage(db)) {
-				so_objindex_unregister(&e->db_shutdown, &db->o);
+		if (ssunlikely(e->db_shutdown.n > 0)) {
+			db = (sedb*)so_listfirst(&e->db_shutdown);
+			if (se_dbgarbage(db)) {
+				so_listdel(&e->db_shutdown, &db->o);
 			} else {
 				db = NULL;
 			}
 		}
-		sr_spinunlock(&e->dblock);
-		if (srunlikely(db)) {
-			if (db->ctl.dropped)
+		ss_spinunlock(&e->dblock);
+		if (ssunlikely(db)) {
+			if (db->dropped)
 				task->plan.plan = SI_DROP;
 			else
 				task->plan.plan = SI_SHUTDOWN;
 			s->workers_gc_db++;
-			so_dbref(db, 1);
+			se_dbref(db, 1);
 			task->db = db;
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 1;
 		}
 	}
@@ -25856,9 +29630,9 @@ checkpoint:
 		*/
 		if (s->backup == 1) {
 			/* state 1 */
-			rc = so_backupstart(s);
-			if (srunlikely(rc == -1)) {
-				so_backuperror(s);
+			rc = se_backupstart(s);
+			if (ssunlikely(rc == -1)) {
+				se_backuperror(s);
 				goto backup_error;
 			}
 			s->backup = 2;
@@ -25866,22 +29640,23 @@ checkpoint:
 		/* state 2 */
 		task->plan.plan = SI_BACKUP;
 		task->plan.a = s->backup_bsn;
-		rc = so_schedule_plan(s, &task->plan, &db);
+		rc = se_schedule_plan(s, &task->plan, &db);
 		switch (rc) {
 		case 1:
 			s->workers_backup++;
-			so_dbref(db, 1);
+			se_dbref(db, 1);
 			task->db = db;
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			break;
 		case 0: /* state 3 */
-			rc = so_backupcomplete(s, w);
-			if (srunlikely(rc == -1)) {
-				so_backuperror(s);
+			rc = se_backupcomplete(s, w);
+			if (ssunlikely(rc == -1)) {
+				se_backuperror(s);
 				goto backup_error;
 			}
+			s->backup_events++;
 			task->gc = 1;
 			task->backup_complete = 1;
 			break;
@@ -25895,13 +29670,13 @@ backup_error:;
 			task->plan.plan = SI_GC;
 			task->plan.a = sx_vlsn(&e->xm);
 			task->plan.b = zone->gc_wm;
-			rc = so_schedule_plan(s, &task->plan, &db);
+			rc = se_schedule_plan(s, &task->plan, &db);
 			switch (rc) {
 			case 1:
 				s->workers_gc++;
-				so_dbref(db, 1);
+				se_dbref(db, 1);
 				task->db = db;
-				sr_mutexunlock(&s->lock);
+				ss_mutexunlock(&s->lock);
 				return 1;
 			case 2: /* work in progress */
 				break;
@@ -25913,7 +29688,7 @@ backup_error:;
 		}
 	} else {
 		if (zone->gc_prio && zone->gc_period) {
-			if ( (now - s->gc_last) >= (zone->gc_period * 1000000) ) {
+			if ( (now - s->gc_last) >= ((uint64_t)zone->gc_period * 1000000) ) {
 				s->gc = 1;
 			}
 		}
@@ -25925,13 +29700,13 @@ backup_error:;
 			task->plan.plan = SI_AGE;
 			task->plan.a = zone->branch_age * 1000000; /* ms */
 			task->plan.b = zone->branch_age_wm;
-			rc = so_schedule_plan(s, &task->plan, &db);
+			rc = se_schedule_plan(s, &task->plan, &db);
 			switch (rc) {
 			case 1:
 				s->workers_branch++;
-				so_dbref(db, 1);
+				se_dbref(db, 1);
 				task->db = db;
-				sr_mutexunlock(&s->lock);
+				ss_mutexunlock(&s->lock);
 				return 1;
 			case 0:
 				s->age = 0;
@@ -25941,7 +29716,7 @@ backup_error:;
 		}
 	} else {
 		if (zone->branch_prio && zone->branch_age_period) {
-			if ( (now - s->age_last) >= (zone->branch_age_period * 1000000) ) {
+			if ( (now - s->age_last) >= ((uint64_t)zone->branch_age_period * 1000000) ) {
 				s->age = 1;
 			}
 		}
@@ -25967,13 +29742,13 @@ backup_error:;
 		 */
 		task->plan.plan = SI_BRANCH;
 		task->plan.a = zone->branch_wm;
-		rc = so_schedule_plan(s, &task->plan, &db);
+		rc = se_schedule_plan(s, &task->plan, &db);
 		if (rc == 1) {
 			s->workers_branch++;
-			so_dbref(db, 1);
+			se_dbref(db, 1);
 			task->db = db;
 			task->gc = 1;
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 1;
 		}
 	}
@@ -25981,60 +29756,79 @@ backup_error:;
 	/* compaction */
 	task->plan.plan = SI_COMPACT;
 	task->plan.a = zone->compact_wm;
-	rc = so_schedule_plan(s, &task->plan, &db);
+	rc = se_schedule_plan(s, &task->plan, &db);
 	if (rc == 1) {
-		so_dbref(db, 1);
+		se_dbref(db, 1);
 		task->db = db;
-		sr_mutexunlock(&s->lock);
+		ss_mutexunlock(&s->lock);
 		return 1;
 	}
 
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
 static int
-so_gc(soscheduler *s, soworker *w)
+se_gc(sescheduler *s, seworker *w)
 {
-	sr_trace(&w->trace, "%s", "log gc");
-	so *e = s->env;
+	ss_trace(&w->trace, "%s", "log gc");
+	se *e = (se*)s->env;
 	int rc = sl_poolgc(&e->lp);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
 }
 
 static int
-so_rotate(soscheduler *s, soworker *w)
+se_rotate(sescheduler *s, seworker *w)
 {
-	sr_trace(&w->trace, "%s", "log rotation");
-	so *e = s->env;
-	int rc = sl_poolrotate_ready(&e->lp, e->ctl.log_rotate_wm);
+	ss_trace(&w->trace, "%s", "log rotation");
+	se *e = (se*)s->env;
+	int rc = sl_poolrotate_ready(&e->lp, e->meta.log_rotate_wm);
 	if (rc) {
 		rc = sl_poolrotate(&e->lp);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	return 0;
 }
 
 static int
-so_execute(sotask *t, soworker *w)
+se_run(setask *t, seworker *w)
 {
 	si_plannertrace(&t->plan, &w->trace);
-	sodb *db = t->db;
-	so *e = (so*)db->o.env;
+	sedb *db = t->db;
+	se *e = (se*)db->o.env;
 	uint64_t vlsn = sx_vlsn(&e->xm);
-	return si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
+	return si_execute(&db->index, &w->dc, &t->plan, vlsn);
 }
 
 static int
-so_complete(soscheduler *s, sotask *t)
+se_dispatch(sescheduler *s, seworker *w, setask *t)
 {
-	sr_mutexlock(&s->lock);
-	sodb *db = t->db;
+	ss_trace(&w->trace, "%s", "dispatcher");
+	se *e = (se*)s->env;
+	int block = t->req == 1;
+	do {
+		int rc = se_active(e);
+		if (ssunlikely(rc == 0))
+			break;
+		sereq *req = se_reqdispatch(e, block);
+		if (req) {
+			se_execute(req);
+			se_reqready(req);
+		}
+	} while (block);
+	return 0;
+}
+
+static int
+se_complete(sescheduler *s, setask *t)
+{
+	ss_mutexlock(&s->lock);
+	sedb *db = t->db;
 	if (db)
-		so_dbunref(db, 1);
+		se_dbunref(db, 1);
 	switch (t->plan.plan) {
 	case SI_BRANCH:
 	case SI_AGE:
@@ -26042,6 +29836,7 @@ so_complete(soscheduler *s, sotask *t)
 		s->workers_branch--;
 		break;
 	case SI_BACKUP:
+	case SI_BACKUPEND:
 		s->workers_backup--;
 		break;
 	case SI_GC:
@@ -26050,58 +29845,62 @@ so_complete(soscheduler *s, sotask *t)
 	case SI_SHUTDOWN:
 	case SI_DROP:
 		s->workers_gc_db--;
-		so_objdestroy(&db->o);
+		so_destroy(&db->o);
 		break;
 	}
 	if (t->rotate == 1)
 		s->rotate = 0;
-	sr_mutexunlock(&s->lock);
+	if (t->req)
+		s->req = 0;
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int so_scheduler(soscheduler *s, soworker *w)
+int se_scheduler(sescheduler *s, seworker *w)
 {
-	sotask task;
-	int rc = so_schedule(s, &task, w);
+	setask task;
+	int rc = se_schedule(s, &task, w);
 	int job = rc;
 	if (task.rotate) {
-		rc = so_rotate(s, w);
-		if (srunlikely(rc == -1))
+		rc = se_rotate(s, w);
+		if (ssunlikely(rc == -1))
 			goto error;
 	}
-	so *e = s->env;
-	if (task.checkpoint_complete) {
-		sr_triggerrun(&e->ctl.checkpoint_on_complete, &e->o);
+	if (task.req) {
+		rc = se_dispatch(s, w, &task);
+		if (ssunlikely(rc == -1)) {
+			goto error;
+		}
 	}
-	if (task.backup_complete) {
-		sr_triggerrun(&e->ctl.backup_on_complete, &e->o);
-	}
+	se *e = (se*)s->env;
+	if (task.backup_complete)
+		se_reqonbackup(e);
 	if (job) {
-		rc = so_execute(&task, w);
-		if (srunlikely(rc == -1)) {
-			if (task.plan.plan != SI_BACKUP) {
-				if (task.db)
-					so_dbmalfunction(task.db);
+		rc = se_run(&task, w);
+		if (ssunlikely(rc == -1)) {
+			if (task.plan.plan != SI_BACKUP &&
+			    task.plan.plan != SI_BACKUPEND) {
+				se_dbmalfunction(task.db);
 				goto error;
 			}
-			sr_mutexlock(&s->lock);
-			so_backuperror(s);
-			sr_mutexunlock(&s->lock);
+			ss_mutexlock(&s->lock);
+			se_backuperror(s);
+			ss_mutexunlock(&s->lock);
 		}
 	}
 	if (task.gc) {
-		rc = so_gc(s, w);
-		if (srunlikely(rc == -1))
+		rc = se_gc(s, w);
+		if (ssunlikely(rc == -1))
 			goto error;
 	}
-	so_complete(s, &task);
-	sr_trace(&w->trace, "%s", "sleep");
+	se_complete(s, &task);
+	ss_trace(&w->trace, "%s", "sleep");
 	return job;
 error:
-	sr_trace(&w->trace, "%s", "malfunction");
+	ss_trace(&w->trace, "%s", "malfunction");
 	return -1;
 }
-#line 1 "sophia/sophia/so_snapshot.c"
+#line 1 "sophia/environment/se_snapshot.c"
 
 /*
  * sophia database
@@ -26120,129 +29919,126 @@ error:
 
 
 
+
+
+
 static int
-so_snapshotfree(sosnapshot *s)
+se_snapshotfree(sesnapshot *s)
 {
-	so *e = so_of(&s->o);
-	sx_end(&s->t);
-	if (srlikely(s->name)) {
-		sr_free(&e->a, s->name);
+	se *e = se_of(&s->o);
+	sx_rollback(&s->t);
+	if (sslikely(s->name)) {
+		ss_free(&e->a, s->name);
 		s->name = NULL;
 	}
-	sr_free(&e->a_snapshot, s);
+	se_mark_destroyed(&s->o);
+	ss_free(&e->a_snapshot, s);
 	return 0;
 }
 
 static int
-so_snapshotdestroy(soobj *o, va_list args srunused)
+se_snapshotdestroy(so *o)
 {
-	sosnapshot *s = (sosnapshot*)o;
-	so *e = so_of(o);
+	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
+	se *e = se_of(o);
+	so_listdestroy(&s->cursor);
 	uint32_t id = s->t.id;
-	so_objindex_unregister(&e->snapshot, &s->o);
-	so_dbunbind(e, id);
-	so_snapshotfree(s);
+	so_listdel(&e->snapshot, &s->o);
+	se_dbunbind(e, id);
+	se_snapshotfree(s);
 	return 0;
 }
 
-static void*
-so_snapshotget(soobj *o, va_list args)
+void *se_snapshotget_object(so *o, const char *path)
 {
-	sosnapshot *s = (sosnapshot*)o;
-	so *e = so_of(o);
-	va_list va;
-	va_copy(va, args);
-	sov *v = va_arg(va, sov*);
-	va_end(va);
-	if (srunlikely(v->o.id != SOV)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		return NULL;
-	}
-	sodb *db = (sodb*)v->parent;
-	return so_txdbget(db, s->vlsn, args);
-}
-
-static void*
-so_snapshotcursor(soobj *o, va_list args)
-{
-	sosnapshot *s = (sosnapshot*)o;
-	so *e = so_of(o);
-	va_list va;
-	va_copy(va, args);
-	sov *v = va_arg(va, sov*);
-	va_end(va);
-	if (srunlikely(v->o.id != SOV))
-		goto error;
-	if (srunlikely(v->parent == NULL || v->parent->id != SODB))
-		goto error;
-	sodb *db = (sodb*)v->parent;
-	return so_cursornew(db, s->vlsn, args);
-error:
-	sr_error(&e->error, "%s", "bad arguments");
+	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
+	if (strcmp(path, "db-cursor") == 0)
+		return se_snapshotcursor_new(s);
 	return NULL;
 }
 
 static void*
-so_snapshottype(soobj *o srunused, va_list args srunused) {
-	return "snapshot";
+se_snapshotget(so *o, so *key)
+{
+	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
+	sev *v = se_cast(key, sev*, SEV);
+	sedb *db = se_cast(key->parent, sedb*, SEDB);
+	return se_dbread(db, v, &s->t, 0, NULL, SS_EQ);
 }
 
-static soobjif sosnapshotif =
+static void*
+se_snapshotcursor(so *o)
 {
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = so_snapshotdestroy,
-	.error    = NULL,
-	.set      = NULL,
-	.get      = so_snapshotget,
-	.del      = NULL,
-	.drop     = so_snapshotdestroy,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = so_snapshotcursor,
-	.object   = NULL,
-	.type     = so_snapshottype
+	sesnapshot *s = (sesnapshot*)o;
+	se *e = se_of(o);
+	return se_cursornew(e, s->vlsn);
+}
+
+static soif sesnapshotif =
+{
+	.open         = NULL,
+	.destroy      = se_snapshotdestroy,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = se_snapshotget_object,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = se_snapshotget,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = se_snapshotcursor
 };
 
-soobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
+so *se_snapshotnew(se *e, uint64_t vlsn, char *name)
 {
-	srlist *i;
-	sr_listforeach(&e->snapshot.list, i) {
-		sosnapshot *s = (sosnapshot*)srcast(i, soobj, link);
-		if (srunlikely(strcmp(s->name, name) == 0)) {
+	sslist *i;
+	ss_listforeach(&e->snapshot.list, i) {
+		sesnapshot *s = (sesnapshot*)sscast(i, so, link);
+		if (ssunlikely(strcmp(s->name, name) == 0)) {
 			sr_error(&e->error, "snapshot '%s' already exists", name);
 			return NULL;
 		}
 	}
-	sosnapshot *s = sr_malloc(&e->a_snapshot, sizeof(sosnapshot));
-	if (srunlikely(s == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+	sesnapshot *s = ss_malloc(&e->a_snapshot, sizeof(sesnapshot));
+	if (ssunlikely(s == NULL)) {
+		sr_oom(&e->error);
 		return NULL;
 	}
-	so_objinit(&s->o, SOSNAPSHOT, &sosnapshotif, &e->o);
+	so_init(&s->o, &se_o[SESNAPSHOT], &sesnapshotif, &e->o, &e->o);
+	so_listinit(&s->cursor);
 	s->vlsn = vlsn;
-	s->name = sr_strdup(&e->a, name);
-	if (srunlikely(s->name == NULL)) {
-		sr_free(&e->a_snapshot, s);
-		sr_error(&e->error, "%s", "memory allocation failed");
+	s->name = ss_strdup(&e->a, name);
+	if (ssunlikely(s->name == NULL)) {
+		ss_free(&e->a_snapshot, s);
+		sr_oom(&e->error);
 		return NULL;
 	}
 	sx_begin(&e->xm, &s->t, vlsn);
-	so_dbbind(e);
+	se_dbbind(e);
 	return &s->o;
 }
 
-int so_snapshotupdate(sosnapshot *s)
+int se_snapshotupdate(sesnapshot *s)
 {
-	so *e = so_of(&s->o);
+	se *e = se_of(&s->o);
 	uint32_t id = s->t.id;
-	sx_end(&s->t);
+	sx_rollback(&s->t);
 	sx_begin(&e->xm, &s->t, s->vlsn);
 	s->t.id = id;
 	return 0;
 }
-#line 1 "sophia/sophia/so_tx.c"
+#line 1 "sophia/environment/se_snapshotcursor.c"
 
 /*
  * sophia database
@@ -26261,718 +30057,446 @@ int so_snapshotupdate(sosnapshot *s)
 
 
 
-int so_txdbset(sodb *db, uint8_t flags, va_list args)
-{
-	/* validate call */
-	sov *o = va_arg(args, sov*);
-	so *e = so_of(&db->o);
-	if (srunlikely(o->o.id != SOV)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		return -1;
-	}
-	sv *ov = &o->v;
-	if (srunlikely(ov->v == NULL)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		goto error;
-	}
-	soobj *parent = o->parent;
-	if (srunlikely(parent != &db->o)) {
-		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
-	}
-	if (srunlikely(! so_online(&db->status)))
-		goto error;
 
-	/* prepare object */
-	svlocal l;
-	l.flags       = flags;
-	l.lsn         = 0;
-	l.key         = sv_key(ov);
-	l.keysize     = sv_keysize(ov);
-	l.value       = sv_value(ov);
-	l.valuesize   = sv_valuesize(ov);
-	sv vp;
-	sv_init(&vp, &sv_localif, &l, NULL);
 
-	/* ensure quota */
-	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
-
-	/* concurrency */
-	sxstate s = sx_setstmt(&e->xm, &db->coindex, &vp);
-	int rc = 1; /* rlb */
-	switch (s) {
-	case SXLOCK: rc = 2;
-	case SXROLLBACK:
-		so_objdestroy(&o->o);
-		return rc;
-	default:
-		break;
-	}
-	svv *v = sv_valloc(db->r.a, &vp);
-	if (srunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		goto error;
-	}
-
-	/* log write */
-	svlogv lv;
-	lv.id = db->ctl.id;
-	lv.next = 0;
-	sv_init(&lv.v, &sv_vif, v, NULL);
-	svlog log;
-	sv_loginit(&log);
-	sv_logadd(&log, db->r.a, &lv, db);
-	svlogindex *logindex = (svlogindex*)log.index.s;
-	sltx tl;
-	sl_begin(&e->lp, &tl);
-	sl_prepare(&e->lp, &log, 0);
-	rc = sl_write(&tl, &log);
-	if (srunlikely(rc == -1)) {
-		sl_rollback(&tl);
-		goto error;
-	}
-	v->log = tl.l;
-	sl_commit(&tl);
-
-	/* commit */
-	uint64_t vlsn = sx_vlsn(&e->xm);
-	uint64_t now = sr_utime();
-	sitx tx;
-	si_begin(&tx, &db->r, &db->index, vlsn, now, &log, logindex);
-	si_write(&tx, 0);
-	si_commit(&tx);
-
-	so_objdestroy(&o->o);
-	return 0;
-error:
-	so_objdestroy(&o->o);
-	return -1;
-}
-
-void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
-{
-	so *e = so_of(&db->o);
-	/* validate call */
-	sov *o = va_arg(args, sov*);
-	if (srunlikely(o->o.id != SOV)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		return NULL;
-	}
-	uint32_t keysize = sv_keysize(&o->v);
-	void *key = sv_key(&o->v);
-	if (srunlikely(key == NULL)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		goto error;
-	}
-	soobj *parent = o->parent;
-	if (srunlikely(parent != &db->o)) {
-		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
-	}
-	if (srunlikely(! so_online(&db->status)))
-		goto error;
-
-	sx_getstmt(&e->xm, &db->coindex);
-	if (srlikely(vlsn == 0))
-		vlsn = sr_seq(db->r.seq, SR_LSN);
-
-	sicache cache;
-	si_cacheinit(&cache, &e->a_cursorcache);
-	siquery q;
-	si_queryopen(&q, &db->r, &cache, &db->index,
-	             SR_EQ, vlsn,
-	             NULL, 0, key, keysize);
-	sv result;
-	int rc = si_query(&q);
-	if (rc == 1) {
-		rc = si_querydup(&q, &result);
-	}
-	si_queryclose(&q);
-	si_cachefree(&cache, &db->r);
-
-	so_objdestroy(&o->o);
-	if (srunlikely(rc <= 0))
-		return NULL;
-	soobj *ret = so_vdup(e, &db->o, &result);
-	if (srunlikely(ret == NULL))
-		sv_vfree(&e->a, (svv*)result.v);
-	return ret;
-error:
-	so_objdestroy(&o->o);
-	return NULL;
-}
 
 static int
-so_txdo(soobj *obj, uint8_t flags, va_list args)
+se_snapshotcursor_destroy(so *o)
 {
-	sotx *t = (sotx*)obj;
-	so *e = so_of(obj);
+	sesnapshotcursor *c =
+		se_cast(o, sesnapshotcursor*, SESNAPSHOTCURSOR);
+	se *e = se_of(&c->o);
+	ss_buffree(&c->list, &e->a);
+	so_listdel(&c->s->cursor, &c->o);
+	se_mark_destroyed(&c->o);
+	ss_free(&e->a_snapshotcursor, c);
+	return 0;
+}
 
-	/* validate call */
-	sov *o = va_arg(args, sov*);
-	if (srunlikely(o->o.id != SOV)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		return -1;
+static void*
+se_snapshotcursor_get(so *o, so *v ssunused)
+{
+	sesnapshotcursor *c =
+		se_cast(o, sesnapshotcursor*, SESNAPSHOTCURSOR);
+	if (c->ready) {
+		c->ready = 0;
+		return c->v;
 	}
-	sv *ov = &o->v;
-	if (srunlikely(ov->v == NULL)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		goto error;
+	if (ssunlikely(c->pos == NULL))
+		return NULL;
+	c->pos += sizeof(sedb**);
+	if (c->pos >= c->list.p) {
+		c->pos = NULL;
+		c->v = NULL;
+		return NULL;
 	}
-	soobj *parent = o->parent;
-	if (parent == NULL || parent->id != SODB) {
-		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
+	c->v = *(sedb**)c->pos;
+	return c->v;
+}
+
+static soif sesnapshotcursorif =
+{
+	.open         = NULL,
+	.destroy      = se_snapshotcursor_destroy,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = se_snapshotcursor_get,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
+};
+
+static inline int
+se_snapshotcursor_open(sesnapshotcursor *c)
+{
+	se *e = se_of(&c->o);
+	int rc;
+	uint32_t txn = c->s->t.id;
+	sslist *i;
+	ss_listforeach(&e->db.list, i) {
+		sedb *db = (sedb*)sscast(i, so, link);
+		int status = se_status(&db->status);
+		if (status != SE_ONLINE)
+			continue;
+		if (txn > db->txn_min) {
+			rc = ss_bufadd(&c->list, &e->a, &db, sizeof(db));
+			if (ssunlikely(rc == -1))
+				return -1;
+		}
 	}
-	if (t->t.s == SXPREPARE) {
+	ss_spinlock(&e->dblock);
+	ss_listforeach(&e->db_shutdown.list, i) {
+		sedb *db = (sedb*)sscast(i, so, link);
+		if (db->txn_min < txn && txn <= db->txn_max) {
+			rc = ss_bufadd(&c->list, &e->a, &db, sizeof(db));
+			if (ssunlikely(rc == -1))
+				return -1;
+		}
+	}
+	ss_spinunlock(&e->dblock);
+	if (ss_bufsize(&c->list) == 0)
+		return 0;
+	c->ready = 1;
+	c->pos = c->list.s;
+	c->v = *(sedb**)c->list.s;
+	return 0;
+}
+
+so *se_snapshotcursor_new(sesnapshot *s)
+{
+	se *e = se_of(&s->o);
+	sesnapshotcursor *c =
+		ss_malloc(&e->a_snapshotcursor, sizeof(sesnapshotcursor));
+	if (ssunlikely(c == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	so_init(&c->o, &se_o[SESNAPSHOTCURSOR],
+	        &sesnapshotcursorif, &e->o, &e->o);
+	c->s = s;
+	c->v = NULL;
+	c->pos = NULL;
+	c->ready = 0;
+	ss_bufinit(&c->list);
+	int rc = se_snapshotcursor_open(c);
+	if (ssunlikely(rc == -1)) {
+		so_destroy(&c->o);
+		sr_oom(&e->error);
+		return NULL;
+	}
+	so_listadd(&s->cursor, &c->o);
+	return &c->o;
+}
+#line 1 "sophia/environment/se_tx.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+static inline int
+se_txwrite(setx *t, sev *o, uint8_t flags)
+{
+	se *e = se_of(&t->o);
+	sedb *db = se_cast(o->o.parent, sedb*, SEDB);
+	/* validate req */
+	if (ssunlikely(t->t.s == SXPREPARE)) {
 		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
 		goto error;
 	}
 
 	/* validate database status */
-	sodb *db = (sodb*)parent;
-	int status = so_status(&db->status);
+	int status = se_status(&db->status);
 	switch (status) {
-	case SO_ONLINE:
-	case SO_RECOVER:
-		break;
-	case SO_SHUTDOWN:
-		if (srunlikely(! so_dbvisible(db, t->t.id))) {
+	case SE_SHUTDOWN:
+		if (ssunlikely(! se_dbvisible(db, t->t.id))) {
 			sr_error(&e->error, "%s", "database is invisible for the transaction");
 			goto error;
 		}
 		break;
+	case SE_RECOVER:
+	case SE_ONLINE: break;
 	default: goto error;
 	}
+	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+		flags = 0;
 
 	/* prepare object */
-	svlocal l;
-	l.flags       = flags;
-	l.lsn         = sv_lsn(ov);
-	l.key         = sv_key(ov);
-	l.keysize     = sv_keysize(ov);
-	l.value       = sv_value(ov);
-	l.valuesize   = sv_valuesize(ov);
+	svv *v;
+	int rc = se_dbv(db, o, 0, &v);
+	if (ssunlikely(rc == -1))
+		goto error;
+	v->flags = flags;
+	v->log = o->log;
 	sv vp;
-	sv_init(&vp, &sv_localif, &l, NULL);
+	sv_init(&vp, &sv_vif, v, NULL);
+	so_destroy(&o->o);
 
 	/* ensure quota */
-	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
+	int size = sizeof(svv) + sv_size(&vp);
+	ss_quota(&e->quota, SS_QADD, size);
 
-	svv *v = sv_valloc(db->r.a, &vp);
-	if (srunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		goto error;
+	/* concurrent index only */
+	rc = sx_set(&t->t, &db->coindex, v);
+	if (ssunlikely(rc == -1)) {
+		ss_quota(&e->quota, SS_QREMOVE, size);
+		return -1;
 	}
-	v->log = o->log;
-	int rc = sx_set(&t->t, &db->coindex, v);
-	so_objdestroy(&o->o);
-	return rc;
+	return 0;
 error:
-	so_objdestroy(&o->o);
+	so_destroy(&o->o);
 	return -1;
 }
 
 static int
-so_txset(soobj *o, va_list args)
+se_txset(so *o, so *v)
 {
-	return so_txdo(o, SVSET, args);
+	setx  *t = se_cast(o, setx*, SETX);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_txwrite(t, key, 0);
 }
 
 static int
-so_txdelete(soobj *o, va_list args)
+se_txupdate(so *o, so *v)
 {
-	return so_txdo(o, SVDELETE, args);
+	setx  *t = se_cast(o, setx*, SETX);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_txwrite(t, key, SVUPDATE);
+}
+
+static int
+se_txdelete(so *o, so *v)
+{
+	setx  *t = se_cast(o, setx*, SETX);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_txwrite(t, key, SVDELETE);
 }
 
 static void*
-so_txget(soobj *obj, va_list args)
+se_txget(so *o, so *v)
 {
-	sotx *t = (sotx*)obj;
-	so *e = so_of(obj);
-
-	/* validate call */
-	sov *o = va_arg(args, sov*);
-	if (srunlikely(o->o.id != SOV)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		return NULL;
-	}
-	void *key = sv_key(&o->v);
-	if (srunlikely(key == NULL)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		return NULL;
-	}
-	soobj *parent = o->parent;
-	if (parent == NULL || parent->id != SODB) {
-		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
-	}
-
-	/* validate database status */
-	sodb *db = (sodb*)parent;
-	int status = so_status(&db->status);
+	setx  *t = se_cast(o, setx*, SETX);
+	sev *key = se_cast(v, sev*, SEV);
+	se *e = se_of(&t->o);
+	sedb *db = se_cast(key->o.parent, sedb*, SEDB);
+	/* validate database */
+	int status = se_status(&db->status);
 	switch (status) {
-	case SO_ONLINE:
-	case SO_RECOVER:
-		break;
-	case SO_SHUTDOWN:
-		if (srunlikely(! so_dbvisible(db, t->t.id))) {
+	case SE_SHUTDOWN:
+		if (ssunlikely(! se_dbvisible(db, t->t.id))) {
 			sr_error(&e->error, "%s", "database is invisible for the transaction");
 			goto error;
 		}
 		break;
+	case SE_ONLINE:
+	case SE_RECOVER:
+		break;
 	default: goto error;
 	}
-
-	soobj *ret;
-	sv result;
-	int rc = sx_get(&t->t, &db->coindex, &o->v, &result);
-	switch (rc) {
-	case -1:
-	case  2: /* delete */
-		so_objdestroy(&o->o);
-		return NULL;
-	case  1:
-		ret = so_vdup(e, &db->o, &result);
-		if (srunlikely(ret == NULL))
-			sv_vfree(&e->a, (svv*)result.v);
-		so_objdestroy(&o->o);
-		return ret;
-	}
-
-	sicache cache;
-	si_cacheinit(&cache, &e->a_cursorcache);
-	siquery q;
-	si_queryopen(&q, &db->r, &cache, &db->index,
-	             SR_EQ, t->t.vlsn,
-	             NULL, 0,
-	             key, sv_keysize(&o->v));
-	rc = si_query(&q);
-	if (rc == 1) {
-		rc = si_querydup(&q, &result);
-	}
-	si_queryclose(&q);
-	si_cachefree(&cache, &db->r);
-
-	so_objdestroy(&o->o);
-	if (srunlikely(rc <= 0))
-		return NULL;
-	ret = so_vdup(e, &db->o, &result);
-	if (srunlikely(ret == NULL))
-		sv_vfree(&e->a, (svv*)result.v);
-	return ret;
+	return se_dbread(db, key, &t->t, 1, NULL, SS_EQ);
 error:
-	so_objdestroy(&o->o);
+	so_destroy(&key->o);
 	return NULL;
 }
 
-static inline void
-so_txend(sotx *t)
+void se_txend(setx *t)
 {
-	so *e = so_of(&t->o);
-	so_dbunbind(e, t->t.id);
-	so_objindex_unregister(&e->tx, &t->o);
-	sr_free(&e->a_tx, t);
+	se *e = se_of(&t->o);
+	sx_gc(&t->t, &e->r);
+	se_dbunbind(e, t->t.id);
+	so_listdel(&e->tx, &t->o);
+	se_mark_destroyed(&t->o);
+	ss_free(&e->a_tx, t);
 }
 
 static int
-so_txrollback(soobj *o, va_list args srunused)
+se_txrollback(so *o)
 {
-	sotx *t = (sotx*)o;
+	setx *t = se_cast(o, setx*, SETX);
 	sx_rollback(&t->t);
-	sx_end(&t->t);
-	so_txend(t);
+	se_txend(t);
 	return 0;
 }
 
 static sxstate
-so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
+se_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 {
-	sotx *te srunused = arg0;
-	sodb *db = arg1;
-	so *e = so_of(&db->o);
+	sicache *cache = arg0;
+	sedb *db = arg1;
+	se *e = se_of(&db->o);
 	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
 	if (t->vlsn == lsn)
 		return SXPREPARE;
-	sicache cache;
-	si_cacheinit(&cache, &e->a_cursorcache);
 	siquery q;
-	si_queryopen(&q, &db->r, &cache, &db->index,
-	             SR_UPDATE, t->vlsn,
+	si_queryopen(&q, cache, &db->index,
+	             SS_EQ, t->vlsn,
 	             NULL, 0,
-	             sv_key(v), sv_keysize(v));
+	             sv_pointer(v), sv_size(v));
+	si_queryhas(&q);
 	int rc;
 	rc = si_query(&q);
+	assert(q.result.v == NULL);
 	si_queryclose(&q);
-	si_cachefree(&cache, &db->r);
-	if (srunlikely(rc))
+	if (ssunlikely(rc))
 		return SXROLLBACK;
 	return SXPREPARE;
 }
 
 static int
-so_txprepare(soobj *o, va_list args srunused)
+se_txprepare(so *o)
 {
-	sotx *t = (sotx*)o;
-	so *e = so_of(o);
-	int status = so_status(&e->status);
-	if (srunlikely(! so_statusactive_is(status)))
+	setx *t = se_cast(o, setx*, SETX);
+	se *e = se_of(o);
+	int status = se_status(&e->status);
+	if (ssunlikely(! se_statusactive_is(status)))
 		return -1;
-	if (t->t.s == SXPREPARE)
-		return 0;
+	sicache *cache = si_cachepool_pop(&e->cachepool);
+	if (ssunlikely(cache == NULL))
+		return sr_oom(&e->error);
 	/* resolve conflicts */
-	sxpreparef prepare_trigger = so_txprepare_trigger;
-	if (srunlikely(status == SO_RECOVER))
+	sxpreparef prepare_trigger = se_txprepare_trigger;
+	if (status == SE_RECOVER)
 		prepare_trigger = NULL;
-	sxstate s = sx_prepare(&t->t, prepare_trigger, t);
+	sxstate s = sx_prepare(&t->t, prepare_trigger, cache);
+	si_cachepool_push(cache);
 	if (s == SXLOCK)
 		return 2;
 	if (s == SXROLLBACK) {
-		so_objdestroy(&t->o);
+		sx_rollback(&t->t);
+		se_txend(t);
 		return 1;
 	}
 	assert(s == SXPREPARE);
-	/* assign lsn */
-	uint64_t lsn = 0;
-	if (status == SO_RECOVER || e->ctl.commit_lsn)
-		lsn = va_arg(args, uint64_t);
-	sl_prepare(&e->lp, &t->t.log, lsn);
+	if (t->half_commit) {
+		/* Half commit mode.
+		 *
+		 * A half committed transaction is no longer
+		 * being part of concurrent index, but still can be
+		 * commited or rolled back.
+		 * Yet, it is important to maintain external
+		 * serial commit order.
+		*/
+		sx_complete(&t->t);
+	}
 	return 0;
 }
 
 static int
-so_txcommit(soobj *o, va_list args)
+se_txcommit(so *o)
 {
-	sotx *t = (sotx*)o;
-	so *e = so_of(o);
-	int status = so_status(&e->status);
-	if (srunlikely(! so_statusactive_is(status)))
+	setx *t = se_cast(o, setx*, SETX);
+	se *e = se_of(o);
+	int status = se_status(&e->status);
+	if (ssunlikely(! se_statusactive_is(status)))
 		return -1;
+	int recover = (status == SE_RECOVER);
 
-	/* prepare transaction for commit */
-	assert (t->t.s == SXPREPARE || t->t.s == SXREADY);
+	/* prepare transaction */
+	if (ssunlikely(! sv_logcount(&t->t.log))) {
+		sx_prepare(&t->t, NULL, NULL);
+		sx_commit(&t->t);
+		se_txend(t);
+		return 0;
+	}
 	int rc;
-	if (t->t.s == SXREADY) {
-		rc = so_txprepare(o, args);
-		if (srunlikely(rc != 0))
+	if (sslikely(t->t.s == SXREADY || t->t.s == SXLOCK)) {
+		rc = se_txprepare(&t->o);
+		if (ssunlikely(rc != 0))
 			return rc;
 	}
 	assert(t->t.s == SXPREPARE);
-
-	if (srunlikely(! sv_logcount(&t->t.log))) {
-		sx_commit(&t->t);
-		sx_end(&t->t);
-		so_txend(t);
-		return 0;
-	}
 	sx_commit(&t->t);
 
-	/* log commit */
-	if (status == SO_ONLINE) {
-		sltx tl;
-		sl_begin(&e->lp, &tl);
-		rc = sl_write(&tl, &t->t.log);
-		if (srunlikely(rc == -1)) {
-			sl_rollback(&tl);
-			so_objdestroy(&t->o);
-			return -1;
-		}
-		sl_commit(&tl);
-	}
-
-	/* prepare commit */
-	int check_if_exists;
-	uint64_t vlsn;
-	if (srunlikely(status == SO_RECOVER)) {
-		check_if_exists = 1;
-		vlsn = sr_seq(e->r.seq, SR_LSN);
+	/* prepare for commit */
+	sereq q;
+	se_reqinit(e, &q, SE_REQWRITE, &t->o, NULL);
+	sereqarg *arg = &q.arg;
+	arg->log = &t->t.log;
+	arg->lsn = 0;
+	if (recover || e->meta.commit_lsn)
+		arg->lsn = t->lsn;
+	if (ssunlikely(recover)) {
+		arg->recover = 1;
+		arg->vlsn_generate = 0;
+		arg->vlsn = sr_seq(e->r.seq, SR_LSN);
 	} else {
-		check_if_exists = 0;
-		vlsn = sx_vlsn(&e->xm);
+		arg->vlsn_generate = 1;
+		arg->vlsn = 0;
 	}
+	/* log write and commit */
+	se_execute(&q);
 
-	/* multi-index commit */
-	uint64_t now = sr_utime();
-
-	svlogindex *i   = (svlogindex*)t->t.log.index.s;
-	svlogindex *end = (svlogindex*)t->t.log.index.p;
-	while (i < end) {
-		sodb *db = i->ptr;
-		sitx ti;
-		si_begin(&ti, &db->r, &db->index, vlsn, now, &t->t.log, i);
-		si_write(&ti, check_if_exists);
-		si_commit(&ti);
-		i++;
-	}
-	sx_end(&t->t);
-
-	so_txend(t);
-	return 0;
-}
-
-static void*
-so_txtype(soobj *o srunused, va_list args srunused) {
-	return "transaction";
-}
-
-static soobjif sotxif =
-{
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = so_txrollback,
-	.error    = NULL,
-	.set      = so_txset,
-	.del      = so_txdelete,
-	.drop     = so_txrollback,
-	.get      = so_txget,
-	.begin    = NULL,
-	.prepare  = so_txprepare,
-	.commit   = so_txcommit,
-	.cursor   = NULL,
-	.object   = NULL,
-	.type     = so_txtype
-};
-
-soobj *so_txnew(so *e)
-{
-	sotx *t = sr_malloc(&e->a_tx, sizeof(sotx));
-	if (srunlikely(t == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		return NULL;
-	}
-	so_objinit(&t->o, SOTX, &sotxif, &e->o);
-	sx_begin(&e->xm, &t->t, 0);
-	so_dbbind(e);
-	so_objindex_register(&e->tx, &t->o);
-	return &t->o;
-}
-#line 1 "sophia/sophia/so_v.c"
-
-/*
- * sophia database
- * sphia.org
- *
- * Copyright (c) Dmitry Simonenko
- * BSD License
-*/
-
-
-
-
-
-
-
-
-
-
-static int
-so_vdestroy(soobj *obj, va_list args srunused)
-{
-	sov *v = (sov*)obj;
-	if (v->flags & SO_VIMMUTABLE)
-		return 0;
-	so_vrelease(v);
-	sr_free(&so_of(obj)->a_v, v);
-	return 0;
+	se_txend(t);
+	return q.rc;
 }
 
 static int
-so_vset(soobj *obj, va_list args)
+se_txset_int(so *o, const char *path, int64_t v)
 {
-	sov *v = (sov*)obj;
-	so *e = so_of(obj);
-	if (srunlikely(v->flags & SO_VRO)) {
-		sr_error(&e->error, "%s", "object is read-only");
-		return -1;
-	}
-	char *name = va_arg(args, char*);
-	if (strcmp(name, "key") == 0) {
-		if (v->v.i != &sv_localif) {
-			sr_error(&e->error, "%s", "bad object operation");
-			return -1;
-		}
-		v->lv.key = va_arg(args, char*);
-		v->lv.keysize = va_arg(args, int);
+	setx *t = se_cast(o, setx*, SETX);
+	if (strcmp(path, "lsn") == 0) {
+		t->lsn = v;
 		return 0;
 	} else
-	if (strcmp(name, "value") == 0) {
-		if (v->v.i != &sv_localif) {
-			sr_error(&e->error, "%s", "bad object operation");
-			return -1;
-		}
-		v->lv.value = va_arg(args, char*);
-		v->lv.valuesize = va_arg(args, int);
-		return 0;
-	} else
-	if (strcmp(name, "prefix") == 0) {
-		if (v->v.i != &sv_localif) {
-			sr_error(&e->error, "%s", "bad object operation");
-			return -1;
-		}
-		v->prefix = va_arg(args, char*);
-		v->prefixsize = va_arg(args, int);
-		return 0;
-	} else
-	if (strcmp(name, "log") == 0) {
-		v->log = va_arg(args, void*);
-		return 0;
-	} else
-	if (strcmp(name, "order") == 0) {
-		char *order = va_arg(args, void*);
-		srorder cmp = sr_orderof(order);
-		if (srunlikely(cmp == SR_STOP)) {
-			sr_error(&e->error, "%s", "bad order name");
-			return -1;
-		}
-		v->order = cmp;
+	if (strcmp(path, "half_commit") == 0) {
+		t->half_commit = v;
 		return 0;
 	}
 	return -1;
 }
 
-static void*
-so_vget(soobj *obj, va_list args)
+static soif setxif =
 {
-	sov *v = (sov*)obj;
-	so *e = so_of(obj);
-	char *name = va_arg(args, char*);
-	if (strcmp(name, "key") == 0) {
-		void *key = sv_key(&v->v);
-		if (srunlikely(key == NULL))
-			return NULL;
-		int *keysize = va_arg(args, int*);
-		if (keysize)
-			*keysize = sv_keysize(&v->v);
-		return key;
-	} else
-	if (strcmp(name, "value") == 0) {
-		void *value = sv_value(&v->v);
-		if (srunlikely(value == NULL))
-			return NULL;
-		int *valuesize = va_arg(args, int*);
-		if (valuesize)
-			*valuesize = sv_valuesize(&v->v);
-		return value;
-	} else
-	if (strcmp(name, "prefix") == 0) {
-		if (srunlikely(v->prefix == NULL))
-			return NULL;
-		int *prefixsize = va_arg(args, int*);
-		if (prefixsize)
-			*prefixsize = v->prefixsize;
-		return v->prefix;
-	} else
-	if (strcmp(name, "lsn") == 0) {
-		uint64_t *lsnp = NULL;
-		if (v->v.i == &sv_localif)
-			lsnp = &v->lv.lsn;
-		else
-		if (v->v.i == &sv_vif)
-			lsnp = &((svv*)(v->v.v))->lsn;
-		else
-		if (v->v.i == &sx_vif)
-			lsnp = &((sxv*)(v->v.v))->v->lsn;
-		else {
-			assert(0);
-		}
-		int *valuesize = va_arg(args, int*);
-		if (valuesize)
-			*valuesize = sizeof(uint64_t);
-		return lsnp;
-	} else
-	if (strcmp(name, "order") == 0) {
-		src order = {
-			.name     = "order",
-			.value    = sr_ordername(v->order),
-			.flags    = SR_CSZ,
-			.ptr      = NULL,
-			.function = NULL,
-			.next     = NULL
-		};
-		void *o = so_ctlreturn(&order, e);
-		if (srunlikely(o == NULL))
-			return NULL;
-		return o;
-	}
-	return NULL;
-}
-
-static void*
-so_vtype(soobj *o srunused, va_list args srunused) {
-	return "object";
-}
-
-static soobjif sovif =
-{
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = so_vdestroy,
-	.error    = NULL,
-	.set      = so_vset,
-	.get      = so_vget,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = NULL,
-	.type     = so_vtype
+	.open         = NULL,
+	.destroy      = se_txrollback,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = se_txset_int,
+	.getobject    = NULL,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = se_txset,
+	.update       = se_txupdate,
+	.del          = se_txdelete,
+	.get          = se_txget,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = se_txprepare,
+	.commit       = se_txcommit,
+	.cursor       = NULL,
 };
 
-soobj *so_vinit(sov *v, so *e, soobj *parent)
+so *se_txnew(se *e)
 {
-	memset(v, 0, sizeof(*v));
-	so_objinit(&v->o, SOV, &sovif, &e->o);
-	sv_init(&v->v, &sv_localif, &v->lv, NULL);
-	v->order = SR_GTE;
-	v->parent = parent;
-	return &v->o;
-}
-
-soobj *so_vnew(so *e, soobj *parent)
-{
-	sov *v = sr_malloc(&e->a_v, sizeof(sov));
-	if (srunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+	setx *t = ss_malloc(&e->a_tx, sizeof(setx));
+	if (ssunlikely(t == NULL)) {
+		sr_oom(&e->error);
 		return NULL;
 	}
-	return so_vinit(v, e, parent);
+	memset(t, 0, sizeof(*t));
+	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
+	sx_init(&e->xm, &t->t);
+	t->lsn = 0;
+	sx_begin(&e->xm, &t->t, 0);
+	se_dbbind(e);
+	so_listadd(&e->tx, &t->o);
+	return &t->o;
 }
-
-soobj *so_vrelease(sov *v)
-{
-	so *e = so_of(&v->o);
-	if (v->flags & SO_VALLOCATED)
-		sv_vfree(&e->a, (svv*)v->v.v);
-	v->flags = 0;
-	v->v.v = NULL;
-	return &v->o;
-}
-
-soobj *so_vput(sov *o, sv *v)
-{
-	o->flags = SO_VALLOCATED|SO_VRO;
-	o->v = *v;
-	return &o->o;
-}
-
-soobj *so_vdup(so *e, soobj *parent, sv *v)
-{
-	sov *ret = (sov*)so_vnew(e, parent);
-	if (srunlikely(ret == NULL))
-		return NULL;
-	ret->flags = SO_VALLOCATED|SO_VRO;
-	ret->v = *v;
-	return &ret->o;
-}
-
-int so_vimmutable(sov *v)
-{
-	v->flags |= SO_VIMMUTABLE;
-	return 0;
-}
-#line 1 "sophia/sophia/so_worker.c"
+#line 1 "sophia/environment/se_v.c"
 
 /*
  * sophia database
@@ -26991,79 +30515,404 @@ int so_vimmutable(sov *v)
 
 
 
-int so_workersinit(soworkers *w)
+
+
+
+static int
+se_vdestroy(so *o)
 {
-	sr_listinit(&w->list);
+	sev *v = se_cast(o, sev*, SEV);
+	se *e = se_of(o);
+	if (v->v.v)
+		sv_vfree(&e->a, (svv*)v->v.v);
+	v->v.v = NULL;
+	se_mark_destroyed(&v->o);
+	ss_free(&e->a_v, v);
+	return 0;
+}
+
+static sfv*
+se_vsetpart(sev *v, const char *path, void *pointer, int size)
+{
+	se *e = se_of(&v->o);
+	sedb *db = (sedb*)v->o.parent;
+	srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
+	if (ssunlikely(part == NULL))
+		return NULL;
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
+	const int keysize_max = 1 << 15;
+	if (size == 0)
+		size = strlen(pointer) + 1;
+	if (ssunlikely(size > keysize_max)) {
+		sr_error(&e->error, "key '%s' is too big (%d limit)",
+		         pointer, keysize_max);
+		return NULL;
+	}
+	sfv *fv = &v->keyv[part->pos];
+	fv->r.offset = 0;
+	fv->key = pointer;
+	fv->r.size = size;
+	if (fv->part == NULL)
+		v->keyc++;
+	fv->part = part;
+	return fv;
+}
+
+static int
+se_vsetstring(so *o, const char *path, void *pointer, int size)
+{
+	sev *v = se_cast(o, sev*, SEV);
+	se *e = se_of(o);
+	if (ssunlikely(v->v.v))
+		return sr_error(&e->error, "%s", "object is read-only");
+
+	if (strcmp(path, "value") == 0) {
+		const int valuesize_max = 1 << 21;
+		if (ssunlikely(size > valuesize_max)) {
+			sr_error(&e->error, "value is too big (%d limit)",
+			         valuesize_max);
+			return -1;
+		}
+		v->value = pointer;
+		v->valuesize = size;
+		return 0;
+	}
+	if (strcmp(path, "prefix") == 0) {
+		v->prefix = pointer;
+		v->prefixsize = size;
+		return 0;
+	}
+	if (strcmp(path, "log") == 0) {
+		v->log = pointer;
+		return 0;
+	}
+	if (strcmp(path, "order") == 0) {
+		if (size == 0)
+			size = strlen(pointer);
+		ssorder cmp = ss_orderof(pointer, size);
+		if (ssunlikely(cmp == SS_STOP)) {
+			sr_error(&e->error, "%s", "bad order name");
+			return -1;
+		}
+		v->order = cmp;
+		v->orderset = 1;
+		return 0;
+	}
+	if (strcmp(path, "raw") == 0) {
+		v->raw = pointer;
+		v->rawsize = size;
+		return 0;
+	}
+	if (strcmp(path, "arg") == 0) {
+		v->async_arg = pointer;
+		return 0;
+	}
+	/* object keypart */
+	sfv *fv = se_vsetpart(v, path, pointer, size);
+	if (ssunlikely(fv == NULL))
+		return -1;
+	return 0;
+}
+
+static void*
+se_vgetstring(so *o, const char *path, int *size)
+{
+	sev *v = se_cast(o, sev*, SEV);
+	if (strcmp(path, "value") == 0) {
+		/* key object */
+		if (v->value) {
+			if (size)
+				*size = v->valuesize;
+			if (v->valuesize == 0)
+				return NULL;
+			return v->value;
+		}
+		if (v->v.v == NULL) {
+			if (size)
+				*size = 0;
+			return NULL;
+		}
+		/* result object */
+		sedb *db = (sedb*)o->parent;
+		int vsize = sv_valuesize(&v->v, &db->r);
+		if (size)
+			*size = vsize;
+		if (vsize == 0)
+			return NULL;
+		return sv_value(&v->v, &db->r);
+	}
+	if (strcmp(path, "prefix") == 0) {
+		if (v->prefix == NULL)
+			return NULL;
+		if (size)
+			*size = v->prefixsize;
+		return v->prefix;
+	}
+	if (strcmp(path, "order") == 0) {
+		char *order = ss_ordername(v->order);
+		if (*size)
+			*size = strlen(order) + 1;
+		return order;
+	}
+	if (strcmp(path, "type") == 0) {
+		char *type = se_reqof(v->async_operation);
+		if (size)
+			*size = strlen(type);
+		return type;
+	}
+	if (strcmp(path, "arg") == 0) {
+		if (size)
+			*size = 0;
+		return v->async_arg;
+	}
+	if (strcmp(path, "raw") == 0) {
+		if (v->raw) {
+			if (size)
+				*size = v->rawsize;
+			return v->raw;
+		}
+		if (v->v.v == NULL)
+			return NULL;
+		if (size)
+			*size = sv_size(&v->v);
+		return sv_pointer(&v->v);
+	}
+
+	/* match key-part */
+	sedb *db = (sedb*)o->parent;
+	srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
+	if (ssunlikely(part == NULL))
+		return NULL;
+	/* database result object */
+	if (v->v.v) {
+		if (size)
+			*size = sv_keysize(&v->v, &db->r, part->pos);
+		return sv_key(&v->v, &db->r, part->pos);
+	}
+	/* database key object */
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
+	sfv *fv = &v->keyv[part->pos];
+	if (fv->key == NULL)
+		return NULL;
+	if (size)
+		*size = fv->r.size;
+	return fv->key;
+}
+
+static int64_t
+se_vgetint(so *o, const char *path)
+{
+	sev *v = se_cast(o, sev*, SEV);
+	se *e = se_of(o);
+	if (strcmp(path, "lsn") == 0) {
+		uint64_t lsn = -1;
+		if (v->v.v)
+			lsn = ((svv*)(v->v.v))->lsn;
+		return lsn;
+	} else
+	if (strcmp(path, "status") == 0) {
+		return v->async_status;
+	} else
+	if (strcmp(path, "seq") == 0) {
+		return v->async_seq;
+	} else {
+		sr_error(&e->error, "unknown object field '%s'",
+		         path);
+	}
+	return -1;
+}
+
+static soif sevif =
+{
+	.open         = NULL,
+	.destroy      = se_vdestroy,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = se_vsetstring,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = se_vgetstring,
+	.getint       = se_vgetint,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = NULL,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
+};
+
+so *se_vnew(se *e, so *parent, sv *vp, int async)
+{
+	sev *v = ss_malloc(&e->a_v, sizeof(sev));
+	if (ssunlikely(v == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	memset(v, 0, sizeof(*v));
+	so_init(&v->o, &se_o[SEV], &sevif, parent, &e->o);
+	v->order = SS_EQ;
+	v->async = async;
+	if (vp) {
+		v->v = *vp;
+	}
+	return &v->o;
+}
+#line 1 "sophia/environment/se_worker.c"
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+static inline seworker*
+se_workernew(sr *r, int id, ssthreadf f, void *arg)
+{
+	seworker *w = ss_malloc(r->a, sizeof(seworker));
+	if (ssunlikely(w == NULL)) {
+		sr_oom_malfunction(r->e);
+		return NULL;
+	}
+	snprintf(w->name, sizeof(w->name), "%d", id);
+	w->arg = arg;
+	sd_cinit(&w->dc);
+	ss_listinit(&w->link);
+	ss_traceinit(&w->trace);
+	ss_trace(&w->trace, "%s", "init");
+	int rc = ss_threadnew(&w->t, f, w);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "failed to create thread: %s",
+		               strerror(errno));
+		ss_free(r->a, w);
+		return NULL;
+	}
+	return w;
+}
+
+static inline int
+se_workershutdown(seworker *w, sr *r)
+{
+	int rc = ss_threadjoin(&w->t);
+	if (ssunlikely(rc == -1))
+		sr_malfunction(r->e, "failed to join a thread: %s",
+		               strerror(errno));
+	sd_cfree(&w->dc, r);
+	ss_tracefree(&w->trace);
+	ss_free(r->a, w);
+	return rc;
+}
+
+int se_workerpool_init(seworkerpool *w)
+{
+	ss_listinit(&w->list);
 	w->n = 0;
 	return 0;
 }
 
-static inline int
-so_workershutdown(soworker *w, sr *r)
-{
-	int rc = sr_threadjoin(&w->t);
-	if (srunlikely(rc == -1))
-		sr_malfunction(r->e, "failed to join a thread: %s",
-		               strerror(errno));
-	sd_cfree(&w->dc, r);
-	sr_tracefree(&w->trace);
-	sr_free(r->a, w);
-	return rc;
-}
-
-int so_workersshutdown(soworkers *w, sr *r)
+int se_workerpool_shutdown(seworkerpool *p, sr *r)
 {
 	int rcret = 0;
 	int rc;
-	srlist *i, *n;
-	sr_listforeach_safe(&w->list, i, n) {
-		soworker *p = srcast(i, soworker, link);
-		rc = so_workershutdown(p, r);
-		if (srunlikely(rc == -1))
+	sslist *i, *n;
+	ss_listforeach_safe(&p->list, i, n) {
+		seworker *w = sscast(i, seworker, link);
+		rc = se_workershutdown(w, r);
+		if (ssunlikely(rc == -1))
 			rcret = -1;
 	}
 	return rcret;
 }
 
-static inline soworker*
-so_workernew(sr *r, int id, srthreadf f, void *arg)
-{
-	soworker *p = sr_malloc(r->a, sizeof(soworker));
-	if (srunlikely(p == NULL)) {
-		sr_malfunction(r->e, "%s", "memory allocation failed");
-		return NULL;
-	}
-	snprintf(p->name, sizeof(p->name), "%d", id);
-	p->arg = arg;
-	sd_cinit(&p->dc);
-	sr_listinit(&p->link);
-	sr_traceinit(&p->trace);
-	sr_trace(&p->trace, "%s", "init");
-	int rc = sr_threadnew(&p->t, f, p);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "failed to create thread: %s",
-		               strerror(errno));
-		sr_free(r->a, p);
-		return NULL;
-	}
-	return p;
-}
-
-int so_workersnew(soworkers *w, sr *r, int n, srthreadf f, void *arg)
+int se_workerpool_new(seworkerpool *p, sr *r, int n, ssthreadf f, void *arg)
 {
 	int i = 0;
 	int id = 0;
 	while (i < n) {
-		soworker *p = so_workernew(r, id, f, arg);
-		if (srunlikely(p == NULL))
+		seworker *w = se_workernew(r, id, f, arg);
+		if (ssunlikely(p == NULL))
 			return -1;
-		sr_listappend(&w->list, &p->link);
-		w->n++;
+		ss_listappend(&p->list, &w->link);
+		p->n++;
 		i++;
 		id++;
 	}
 	return 0;
 }
+#line 1 "sophia/sophia/sophia.h"
+#ifndef SOPHIA_H_
+#define SOPHIA_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdlib.h>
+#include <stdint.h>
+
+#if __GNUC__ >= 4
+#  define SP_API __attribute__((visibility("default")))
+#else
+#  define SP_API
+#endif
+
+SP_API void    *sp_env(void);
+SP_API void    *sp_object(void*);
+SP_API int      sp_open(void*);
+SP_API int      sp_drop(void*);
+SP_API int      sp_destroy(void*);
+SP_API int      sp_error(void*);
+SP_API void    *sp_asynchronous(void*);
+SP_API void    *sp_poll(void*);
+SP_API int      sp_setobject(void*, const char*, const void*);
+SP_API int      sp_setstring(void*, const char*, const void*, int);
+SP_API int      sp_setint(void*, const char*, int64_t);
+SP_API void    *sp_getobject(void*, const char*);
+SP_API void    *sp_getstring(void*, const char*, int*);
+SP_API int64_t  sp_getint(void*, const char*);
+SP_API int      sp_set(void*, void*);
+SP_API int      sp_update(void*, void*);
+SP_API int      sp_delete(void*, void*);
+SP_API void    *sp_get(void*, void*);
+SP_API void    *sp_cursor(void*);
+SP_API void    *sp_batch(void*);
+SP_API void    *sp_begin(void*);
+SP_API int      sp_prepare(void*);
+SP_API int      sp_commit(void*);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
 #line 1 "sophia/sophia/sophia.c"
 
 /*
@@ -27083,271 +30932,350 @@ int so_workersnew(soworkers *w, sr *r, int n, srthreadf f, void *arg)
 
 
 
+
+
+
+
 static inline void
-sp_error_unsupported_method(soobj *o, const char *method, ...)
+sp_unsupported(so *o, const char *method)
 {
-	assert(o->env != NULL);
-	assert(o->env->id == SOENV);
-	va_list args;
-	va_start(args, method);
-	so *e = (so*)o->env;
-	sr_error(&e->error, "unsupported %s(%s) operation",
-	         (char*)method,
-	         (char*)o->i->type(o, args));
-	va_end(args);
+	fprintf(stderr, "\n%s(%s): unsupported operation\n",
+	        (char*)method, o->type->name);
+	abort();
 }
 
-SP_API void*
-sp_env(void)
+static inline so*
+sp_cast(void *ptr, const char *method)
 {
-	return so_new();
+	so *o = se_cast_validate(ptr);
+	if (ssunlikely(o == NULL)) {
+		fprintf(stderr, "\n%s(%p): bad object\n", method, ptr);
+		abort();
+	}
+	if (ssunlikely(o->type == &se_o[SEDESTROYED])) {
+		fprintf(stderr, "\n%s(%p): attempt to use destroyed object\n",
+		        method, ptr);
+		abort();
+	}
+	return o;
 }
 
-SP_API void*
-sp_ctl(void *o, ...)
+SP_API void *sp_env(void)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->ctl == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	return se_new();
+}
+
+SP_API void *sp_object(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->object == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->ctl(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->object(o);
+	se_apiunlock(e);
 	return h;
 }
 
-SP_API void*
-sp_object(void *o, ...)
+SP_API int sp_open(void *ptr)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->object == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return NULL;
-	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->object(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return h;
-}
-
-SP_API int
-sp_open(void *o, ...)
-{
-	soobj *obj = o;
-	if (srunlikely(obj->i->open == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->open == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	int rc = obj->i->open(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->open(o);
+	se_apiunlock(e);
 	return rc;
 }
 
-SP_API int
-sp_destroy(void *o, ...)
+SP_API int sp_drop(void *ptr)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->destroy == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->drop == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	va_list args;
-	va_start(args, o);
-	soobj *env = obj->env;
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->drop(o);
+	se_apiunlock(e);
+	return rc;
+}
+
+SP_API int sp_destroy(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->destroy == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	so *e = o->env;
 	int rc;
-	if (srunlikely(env == o)) {
-		rc = obj->i->destroy(o, args);
-		va_end(args);
+	if (ssunlikely(e == o)) {
+		rc = o->i->destroy(o);
 		return rc;
 	}
-	so_apilock(env);
-	rc = obj->i->destroy(o, args);
-	so_apiunlock(env);
-	va_end(args);
+	se_apilock(e);
+	rc = o->i->destroy(o);
+	se_apiunlock(e);
 	return rc;
 }
 
-SP_API int sp_error(void *o, ...)
+SP_API int sp_error(void *ptr)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->error == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->error == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	int rc = obj->i->error(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->error(o);
+	se_apiunlock(e);
 	return rc;
 }
 
-SP_API int
-sp_set(void *o, ...)
+SP_API void *sp_asynchronous(void *ptr)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->set == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	int rc = obj->i->set(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return rc;
-}
-
-SP_API void*
-sp_get(void *o, ...)
-{
-	soobj *obj = o;
-	if (srunlikely(obj->i->get == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->asynchronous == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->get(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->asynchronous(o);
+	se_apiunlock(e);
 	return h;
 }
 
-SP_API int
-sp_delete(void *o, ...)
+SP_API void *sp_poll(void *ptr)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->del == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	soobj *env = obj->env;
-	va_list args;
-	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->del(o, args);
-	so_apiunlock(env);
-	va_end(args);
-	return rc;
-}
-
-SP_API int
-sp_drop(void *o, ...)
-{
-	soobj *obj = o;
-	if (srunlikely(obj->i->drop == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	soobj *env = obj->env;
-	va_list args;
-	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->drop(o, args);
-	so_apiunlock(env);
-	va_end(args);
-	return rc;
-}
-
-SP_API void*
-sp_begin(void *o, ...)
-{
-	soobj *obj = o;
-	if (srunlikely(obj->i->begin == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->poll == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->begin(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->poll(o);
+	se_apiunlock(e);
 	return h;
 }
 
-SP_API int
-sp_prepare(void *o, ...)
+SP_API int sp_setobject(void *ptr, const char *path, const void *object)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->prepare == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->setobject == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	soobj *env = obj->env;
-	va_list args;
-	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->prepare(o, args);
-	so_apiunlock(env);
-	va_end(args);
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->setobject(o, path, (void*)object);
+	se_apiunlock(e);
 	return rc;
 }
 
-SP_API int
-sp_commit(void *o, ...)
+SP_API int sp_setstring(void *ptr, const char *path, const void *pointer, int size)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->commit == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->setstring == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	soobj *env = obj->env;
-	va_list args;
-	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->commit(o, args);
-	so_apiunlock(env);
-	va_end(args);
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->setstring(o, path, (void*)pointer, size);
+	se_apiunlock(e);
 	return rc;
 }
 
-SP_API void*
-sp_cursor(void *o, ...)
+SP_API int sp_setint(void *ptr, const char *path, int64_t v)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->cursor == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return NULL;
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->setint == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *cursor = obj->i->cursor(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return cursor;
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->setint(o, path, v);
+	se_apiunlock(e);
+	return rc;
 }
 
-SP_API void *sp_type(void *o, ...)
+SP_API void *sp_getobject(void *ptr, const char *path)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->type == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->getobject == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->type(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->getobject(o, path);
+	se_apiunlock(e);
 	return h;
+}
+
+SP_API void *sp_getstring(void *ptr, const char *path, int *size)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->getstring == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->getstring(o, path, size);
+	se_apiunlock(e);
+	return h;
+}
+
+SP_API int64_t sp_getint(void *ptr, const char *path)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->getint == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	int64_t rc = o->i->getint(o, path);
+	se_apiunlock(e);
+	return rc;
+}
+
+SP_API int sp_set(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->set == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->set(o, v);
+	se_apiunlock(e);
+	return rc;
+}
+
+SP_API int sp_update(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->update == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->update(o, v);
+	se_apiunlock(e);
+	return rc;
+}
+
+SP_API int sp_delete(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->del == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->del(o, v);
+	se_apiunlock(e);
+	return rc;
+}
+
+SP_API void *sp_get(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->get == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->get(o, v);
+	se_apiunlock(e);
+	return h;
+}
+
+SP_API void *sp_cursor(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->cursor == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->cursor(o);
+	se_apiunlock(e);
+	return h;
+}
+
+SP_API void *sp_batch(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->batch == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->batch(o);
+	se_apiunlock(e);
+	return h;
+}
+
+SP_API void *sp_begin(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->begin == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	void *h = o->i->begin(o);
+	se_apiunlock(e);
+	return h;
+}
+
+SP_API int sp_prepare(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->prepare == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->prepare(o);
+	se_apiunlock(e);
+	return rc;
+}
+
+SP_API int sp_commit(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->commit == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->commit(o);
+	se_apiunlock(e);
+	return rc;
 }
 /* vim: foldmethod=marker
 */

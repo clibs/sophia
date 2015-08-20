@@ -13,8 +13,9 @@ typedef struct siplanner siplanner;
 typedef struct siplan siplan;
 
 struct siplanner {
-	srrq branch;
-	srrq compact;
+	void *i;
+	ssrq branch;
+	ssrq compact;
 };
 
 /* plan */
@@ -24,8 +25,9 @@ struct siplanner {
 #define SI_CHECKPOINT    8
 #define SI_GC            16
 #define SI_BACKUP        32
-#define SI_SHUTDOWN      64
-#define SI_DROP          128
+#define SI_BACKUPEND     64
+#define SI_SHUTDOWN      128
+#define SI_DROP          256
 
 /* explain */
 #define SI_ENONE         0
@@ -69,9 +71,9 @@ struct siplan {
 };
 
 int si_planinit(siplan*);
-int si_plannerinit(siplanner*, sra*);
-int si_plannerfree(siplanner*, sra*);
-int si_plannertrace(siplan*, srtrace*);
+int si_plannerinit(siplanner*, ssa*, void*);
+int si_plannerfree(siplanner*, ssa*);
+int si_plannertrace(siplan*, sstrace*);
 int si_plannerupdate(siplanner*, int, sinode*);
 int si_plannerremove(siplanner*, int, sinode*);
 int si_planner(siplanner*, siplan*);

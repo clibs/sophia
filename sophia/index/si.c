@@ -7,81 +7,87 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
 #include <libsi.h>
 
-int si_init(si *i, sr *r, srquota *q)
+int si_init(si *i, sr *r)
 {
-	int rc = si_plannerinit(&i->p, r->a);
-	if (srunlikely(rc == -1))
+	int rc = si_plannerinit(&i->p, r->a, i);
+	if (ssunlikely(rc == -1))
 		return -1;
-	sr_bufinit(&i->readbuf);
-	sr_rbinit(&i->i);
-	sr_mutexinit(&i->lock);
-	sr_condinit(&i->cond);
-	i->quota       = q;
-	i->conf        = NULL;
+	ss_bufinit(&i->readbuf);
+	sv_updateinit(&i->u);
+	ss_rbinit(&i->i);
+	ss_mutexinit(&i->lock);
+	i->scheme      = NULL;
 	i->update_time = 0;
 	i->read_disk   = 0;
 	i->read_cache  = 0;
+	i->backup      = 0;
 	i->destroyed   = 0;
+	i->r           = r;
 	return 0;
 }
 
-int si_open(si *i, sr *r, siconf *conf)
+int si_open(si *i, sischeme *scheme)
 {
-	i->conf = conf;
-	return si_recover(i, r);
+	i->scheme = scheme;
+	return si_recover(i);
 }
 
-sr_rbtruncate(si_truncate,
-              si_nodefree(srcast(n, sinode, node), (sr*)arg, 0))
+ss_rbtruncate(si_truncate,
+              si_nodefree(sscast(n, sinode, node), (sr*)arg, 0))
 
-int si_close(si *i, sr *r)
+int si_close(si *i)
 {
 	if (i->destroyed)
 		return 0;
 	int rcret = 0;
 	if (i->i.root)
-		si_truncate(i->i.root, r);
+		si_truncate(i->i.root, i->r);
 	i->i.root = NULL;
-	sr_buffree(&i->readbuf, r->a);
-	si_plannerfree(&i->p, r->a);
-	sr_condfree(&i->cond);
-	sr_mutexfree(&i->lock);
+	sv_updatefree(&i->u, i->r);
+	ss_buffree(&i->readbuf, i->r->a);
+	si_plannerfree(&i->p, i->r->a);
+	ss_mutexfree(&i->lock);
 	i->destroyed = 1;
 	return rcret;
 }
 
-sr_rbget(si_match,
-         sr_compare(cmp,
-                    sd_indexpage_min(sd_indexmin(&(srcast(n, sinode, node))->self.index)),
-                    sd_indexmin(&(srcast(n, sinode, node))->self.index)->sizemin,
-                    key, keysize))
+ss_rbget(si_match,
+         sr_compare(scheme,
+                    sd_indexpage_min(&(sscast(n, sinode, node))->self.index,
+                                     sd_indexmin(&(sscast(n, sinode, node))->self.index)),
+                    sd_indexmin(&(sscast(n, sinode, node))->self.index)->sizemin,
+                                key, keysize))
 
-int si_insert(si *i, sr *r, sinode *n)
+int si_insert(si *i, sinode *n)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
-	srrbnode *p = NULL;
-	int rc = si_match(&i->i, r->cmp, sd_indexpage_min(min), min->sizemin, &p);
+	ssrbnode *p = NULL;
+	int rc = si_match(&i->i, i->r->scheme,
+	                  sd_indexpage_min(&n->self.index, min),
+	                  min->sizemin, &p);
 	assert(! (rc == 0 && p));
-	sr_rbset(&i->i, p, rc, &n->node);
+	ss_rbset(&i->i, p, rc, &n->node);
 	i->n++;
 	return 0;
 }
 
 int si_remove(si *i, sinode *n)
 {
-	sr_rbremove(&i->i, &n->node);
+	ss_rbremove(&i->i, &n->node);
 	i->n--;
 	return 0;
 }
 
 int si_replace(si *i, sinode *o, sinode *n)
 {
-	sr_rbreplace(&i->i, &o->node, &n->node);
+	ss_rbreplace(&i->i, &o->node, &n->node);
 	return 0;
 }
 
@@ -93,27 +99,28 @@ int si_plan(si *i, siplan *plan)
 	return rc;
 }
 
-int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	int rc = -1;
 	switch (plan->plan) {
 	case SI_CHECKPOINT:
 	case SI_BRANCH:
 	case SI_AGE:
-		rc = si_branch(i, r, c, plan, vlsn);
+		rc = si_branch(i, c, plan, vlsn);
 		break;
 	case SI_GC:
 	case SI_COMPACT:
-		rc = si_compact(i, r, c, plan, vlsn);
+		rc = si_compact(i, c, plan, vlsn);
 		break;
 	case SI_BACKUP:
-		rc = si_backup(i, r, c, plan);
+	case SI_BACKUPEND:
+		rc = si_backup(i, c, plan);
 		break;
 	case SI_SHUTDOWN:
-		rc = si_close(i, r);
+		rc = si_close(i);
 		break;
 	case SI_DROP:
-		rc = si_drop(i, r);
+		rc = si_drop(i);
 		break;
 	}
 	return rc;

@@ -7,19 +7,21 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
+#include <libss.h>
 #include <libsv.h>
 
-sr_rbtruncate(sv_indextruncate,
-              sv_vfree((sra*)arg, srcast(n, svv, node)))
+ss_rbtruncate(sv_indextruncate,
+              sv_vfree((ssa*)arg, sscast(n, svv, node)))
 
 int sv_indexinit(svindex *i)
 {
-	i->keymax = 0;
 	i->lsnmin = UINT64_MAX;
 	i->count  = 0;
 	i->used   = 0;
-	sr_rbinit(&i->i);
+	ss_rbinit(&i->i);
 	return 0;
 }
 
@@ -27,7 +29,7 @@ int sv_indexfree(svindex *i, sr *r)
 {
 	if (i->i.root)
 		sv_indextruncate(i->i.root, r->a);
-	sr_rbinit(&i->i);
+	ss_rbinit(&i->i);
 	return 0;
 }
 
@@ -35,7 +37,7 @@ static inline svv*
 sv_vset(svv *head, svv *v)
 {
 	/* default */
-	if (srlikely(head->lsn < v->lsn)) {
+	if (sslikely(head->lsn < v->lsn)) {
 		v->next = head;
 		head->flags |= SVDUP;
 		return v;
@@ -56,64 +58,28 @@ sv_vset(svv *head, svv *v)
 	return head;
 }
 
-#if 0
-static inline svv*
-sv_vgc(svv *v, uint64_t vlsn)
+svv *sv_indexget(svindex *i, sr *r, svindexpos *p, svv *v)
 {
-	svv *prev = v;
-	svv *c = v->next;
-	while (c) {
-		if (c->lsn < vlsn) {
-			prev->next = NULL;
-			return c;
-		}
-		prev = c;
-		c = c->next;
-	}
+	p->rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(v), v->size, &p->node);
+	if (p->rc == 0 && p->node)
+		return sscast(p->node, svv, node);
 	return NULL;
 }
 
-static inline uint32_t
-sv_vstat(svv *v, uint32_t *count) {
-	uint32_t size = 0;
-	*count = 0;
-	while (v) {
-		size += v->keysize + v->valuesize;
-		(*count)++;
-		v = v->next;
-	}
-	return size;
-}
-#endif
-
-int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
-                svv  *v,
-                svv **gc srunused)
+int sv_indexupdate(svindex *i, svindexpos *p, svv *v)
 {
-	srrbnode *n = NULL;
-	svv *head = NULL;
-	if (v->lsn < i->lsnmin)
-		i->lsnmin = v->lsn;
-	int rc = sv_indexmatch(&i->i, r->cmp, sv_vkey(v), v->keysize, &n);
-	if (rc == 0 && n) {
-		head = srcast(n, svv, node);
+	if (p->rc == 0 && p->node)
+	{
+		svv *head = sscast(p->node, svv, node);
 		svv *update = sv_vset(head, v);
 		if (head != update)
-			sr_rbreplace(&i->i, n, &update->node);
-#if 0
-		*gc = sv_vgc(update, vlsn);
-		if (*gc) {
-			uint32_t count = 0;
-			i->used  -= sv_vstat(*gc, &count);
-			i->count -= count;
-		}
-#endif
+			ss_rbreplace(&i->i, p->node, &update->node);
 	} else {
-		sr_rbset(&i->i, n, rc, &v->node);
+		ss_rbset(&i->i, p->node, p->rc, &v->node);
 	}
+	if (v->lsn < i->lsnmin)
+		i->lsnmin = v->lsn;
 	i->count++;
-	i->used += v->keysize + v->valuesize;
-	if (srunlikely(v->keysize > i->keymax))
-		i->keymax = v->keysize;
+	i->used += v->size;
 	return 0;
 }

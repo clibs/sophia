@@ -11,34 +11,48 @@
 
 typedef struct sicachebranch sicachebranch;
 typedef struct sicache sicache;
+typedef struct sicachepool sicachepool;
 
 struct sicachebranch {
 	sibranch *branch;
 	sdindexpage *ref;
-	sriter i;
-	srbuf buf;
-	int iterate;
+	sdpage page;
+	ssiter i;
+	ssiter page_iter;
+	ssiter index_iter;
+	ssbuf buf_a;
+	ssbuf buf_b;
+	int open;
 	sicachebranch *next;
-} srpacked;
+} sspacked;
 
 struct sicache {
-	sra *ac;
 	sicachebranch *path;
 	sicachebranch *branch;
 	uint32_t count;
 	uint32_t nodeid;
 	sinode *node;
+	sicache *next;
+	sicachepool *pool;
+};
+
+struct sicachepool {
+	sicache *head;
+	int n;
+	ssa *ac;
+	ssa *acb;
 };
 
 static inline void
-si_cacheinit(sicache *c, sra *ac)
+si_cacheinit(sicache *c, sicachepool *pool)
 {
 	c->path   = NULL;
 	c->branch = NULL;
 	c->count  = 0;
 	c->node   = NULL;
 	c->nodeid = 0;
-	c->ac     = ac;
+	c->next   = NULL;
+	c->pool   = pool;
 }
 
 static inline void
@@ -48,8 +62,9 @@ si_cachefree(sicache *c, sr *r)
 	sicachebranch *cb = c->path;
 	while (cb) {
 		next = cb->next;
-		sr_buffree(&cb->buf, r->a);
-		sr_free(c->ac, cb);
+		ss_buffree(&cb->buf_a, r->a);
+		ss_buffree(&cb->buf_b, r->a);
+		ss_free(c->pool->acb, cb);
 		cb = next;
 	}
 }
@@ -59,10 +74,12 @@ si_cachereset(sicache *c)
 {
 	sicachebranch *cb = c->path;
 	while (cb) {
-		sr_bufreset(&cb->buf);
+		ss_bufreset(&cb->buf_a);
+		ss_bufreset(&cb->buf_b);
 		cb->branch = NULL;
 		cb->ref = NULL;
-		cb->iterate = 0;
+		ss_iterclose(si_read, &cb->i);
+		cb->open = 0;
 		cb = cb->next;
 	}
 	c->branch = NULL;
@@ -74,23 +91,26 @@ si_cachereset(sicache *c)
 static inline sicachebranch*
 si_cacheadd(sicache *c, sibranch *b)
 {
-	sicachebranch *nb = sr_malloc(c->ac, sizeof(sicachebranch));
-	if (srunlikely(nb == NULL))
+	sicachebranch *nb = ss_malloc(c->pool->acb, sizeof(sicachebranch));
+	if (ssunlikely(nb == NULL))
 		return NULL;
 	nb->branch  = b;
 	nb->ref     = NULL;
-	nb->iterate = 0;
+	memset(&nb->i, 0, sizeof(nb->i));
+	ss_iterinit(si_read, &nb->i);
+	nb->open    = 0;
 	nb->next    = NULL;
-	sr_bufinit(&nb->buf);
+	ss_bufinit(&nb->buf_a);
+	ss_bufinit(&nb->buf_b);
 	return nb;
 }
 
 static inline int
 si_cachevalidate(sicache *c, sinode *n)
 {
-	if (srlikely(c->node == n && c->nodeid == n->self.id.id))
+	if (sslikely(c->node == n && c->nodeid == n->self.id.id))
 	{
-		if (srlikely(n->branch_count == c->count)) {
+		if (sslikely(n->branch_count == c->count)) {
 			c->branch = c->path;
 			return 0;
 		}
@@ -108,7 +128,7 @@ si_cachevalidate(sicache *c, sinode *n)
 				break;
 			}
 			sicachebranch *nb = si_cacheadd(c, b);
-			if (srunlikely(nb == NULL))
+			if (ssunlikely(nb == NULL))
 				return -1;
 			if (! head)
 				head = nb;
@@ -128,14 +148,17 @@ si_cachevalidate(sicache *c, sinode *n)
 	while (cb && b) {
 		cb->branch = b;
 		cb->ref = NULL;
-		sr_bufreset(&cb->buf);
+		cb->open = 0;
+		ss_iterclose(si_read, &cb->i);
+		ss_bufreset(&cb->buf_a);
+		ss_bufreset(&cb->buf_b);
 		last = cb;
 		cb = cb->next;
 		b  = b->next;
 	}
 	while (b) {
 		cb = si_cacheadd(c, b);
-		if (srunlikely(cb == NULL))
+		if (ssunlikely(cb == NULL))
 			return -1;
 		if (last)
 			last->next = cb;
@@ -157,6 +180,55 @@ si_cachefollow(sicache *c)
 	sicachebranch *b = c->branch;
 	c->branch = c->branch->next;
 	return b;
+}
+
+static inline void
+si_cachepool_init(sicachepool *p, ssa *ac, ssa *acb)
+{
+	p->head = NULL;
+	p->n    = 0;
+	p->ac   = ac;
+	p->acb  = acb;
+}
+
+static inline void
+si_cachepool_free(sicachepool *p, sr *r)
+{
+	sicache *next;
+	sicache *c = p->head;
+	while (c) {
+		next = c->next;
+		si_cachefree(c, r);
+		c = next;
+	}
+}
+
+static inline sicache*
+si_cachepool_pop(sicachepool *p)
+{
+	sicache *c;
+	if (sslikely(p->n > 0)) {
+		c = p->head;
+		p->head = c->next;
+		p->n--;
+		si_cachereset(c);
+		c->pool = p;
+		return c;
+	}
+	c = ss_malloc(p->ac, sizeof(sicache));
+	if (ssunlikely(c == NULL))
+		return NULL;
+	si_cacheinit(c, p);
+	return c;
+}
+
+static inline void
+si_cachepool_push(sicache *c)
+{
+	sicachepool *p = c->pool;
+	c->next = p->head;
+	p->head = c;
+	p->n++;
 }
 
 #endif

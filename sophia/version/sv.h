@@ -10,8 +10,8 @@
 */
 
 #define SVNONE   0
-#define SVSET    1
-#define SVDELETE 2
+#define SVDELETE 1
+#define SVUPDATE 2
 #define SVDUP    4
 #define SVABORT  8
 #define SVBEGIN  16
@@ -23,16 +23,14 @@ struct svif {
 	uint8_t   (*flags)(sv*);
 	void      (*lsnset)(sv*, uint64_t);
 	uint64_t  (*lsn)(sv*);
-	char     *(*key)(sv*);
-	uint16_t  (*keysize)(sv*);
-	char     *(*value)(sv*);
-	uint32_t  (*valuesize)(sv*);
+	char     *(*pointer)(sv*);
+	uint32_t  (*size)(sv*);
 };
 
 struct sv {
 	svif *i;
 	void *v, *arg;
-} srpacked;
+} sspacked;
 
 static inline void
 sv_init(sv *v, svif *i, void *vptr, void *arg) {
@@ -46,6 +44,11 @@ sv_flags(sv *v) {
 	return v->i->flags(v);
 }
 
+static inline int
+sv_is(sv *v, uint8_t flags) {
+	return (sv_flags(v) & flags) > 0;
+}
+
 static inline uint64_t
 sv_lsn(sv *v) {
 	return v->i->lsn(v);
@@ -57,29 +60,33 @@ sv_lsnset(sv *v, uint64_t lsn) {
 }
 
 static inline char*
-sv_key(sv *v) {
-	return v->i->key(v);
-}
-
-static inline uint16_t
-sv_keysize(sv *v) {
-	return v->i->keysize(v);
-}
-
-static inline char*
-sv_value(sv *v) {
-	return v->i->value(v);
+sv_pointer(sv *v) {
+	return v->i->pointer(v);
 }
 
 static inline uint32_t
-sv_valuesize(sv *v) {
-	return v->i->valuesize(v);
+sv_size(sv *v) {
+	return v->i->size(v);
+}
+
+static inline char*
+sv_key(sv *v, sr *r ssunused, int part) {
+	return sf_key(v->i->pointer(v), part);
 }
 
 static inline int
-sv_compare(sv *a, sv *b, srcomparator *c) {
-	return sr_compare(c, sv_key(a), sv_keysize(a),
-	                     sv_key(b), sv_keysize(b));
+sv_keysize(sv *v, sr *r ssunused, int part) {
+	return sf_keysize(v->i->pointer(v), part);
+}
+
+static inline char*
+sv_value(sv *v, sr *r) {
+	return sf_value(r->fmt, sv_pointer(v), r->scheme->count);
+}
+
+static inline int
+sv_valuesize(sv *v, sr *r) {
+	return sf_valuesize(r->fmt, sv_pointer(v), sv_size(v), r->scheme->count);
 }
 
 #endif

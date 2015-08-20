@@ -7,18 +7,19 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
 #include <libsi.h>
 
-static inline int
-si_dropof(siconf *conf, sr *r)
+int si_droprepository(sischeme *scheme, sr *r, int drop_directory)
 {
-	DIR *dir = opendir(conf->path);
+	DIR *dir = opendir(scheme->path);
 	if (dir == NULL) {
 		sr_malfunction(r->e, "directory '%s' open error: %s",
-		               conf->path, strerror(errno));
+		               scheme->path, strerror(errno));
 		return -1;
 	}
 	char path[1024];
@@ -28,11 +29,11 @@ si_dropof(siconf *conf, sr *r)
 		if (de->d_name[0] == '.')
 			continue;
 		/* skip drop file */
-		if (srunlikely(strcmp(de->d_name, "drop") == 0))
+		if (ssunlikely(strcmp(de->d_name, "drop") == 0))
 			continue;
-		snprintf(path, sizeof(path), "%s/%s", conf->path, de->d_name);
-		rc = sr_fileunlink(path);
-		if (srunlikely(rc == -1)) {
+		snprintf(path, sizeof(path), "%s/%s", scheme->path, de->d_name);
+		rc = ss_fileunlink(path);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' unlink error: %s",
 			               path, strerror(errno));
 			closedir(dir);
@@ -41,48 +42,51 @@ si_dropof(siconf *conf, sr *r)
 	}
 	closedir(dir);
 
-	snprintf(path, sizeof(path), "%s/drop", conf->path);
-	rc = sr_fileunlink(path);
-	if (srunlikely(rc == -1)) {
+	snprintf(path, sizeof(path), "%s/drop", scheme->path);
+	rc = ss_fileunlink(path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' unlink error: %s",
 		               path, strerror(errno));
 		return -1;
 	}
-	rc = rmdir(conf->path);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "directory '%s' unlink error: %s",
-		               conf->path, strerror(errno));
-		return -1;
+	if (drop_directory) {
+		rc = rmdir(scheme->path);
+		if (ssunlikely(rc == -1)) {
+			sr_malfunction(r->e, "directory '%s' unlink error: %s",
+			               scheme->path, strerror(errno));
+			return -1;
+		}
 	}
 	return 0;
 }
 
-int si_dropmark(si *i, sr *r)
+int si_dropmark(si *i)
 {
 	/* create drop file */
 	char path[1024];
-	snprintf(path, sizeof(path), "%s/drop", i->conf->path);
-	srfile drop;
-	sr_fileinit(&drop, r->a);
-	int rc = sr_filenew(&drop, path);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "drop file '%s' create error: %s",
+	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
+	ssfile drop;
+	ss_fileinit(&drop, i->r->a);
+	int rc = ss_filenew(&drop, path);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(i->r->e, "drop file '%s' create error: %s",
 		               path, strerror(errno));
 		return -1;
 	}
-	sr_fileclose(&drop);
+	ss_fileclose(&drop);
 	return 0;
 }
 
-int si_drop(si *i, sr *r)
+int si_drop(si *i)
 {
-	siconf *conf = i->conf;
+	sr *r = i->r;
+	sischeme *scheme = i->scheme;
 	/* drop file must exists at this point */
 	/* shutdown */
-	int rc = si_close(i, r);
-	if (srunlikely(rc == -1))
+	int rc = si_close(i);
+	if (ssunlikely(rc == -1))
 		return -1;
 	/* remove directory */
-	rc = si_dropof(conf, r);
+	rc = si_droprepository(scheme, r, 1);
 	return rc;
 }

@@ -12,15 +12,11 @@
 typedef struct sdv sdv;
 
 struct sdv {
-	uint64_t lsn;
-	uint32_t timestamp;
+	uint32_t offset;
 	uint8_t  flags;
-	uint16_t keysize;
-	uint32_t keyoffset;
-	uint32_t valuesize;
-	uint32_t valueoffset;
-} srpacked;
+} sspacked;
 
 extern svif sd_vif;
+extern svif sd_vrawif;
 
 #endif
