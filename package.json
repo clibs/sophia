@@ -1,6 +1,6 @@
 {
   "name": "sophia",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repo": "clibs/sophia",
   "description": "modern emeddable key-value database",
   "keywords": [
